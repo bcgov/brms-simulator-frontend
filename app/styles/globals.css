@@ -1,0 +1,4 @@
+/* Override graph height */
+.grl-dg {
+  min-height: 500px !important;
+}
