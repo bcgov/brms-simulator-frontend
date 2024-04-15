@@ -1,16 +1,52 @@
-"use client";
-import SimulationViewer from "./components/SimulationViewer";
+import { Table, Button, Flex } from "antd";
+import Link from "next/link";
+import { RuleInfo } from "./types/ruleInfo";
+import { getAllRuleData } from "./utils/api";
 
-// TODO: These will eventually com from somewhere else
-const JSON_FILE = "wintersupplementalt.json"; // "guideservicedogsupplementalt.json";
-const DOC_ID = "06c0f927-c7e6-4dc9-a139-63c97b9bcfcb"; // "a0c740f6-183a-4427-8dd2-fa4ba31ddac0";
-const CHEFS_FORM_ID = "223c8f22-9e51-45ce-b90c-62dc30333e78";
+export default async function Home() {
+  const rules: RuleInfo[] = await getAllRuleData();
 
-export default function Home() {
+  const mappedRules = rules.map(({ _id, title, chefsFormId }, key) => {
+    return {
+      key,
+      titleLink: (
+        <b>
+          <a href={`/rule/${_id}`}>{title}</a>
+        </b>
+      ),
+      editRule: (
+        <a href={`https://sdpr.gorules.io/projects/${process.env.NEXT_PUBLIC_GO_RULES_PROJECT_ID}/documents/${_id}`}>
+          Edit
+        </a>
+      ),
+      submissionFormLink: <a href={`https://submit.digital.gov.bc.ca/app/form/submit?f=${chefsFormId}`}>Submission</a>,
+    };
+  });
+
+  const columns = [
+    {
+      title: "Rule",
+      dataIndex: "titleLink",
+    },
+    {
+      title: "Edit Rule",
+      dataIndex: "editRule",
+    },
+    {
+      title: "Submission Form",
+      dataIndex: "submissionFormLink",
+    },
+  ];
+
   return (
     <>
-      <h1>Winter Supplement</h1>
-      <SimulationViewer jsonFile={JSON_FILE} docId={DOC_ID} chefsFormId={CHEFS_FORM_ID} />
+      <Flex justify="space-between" align="center">
+        <h1>BRMS Rule Simulator</h1>
+        <Link href="/admin">
+          <Button>Admin</Button>
+        </Link>
+      </Flex>
+      <Table columns={columns} dataSource={mappedRules} />
     </>
   );
 }
