@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Table, Input, Button, Flex } from "antd";
 import { RuleInfo } from "../types/ruleInfo";
 import { getAllRuleData, postRuleData, updateRuleData, deleteRuleData } from "../utils/api";
@@ -79,13 +80,16 @@ export default function Admin() {
     await Promise.all(
       entriesToUpdate.map(async ({ rule, action }) => {
         if (rule?._id) {
-          if (action === ACTION_STATUS.NEW) {
-            await postRuleData(rule);
-          } else if (action === ACTION_STATUS.UPDATE) {
-            console.log("UPDATING RULE", rule);
-            await updateRuleData(rule._id, rule);
-          } else if (action === ACTION_STATUS.DELETE) {
-            await deleteRuleData(rule._id);
+          try {
+            if (action === ACTION_STATUS.NEW) {
+              await postRuleData(rule);
+            } else if (action === ACTION_STATUS.UPDATE) {
+              await updateRuleData(rule._id, rule);
+            } else if (action === ACTION_STATUS.DELETE) {
+              await deleteRuleData(rule._id);
+            }
+          } catch (error) {
+            console.error(`Error performing action ${action} on rule ${rule._id}: ${error}`);
           }
         }
       })
@@ -94,10 +98,49 @@ export default function Admin() {
   };
 
   const renderInputField = (fieldName: keyof RuleInfo) => {
-    return (value: string, _: object, index: number) => (
-      <Input value={value} onChange={(e) => updateRule(e, index, fieldName)} />
+    return (value: string, _: RuleInfo, index: number) => (
+      <Input value={value} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateRule(e, index, fieldName)} />
     );
   };
+
+  const columns = [
+    {
+      title: "Title",
+      dataIndex: "title",
+      render: renderInputField("title"),
+    },
+    {
+      title: "GoRules Id",
+      dataIndex: "_id",
+      render: renderInputField("_id"),
+    },
+    {
+      title: "GoRules JSON Filename",
+      dataIndex: "goRulesJSONFilename",
+      render: renderInputField("goRulesJSONFilename"),
+    },
+    {
+      title: "CHEFS Form Id",
+      dataIndex: "chefsFormId",
+      render: renderInputField("chefsFormId"),
+    },
+    {
+      dataIndex: "delete",
+      render: (value: string, _: RuleInfo, index: number) => (
+        <Button danger onClick={() => deleteRule(index)}>
+          Delete
+        </Button>
+      ),
+    },
+    {
+      dataIndex: "view",
+      render: (_: string, { _id }: RuleInfo) => (
+        <Link href={`/rule/${_id}`}>
+          <Button>View</Button>
+        </Link>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -112,50 +155,15 @@ export default function Admin() {
       {isLoading ? (
         <p>Loading...</p>
       ) : (
-        <>
-          <Table
-            columns={[
-              {
-                title: "Title",
-                dataIndex: "title",
-                render: renderInputField("title"),
-              },
-              {
-                title: "GoRules Id",
-                dataIndex: "_id",
-                render: renderInputField("_id"),
-              },
-              {
-                title: "GoRules JSON Filename",
-                dataIndex: "goRulesJSONFilename",
-                render: renderInputField("goRulesJSONFilename"),
-              },
-              {
-                title: "CHEFS Form Id",
-                dataIndex: "chefsFormId",
-                render: renderInputField("chefsFormId"),
-              },
-              {
-                dataIndex: "delete",
-                render: (value, _, index) => (
-                  <Button danger onClick={() => deleteRule(index)}>
-                    Delete
-                  </Button>
-                ),
-              },
-              {
-                dataIndex: "view",
-                render: (_, { _id }) => <Button onClick={() => (window.location.href = `/rule/${_id}`)}>View</Button>,
-              },
-            ]}
-            dataSource={rules.map((rule, key) => ({ key, ...rule }))}
-            footer={() => (
-              <Button type="primary" onClick={addNewRule}>
-                Add New Rule +
-              </Button>
-            )}
-          />
-        </>
+        <Table
+          columns={columns}
+          dataSource={rules.map((rule, key) => ({ key, ...rule }))}
+          footer={() => (
+            <Button type="primary" onClick={addNewRule}>
+              Add New Rule +
+            </Button>
+          )}
+        />
       )}
     </>
   );
