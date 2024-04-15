@@ -1,7 +1,7 @@
 
 # BRMS Simulator Frontend (POC)
 
-This is a tool for testing/simulating rules for SDPR's Business Rules Engine. This is a [Next.js](https://nextjs.org/) project that makes use of the [GoRules JDM Editor](https://github.com/gorules/jdm-editor). This project is currently just in the experimental POC phase.
+This is a tool for testing/simulating rules for SDPR's Business Rules Engine. It is a [Next.js](https://nextjs.org/) project that makes use of the [GoRules JDM Editor](https://github.com/gorules/jdm-editor). This project is currently just in the experimental POC phase.
 
 ## Requirements
 

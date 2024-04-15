@@ -1,7 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { Flex, Button } from "antd";
+import { ExportOutlined } from "@ant-design/icons";
 import { SubmissionData } from "../../types/submission";
 import SubmissionSelector from "../SubmissionSelector";
 import InputOutputTable from "../InputOutputTable";
@@ -46,13 +48,20 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId }: Simul
           setResultsOfSimulation={setResultsOfSimulation}
         />
       </div>
-      <Flex gap="middle" className={styles.contentSection}>
-        <SubmissionSelector chefsFormId={chefsFormId} setSelectedSubmissionInputs={setSelectedSubmissionInputs} />
-        {selectedSubmissionInputs && (
-          <Button size="large" type="primary" onClick={runSimulation}>
-            Simulate ▶
+      <Flex justify="space-between" align="center" className={styles.contentSection}>
+        <Flex gap="middle">
+          <SubmissionSelector chefsFormId={chefsFormId} setSelectedSubmissionInputs={setSelectedSubmissionInputs} />
+          {selectedSubmissionInputs && (
+            <Button size="large" type="primary" onClick={runSimulation}>
+              Simulate ▶
+            </Button>
+          )}
+        </Flex>
+        <Link href={`https://submit.digital.gov.bc.ca/app/form/submit?f=${chefsFormId}`} target="_blank">
+          <Button>
+            Submission form <ExportOutlined />
           </Button>
-        )}
+        </Link>
       </Flex>
       <Flex gap="middle" wrap="wrap" className={styles.contentSection}>
         {selectedSubmissionInputs && <InputOutputTable title="Inputs" rawData={selectedSubmissionInputs} />}
