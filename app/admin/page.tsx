@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Table, Input, Button, Flex } from "antd";
+import { ColumnsType } from "antd/es/table";
 import { RuleInfo } from "../types/ruleInfo";
 import { getAllRuleData, postRuleData, updateRuleData, deleteRuleData } from "../utils/api";
 
@@ -98,12 +99,14 @@ export default function Admin() {
   };
 
   const renderInputField = (fieldName: keyof RuleInfo) => {
-    return (value: string, _: RuleInfo, index: number) => (
+    const Component = (value: string, _: RuleInfo, index: number) => (
       <Input value={value} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateRule(e, index, fieldName)} />
     );
+    Component.displayName = "InputField";
+    return Component;
   };
 
-  const columns = [
+  const columns: ColumnsType<RuleInfo> = [
     {
       title: "Title",
       dataIndex: "title",
