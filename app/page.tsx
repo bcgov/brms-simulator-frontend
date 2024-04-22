@@ -1,17 +1,33 @@
-import { Table, Button, Flex } from "antd";
+"use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Button, Flex, Spin, Table } from "antd";
 import { RuleInfo } from "./types/ruleInfo";
 import { getAllRuleData } from "./utils/api";
 
-export default async function Home() {
-  const rules: RuleInfo[] = await getAllRuleData();
+export default function Home() {
+  const [rules, setRules] = useState<RuleInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const mappedRules = rules.map(({ _id, title, chefsFormId }, key) => {
+  useEffect(() => {
+    const getRules = async () => {
+      try {
+        const ruleData = await getAllRuleData();
+        setRules(ruleData);
+        setIsLoading(false);
+      } catch (error) {
+        console.error(`Error loading rules: ${error}`);
+      }
+    };
+    getRules();
+  }, []);
+
+  const mappedRules = rules.map(({ _id, title, chefsFormId }) => {
     return {
-      key,
+      key: _id,
       titleLink: (
         <b>
-          <a href={`/rule/${_id}`}>{title}</a>
+          <Link href={`/rule/${_id}`}>{title}</Link>
         </b>
       ),
       editRule: (
@@ -46,7 +62,13 @@ export default async function Home() {
           <Button>Admin</Button>
         </Link>
       </Flex>
-      <Table columns={columns} dataSource={mappedRules} />
+      {isLoading ? (
+        <Spin tip="Loading rules...">
+          <div className="content" />
+        </Spin>
+      ) : (
+        <Table columns={columns} dataSource={mappedRules} />
+      )}
     </>
   );
 }

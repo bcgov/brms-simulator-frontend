@@ -73,9 +73,9 @@ export const getSubmissionsFromCHEFS = async (formId: string) => {
  * @returns The submissions data.
  * @throws If an error occurs while fetching the submissions.
  */
-export const getSubmissionFromCHEFSById = async (id: string) => {
+export const getSubmissionFromCHEFSById = async (formId: string, id: string) => {
   try {
-    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/submissions/${id}`);
+    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/submissions/${formId}/${id}`);
     return data;
   } catch (error) {
     console.error(`Error fetching submissions: ${error}`);

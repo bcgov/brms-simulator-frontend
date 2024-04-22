@@ -20,7 +20,7 @@ export default function SubmissionSelector({ chefsFormId, setSelectedSubmissionI
       submission: {
         submission: { data },
       },
-    } = await getSubmissionFromCHEFSById(valueToIdMap[value]);
+    } = await getSubmissionFromCHEFSById(chefsFormId, valueToIdMap[value]);
     setSelectedSubmissionInputs(data);
   };
 

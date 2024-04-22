@@ -35,6 +35,7 @@ export default function Admin() {
       title: "",
       goRulesJSONFilename: "",
       chefsFormId: "",
+      chefsFormAPIKey: "",
     });
     setRules(newRules);
   };
@@ -62,7 +63,8 @@ export default function Admin() {
           initialRule._id !== rule._id ||
           initialRule.title !== rule.title ||
           initialRule.goRulesJSONFilename !== rule.goRulesJSONFilename ||
-          initialRule.chefsFormId !== rule.chefsFormId
+          initialRule.chefsFormId !== rule.chefsFormId ||
+          initialRule.chefsFormAPIKey !== rule.chefsFormAPIKey
         ) {
           return { rule, action: ACTION_STATUS.UPDATE };
         }
@@ -126,6 +128,11 @@ export default function Admin() {
       title: "CHEFS Form Id",
       dataIndex: "chefsFormId",
       render: renderInputField("chefsFormId"),
+    },
+    {
+      title: "CHEFS Form API Key",
+      dataIndex: "chefsFormAPIKey",
+      render: renderInputField("chefsFormAPIKey"),
     },
     {
       dataIndex: "delete",

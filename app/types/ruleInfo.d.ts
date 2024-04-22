@@ -3,4 +3,5 @@ export interface RuleInfo {
   title: string;
   goRulesJSONFilename: string;
   chefsFormId: string;
+  chefsFormAPIKey?: string;
 }
