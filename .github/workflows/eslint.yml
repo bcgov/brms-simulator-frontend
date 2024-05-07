@@ -1,0 +1,41 @@
+# ESLint is a tool for identifying and reporting on patterns
+# found in ECMAScript/JavaScript code.
+# More details at https://github.com/eslint/eslint
+# and https://eslint.org
+
+name: ESLint
+
+on:
+  push:
+    branches: '*'
+  pull_request:
+    branches: ['main', 'dev']
+
+jobs:
+  eslint:
+    name: Run eslint scanning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install ESLint
+        run: |
+          npm install eslint@8.10.0
+
+      - name: Run ESLint
+        run: npm run lint:pipeline
+        continue-on-error: true
+
+      - name: Upload ESLint report
+        uses: actions/upload-artifact@v2
+        with:
+          name: eslint-report
+          path: eslint-report.html
+
+      - name: Display ESLint report link
+        run: echo "::set-output name=eslint-report::${{ steps.upload.outputs.artifact_path }}"

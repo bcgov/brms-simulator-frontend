@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start -p 8080",
     "lint": "next lint",
+    "lint:pipeline": "next lint --fix --format=html --output-file=eslint-report.html",
     "test": "jest",
     "test:watch": "jest --watch"
   },
