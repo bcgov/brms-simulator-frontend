@@ -16,5 +16,7 @@ describe("InputOutputTable", () => {
 
   test("renders InputOutputTable component", async () => {
     render(<InputOutputTable />);
+    // Added bad test on purpose to show how it failsßß
+    expect(true).toBe(false);
   });
 });
