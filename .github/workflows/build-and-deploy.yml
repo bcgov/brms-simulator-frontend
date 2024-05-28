@@ -39,7 +39,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            "NEXT_PUBLIC_API_URL=${{ github.ref == 'refs/heads/main' && 'https://brms-api-eb0f74-prod.apps.silver.devops.gov.bc.ca/api' || 'https://brms-api-dev-eb0f74-dev.apps.silver.devops.gov.bc.ca/api'  }}"
+            "NEXT_PUBLIC_API_URL=${{ github.ref == 'refs/heads/main' && secrets.NEXT_PUBLIC_API_URL_PROD || secrets.NEXT_PUBLIC_API_URL_DEV  }}"
             "NEXT_PUBLIC_GO_RULES_PROJECT_ID=${{ secrets.NEXT_PUBLIC_GO_RULES_PROJECT_ID }}"
             "NEXT_PUBLIC_GO_RULES_BEARER_PAT=${{ secrets.NEXT_PUBLIC_GO_RULES_BEARER_PAT }}"
             "NEXT_PUBLIC_GO_RULES_ACCESS_TOKEN=${{ secrets.NEXT_PUBLIC_GO_RULES_ACCESS_TOKEN }}"
