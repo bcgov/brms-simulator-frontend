@@ -2,6 +2,9 @@ import { DecisionGraphType } from "@gorules/jdm-editor/dist/components/decision-
 import axios from "axios";
 import { RuleInfo } from "../types/ruleInfo";
 
+// For server side calls, need full URL, otherwise can just use /api
+const API_URI = typeof window === "undefined" ? process.env.NEXT_PUBLIC_API_URL : "/api";
+
 const GO_RULES_ROOT_PROJECT_URL = `https://sdpr.gorules.io/api/projects/${process.env.NEXT_PUBLIC_GO_RULES_PROJECT_ID}`;
 
 const goRulesAxiosInstance = axios.create({
@@ -60,7 +63,7 @@ export const postDecision = async (jsonFile: string, decisionGraph: DecisionGrap
  */
 export const getSubmissionsFromCHEFS = async (formId: string) => {
   try {
-    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/submissions/list/${formId}`);
+    const { data } = await axios.get(`${API_URI}/submissions/list/${formId}`);
     return data;
   } catch (error) {
     console.error(`Error fetching submissions: ${error}`);
@@ -75,7 +78,7 @@ export const getSubmissionsFromCHEFS = async (formId: string) => {
  */
 export const getSubmissionFromCHEFSById = async (formId: string, id: string) => {
   try {
-    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/submissions/${formId}/${id}`);
+    const { data } = await axios.get(`${API_URI}/submissions/${formId}/${id}`);
     return data;
   } catch (error) {
     console.error(`Error fetching submissions: ${error}`);
@@ -91,7 +94,7 @@ export const getSubmissionFromCHEFSById = async (formId: string, id: string) => 
  */
 export const getRuleDataById = async (ruleId: string): Promise<RuleInfo> => {
   try {
-    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/ruleData/${ruleId}`);
+    const { data } = await axios.get(`${API_URI}/ruleData/${ruleId}`);
     return data;
   } catch (error) {
     console.error(`Error getting rule data: ${error}`);
@@ -106,7 +109,7 @@ export const getRuleDataById = async (ruleId: string): Promise<RuleInfo> => {
  */
 export const getAllRuleData = async (): Promise<RuleInfo[]> => {
   try {
-    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/ruleData/list`);
+    const { data } = await axios.get(`${API_URI}/ruleData/list`);
     return data;
   } catch (error) {
     console.error(`Error fetching rule data: ${error}`);
@@ -122,7 +125,7 @@ export const getAllRuleData = async (): Promise<RuleInfo[]> => {
  */
 export const postRuleData = async (newRuleData: unknown) => {
   try {
-    const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/ruleData`, newRuleData);
+    const { data } = await axios.post(`${API_URI}/ruleData`, newRuleData);
     return data;
   } catch (error) {
     console.error(`Error posting rule data: ${error}`);
@@ -139,7 +142,7 @@ export const postRuleData = async (newRuleData: unknown) => {
  */
 export const updateRuleData = async (ruleId: string, updatedRuleData: unknown) => {
   try {
-    const { data } = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/ruleData/${ruleId}`, updatedRuleData);
+    const { data } = await axios.put(`${API_URI}/ruleData/${ruleId}`, updatedRuleData);
     return data;
   } catch (error) {
     console.error(`Error updating rule: ${error}`);
@@ -155,7 +158,7 @@ export const updateRuleData = async (ruleId: string, updatedRuleData: unknown) =
  */
 export const deleteRuleData = async (ruleId: string) => {
   try {
-    const { data } = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/ruleData/${ruleId}`);
+    const { data } = await axios.delete(`${API_URI}/ruleData/${ruleId}`);
     return data;
   } catch (error) {
     console.error(`Error deleting rule: ${error}`);
