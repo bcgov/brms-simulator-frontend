@@ -7,6 +7,7 @@ import { ExportOutlined } from "@ant-design/icons";
 import { SubmissionData } from "../../types/submission";
 import SubmissionSelector from "../SubmissionSelector";
 import InputOutputTable from "../InputOutputTable";
+import { RuleMap } from "../../types/rulemap";
 import styles from "./SimulationViewer.module.css";
 
 // Need to disable SSR when loading this component so it works properly
@@ -16,10 +17,15 @@ interface SimulationViewerProps {
   jsonFile: string;
   docId: string;
   chefsFormId: string;
+  rulemap: RuleMap;
 }
 
-export default function SimulationViewer({ jsonFile, docId, chefsFormId }: SimulationViewerProps) {
-  const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>();
+export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap }: SimulationViewerProps) {
+  const rulemapObject = rulemap.inputs.reduce((acc: { [x: string]: null }, obj: { property: string | number }) => {
+    acc[obj.property] = null;
+    return acc;
+  }, {});
+  const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>(rulemapObject);
   const [contextToSimulate, setContextToSimulate] = useState<SubmissionData | null>();
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
 
@@ -52,9 +58,14 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId }: Simul
         <Flex gap="middle">
           <SubmissionSelector chefsFormId={chefsFormId} setSelectedSubmissionInputs={setSelectedSubmissionInputs} />
           {selectedSubmissionInputs && (
-            <Button size="large" type="primary" onClick={runSimulation}>
-              Simulate ▶
-            </Button>
+            <>
+              <Button size="large" type="primary" onClick={runSimulation}>
+                Simulate ▶
+              </Button>
+              <Button size="large" type="default" onClick={() => setSelectedSubmissionInputs(rulemapObject)}>
+                Reset ▶
+              </Button>
+            </>
           )}
         </Flex>
         <Link href={`https://submit.digital.gov.bc.ca/app/form/submit?f=${chefsFormId}`} target="_blank">
@@ -64,7 +75,13 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId }: Simul
         </Link>
       </Flex>
       <Flex gap="middle" wrap="wrap" className={styles.contentSection}>
-        {selectedSubmissionInputs && <InputOutputTable title="Inputs" rawData={selectedSubmissionInputs} />}
+        {selectedSubmissionInputs && (
+          <InputOutputTable
+            title="Inputs"
+            rawData={selectedSubmissionInputs}
+            setRawData={setSelectedSubmissionInputs}
+          />
+        )}
         {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
       </Flex>
     </Flex>

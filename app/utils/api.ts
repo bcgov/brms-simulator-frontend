@@ -1,6 +1,7 @@
 import { DecisionGraphType } from "@gorules/jdm-editor/dist/components/decision-graph/context/dg-store.context";
 import axios from "axios";
 import { RuleInfo } from "../types/ruleInfo";
+import { RuleMap } from "../types/rulemap";
 
 // For server side calls, need full URL, otherwise can just use /api
 const API_URI = typeof window === "undefined" ? process.env.NEXT_PUBLIC_API_URL : "/api";
@@ -113,6 +114,22 @@ export const getAllRuleData = async (): Promise<RuleInfo[]> => {
     return data;
   } catch (error) {
     console.error(`Error fetching rule data: ${error}`);
+    throw error;
+  }
+};
+
+/**
+ * Retrieves a rule map from the API based on the provided rule ID.
+ * @param ruleId The ID of the rule data to retrieve.
+ * @returns The rule map.
+ * @throws If an error occurs while retrieving the rule data.
+ */
+export const getRuleMapByID = async (ruleId: string): Promise<RuleMap> => {
+  try {
+    const { data } = await axios.get(`${API_URI}/rulemap/${ruleId}`);
+    return data;
+  } catch (error) {
+    console.error(`Error getting rule data: ${error}`);
     throw error;
   }
 };
