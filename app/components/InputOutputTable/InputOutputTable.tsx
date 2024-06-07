@@ -15,11 +15,15 @@ const COLUMNS = [
   },
 ];
 
-const PROPERTIES_TO_IGNORE = ["submit", "lateEntry"];
+const PROPERTIES_TO_IGNORE = ["submit", "lateEntry", "rulemap"];
+
+interface rawDataProps {
+  rulemap?: boolean;
+}
 
 interface InputOutputTableProps {
   title: string;
-  rawData: object;
+  rawData: rawDataProps;
   setRawData?: (data: object) => void;
 }
 
@@ -29,22 +33,14 @@ export default function InputOutputTable({ title, rawData, setRawData }: InputOu
   const convertAndStyleValue = (value: any, property: string, editable: boolean) => {
     let displayValue = value;
 
-    // Convert booleans and numbers to strings for the input field if editable
     if (editable) {
-      if (typeof value === "boolean") {
-        displayValue = value.toString();
-      } else if (typeof value === "number") {
-        displayValue = value.toString();
-      }
       return <Input defaultValue={displayValue} onBlur={(e) => handleValueChange(e, property)} />;
     }
 
-    // Handle booleans
+    // Custom formatting for non-editable booleans and numbers
     if (typeof value === "boolean") {
       return value ? <Tag color="green">TRUE</Tag> : <Tag color="red">FALSE</Tag>;
     }
-
-    // Handle money amounts
     if (typeof value === "number" && property.toLowerCase().includes("amount")) {
       displayValue = `$${value}`;
     }
@@ -81,18 +77,18 @@ export default function InputOutputTable({ title, rawData, setRawData }: InputOu
 
   useEffect(() => {
     if (rawData) {
-      const newData: object[] = [];
-      Object.entries(rawData).forEach(([property, value], index) => {
-        if (!PROPERTIES_TO_IGNORE.includes(property)) {
-          newData.push({
-            property,
-            value: convertAndStyleValue(value, property, true),
-            key: index,
-          });
-        }
-      });
+      const editable = title === "Inputs" && rawData.rulemap === true;
+      const newData = Object.entries(rawData)
+        .filter(([property]) => !PROPERTIES_TO_IGNORE.includes(property))
+        .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
+        .map(([property, value], index) => ({
+          property,
+          value: convertAndStyleValue(value, property, editable),
+          key: index,
+        }));
       setDataSource(newData);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawData]);
 
   return (
