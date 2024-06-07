@@ -21,10 +21,14 @@ interface SimulationViewerProps {
 }
 
 export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap }: SimulationViewerProps) {
-  const rulemapObject = rulemap.inputs.reduce((acc: { [x: string]: null }, obj: { property: string | number }) => {
-    acc[obj.property] = null;
-    return acc;
-  }, {});
+  const rulemapObject = rulemap.inputs.reduce(
+    (acc: { [x: string]: null }, obj: { property: string | number }) => {
+      acc[obj.property] = null;
+      return acc;
+    },
+    { rulemap: true }
+  );
+
   const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>(rulemapObject);
   const [contextToSimulate, setContextToSimulate] = useState<SubmissionData | null>();
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
