@@ -32,6 +32,7 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap
   const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>(rulemapObject);
   const [contextToSimulate, setContextToSimulate] = useState<SubmissionData | null>();
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
+  const [resetTrigger, setResetTrigger] = useState<boolean>(false);
 
   const resetContextAndResults = () => {
     setContextToSimulate(null);
@@ -60,14 +61,25 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap
       </div>
       <Flex justify="space-between" align="center" className={styles.contentSection}>
         <Flex gap="middle">
-          <SubmissionSelector chefsFormId={chefsFormId} setSelectedSubmissionInputs={setSelectedSubmissionInputs} />
+          <SubmissionSelector
+            chefsFormId={chefsFormId}
+            setSelectedSubmissionInputs={setSelectedSubmissionInputs}
+            resetTrigger={resetTrigger}
+          />
           {selectedSubmissionInputs && (
             <>
               <Button size="large" type="primary" onClick={runSimulation}>
                 Simulate ▶
               </Button>
-              <Button size="large" type="default" onClick={() => setSelectedSubmissionInputs(rulemapObject)}>
-                Reset ▶
+              <Button
+                size="large"
+                type="default"
+                onClick={() => {
+                  setSelectedSubmissionInputs(rulemapObject);
+                  setResetTrigger((prev) => !prev);
+                }}
+              >
+                Reset ↻
               </Button>
             </>
           )}

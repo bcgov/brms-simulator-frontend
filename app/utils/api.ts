@@ -124,9 +124,9 @@ export const getAllRuleData = async (): Promise<RuleInfo[]> => {
  * @returns The rule map.
  * @throws If an error occurs while retrieving the rule data.
  */
-export const getRuleMapByID = async (ruleId: string): Promise<RuleMap> => {
+export const getRuleMapByName = async (goRulesJSONFilename: string): Promise<RuleMap> => {
   try {
-    const { data } = await axios.get(`${API_URI}/rulemap/${ruleId}`);
+    const { data } = await axios.get(`${API_URI}/rulemap/${goRulesJSONFilename}`);
     return data;
   } catch (error) {
     console.error(`Error getting rule data: ${error}`);
