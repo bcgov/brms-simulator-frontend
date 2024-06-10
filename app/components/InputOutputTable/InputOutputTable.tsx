@@ -25,16 +25,24 @@ interface InputOutputTableProps {
   title: string;
   rawData: rawDataProps;
   setRawData?: (data: object) => void;
+  submitButtonRef?: React.RefObject<HTMLButtonElement>;
 }
 
-export default function InputOutputTable({ title, rawData, setRawData }: InputOutputTableProps) {
+export default function InputOutputTable({ title, rawData, setRawData, submitButtonRef }: InputOutputTableProps) {
   const [dataSource, setDataSource] = useState<object[]>([]);
+  const [columns, setColumns] = useState(COLUMNS);
 
   const convertAndStyleValue = (value: any, property: string, editable: boolean) => {
     let displayValue = value;
 
     if (editable) {
-      return <Input defaultValue={displayValue} onBlur={(e) => handleValueChange(e, property)} />;
+      return (
+        <Input
+          defaultValue={displayValue}
+          onBlur={(e) => handleValueChange(e, property)}
+          onKeyDown={(e) => handleKeyDown(e)}
+        />
+      );
     }
 
     // Custom formatting for non-editable booleans and numbers
@@ -43,6 +51,10 @@ export default function InputOutputTable({ title, rawData, setRawData }: InputOu
     }
     if (typeof value === "number" && property.toLowerCase().includes("amount")) {
       displayValue = `$${value}`;
+    }
+
+    if (value === null || value === undefined) {
+      return;
     }
 
     return <b>{displayValue}</b>;
@@ -75,6 +87,18 @@ export default function InputOutputTable({ title, rawData, setRawData }: InputOu
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && submitButtonRef) {
+      if (submitButtonRef.current) {
+        submitButtonRef.current.click();
+      }
+    }
+  };
+
+  const showColumn = (data: any[], columnKey: string) => {
+    return data.some((item) => item[columnKey] !== null && item[columnKey] !== undefined);
+  };
+
   useEffect(() => {
     if (rawData) {
       const editable = title === "Inputs" && rawData.rulemap === true;
@@ -87,6 +111,8 @@ export default function InputOutputTable({ title, rawData, setRawData }: InputOu
           key: index,
         }));
       setDataSource(newData);
+      const newColumns = COLUMNS.filter((column) => showColumn(newData, column.dataIndex));
+      setColumns(newColumns);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawData]);
@@ -95,7 +121,7 @@ export default function InputOutputTable({ title, rawData, setRawData }: InputOu
     <div>
       <h4 className={styles.tableTitle}>{title}</h4>
       <Table
-        columns={COLUMNS}
+        columns={columns}
         showHeader={false}
         dataSource={dataSource}
         bordered

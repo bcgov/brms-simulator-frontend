@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Flex, Button } from "antd";
@@ -21,22 +21,25 @@ interface SimulationViewerProps {
 }
 
 export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap }: SimulationViewerProps) {
-  const rulemapObject = rulemap.inputs.reduce(
-    (acc: { [x: string]: null }, obj: { property: string | number }) => {
+  const createRuleMap = (array: any[], defaultObj: { rulemap: boolean }) => {
+    return array.reduce((acc, obj) => {
       acc[obj.property] = null;
       return acc;
-    },
-    { rulemap: true }
-  );
+    }, defaultObj);
+  };
 
-  const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>(rulemapObject);
+  const ruleMapInputs = createRuleMap(rulemap.inputs, { rulemap: true });
+  const ruleMapFinalOutputs = createRuleMap(rulemap.finalOutputs, { rulemap: true });
+
+  const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>(ruleMapInputs);
   const [contextToSimulate, setContextToSimulate] = useState<SubmissionData | null>();
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
+  const simulateButtonRef = useRef<HTMLButtonElement>(null);
 
   const resetContextAndResults = () => {
     setContextToSimulate(null);
-    setResultsOfSimulation(null);
+    setResultsOfSimulation(ruleMapFinalOutputs);
   };
 
   const runSimulation = () => {
@@ -47,6 +50,7 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap
   useEffect(() => {
     // reset context/results when a new submission is selected
     resetContextAndResults();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSubmissionInputs]);
 
   return (
@@ -68,14 +72,14 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap
           />
           {selectedSubmissionInputs && (
             <>
-              <Button size="large" type="primary" onClick={runSimulation}>
+              <Button ref={simulateButtonRef} size="large" type="primary" onClick={runSimulation}>
                 Simulate ▶
               </Button>
               <Button
                 size="large"
                 type="default"
                 onClick={() => {
-                  setSelectedSubmissionInputs(rulemapObject);
+                  setSelectedSubmissionInputs(ruleMapInputs);
                   setResetTrigger((prev) => !prev);
                 }}
               >
@@ -96,6 +100,7 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap
             title="Inputs"
             rawData={selectedSubmissionInputs}
             setRawData={setSelectedSubmissionInputs}
+            submitButtonRef={simulateButtonRef}
           />
         )}
         {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
