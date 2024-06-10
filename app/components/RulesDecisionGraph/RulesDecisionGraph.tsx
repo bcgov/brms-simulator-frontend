@@ -6,7 +6,7 @@ import { DecisionGraphType } from "@gorules/jdm-editor/dist/components/decision-
 import type { ReactFlowInstance } from "reactflow";
 import { Spin } from "antd";
 import { SubmissionData } from "../../types/submission";
-import { getDocument, postDecision } from "../../utils/api";
+import { getDocument, postDecision, getOutputSchema } from "../../utils/api";
 import styles from "./RulesDecisionGraph.module.css";
 
 interface RulesViewerProps {
@@ -14,6 +14,7 @@ interface RulesViewerProps {
   docId: string;
   contextToSimulate?: SubmissionData | null;
   setResultsOfSimulation: (results: Record<string, any>) => void;
+  setOutputsOfSimulation: (outputs: Record<string, any>) => void;
 }
 
 export default function RulesDecisionGraph({
@@ -21,6 +22,7 @@ export default function RulesDecisionGraph({
   docId,
   contextToSimulate,
   setResultsOfSimulation,
+  setOutputsOfSimulation,
 }: RulesViewerProps) {
   const decisionGraphRef: any = useRef<DecisionGraphRef>();
   const [graphJSON, setGraphJSON] = useState<DecisionGraphType>();
@@ -53,6 +55,16 @@ export default function RulesDecisionGraph({
       const data = await postDecision(jsonFile, decisionGraph, context);
       console.info("Simulation Results:", data, data?.result);
       setResultsOfSimulation(data?.result);
+      const outputData = await getOutputSchema(data);
+      // Filter out properties from outputData that are also present in data.result
+      const uniqueOutputs = Object.keys(outputData?.result || {}).reduce((acc: any, key: string) => {
+        if (!(key in data?.result)) {
+          acc[key] = outputData?.result[key];
+        }
+        return acc;
+      }, {});
+
+      setOutputsOfSimulation(uniqueOutputs);
       return { result: data };
     }
     // Reset the result if there is no contextToSimulate (used to reset the trace)

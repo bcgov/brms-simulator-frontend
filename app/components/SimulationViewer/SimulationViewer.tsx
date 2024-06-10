@@ -29,18 +29,22 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap
   };
 
   const ruleMapInputs = createRuleMap(rulemap.inputs, { rulemap: true });
+  const ruleMapOutputs = createRuleMap(rulemap.outputs, { rulemap: true });
   const ruleMapFinalOutputs = createRuleMap(rulemap.finalOutputs, { rulemap: true });
 
   const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>(ruleMapInputs);
   const [contextToSimulate, setContextToSimulate] = useState<SubmissionData | null>();
+  const [outputSchema, setOutputSchema] = useState<Record<string, any> | null>(ruleMapOutputs);
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
   const simulateButtonRef = useRef<HTMLButtonElement>(null);
 
   const resetContextAndResults = () => {
     setContextToSimulate(null);
+    setOutputSchema(ruleMapOutputs);
     setResultsOfSimulation(ruleMapFinalOutputs);
   };
+  console.log(ruleMapOutputs, "this is the rule map outputs");
 
   const runSimulation = () => {
     // set the context to simulate - RulesDecisionGraph will use this context to run the simulation
@@ -53,6 +57,8 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSubmissionInputs]);
 
+  useEffect(() => {}, [resultsOfSimulation]);
+
   return (
     <Flex gap="large" vertical>
       <div className={styles.rulesWrapper}>
@@ -61,6 +67,7 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap
           docId={docId}
           contextToSimulate={contextToSimulate}
           setResultsOfSimulation={setResultsOfSimulation}
+          setOutputsOfSimulation={setOutputSchema}
         />
       </div>
       <Flex justify="space-between" align="center" className={styles.contentSection}>
@@ -103,6 +110,7 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap
             submitButtonRef={simulateButtonRef}
           />
         )}
+        {outputSchema && <InputOutputTable title="Outputs" rawData={outputSchema} setRawData={setOutputSchema} />}
         {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
       </Flex>
     </Flex>
