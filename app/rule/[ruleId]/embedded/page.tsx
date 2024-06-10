@@ -8,5 +8,5 @@ export default async function RuleEmbedded({ params: { ruleId } }: { params: { r
     return <h1>Rule not found</h1>;
   }
 
-  return <SimulationViewer jsonFile={goRulesJSONFilename} docId={_id} chefsFormId={chefsFormId} />;
+  return <SimulationViewer jsonFile={goRulesJSONFilename} chefsFormId={chefsFormId} />;
 }
