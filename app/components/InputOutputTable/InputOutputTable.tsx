@@ -1,6 +1,7 @@
 import { useState, useEffect, FocusEvent } from "react";
-import { Table, Tag, Input } from "antd";
+import { Table, Tag, Input, Button } from "antd";
 import styles from "./InputOutputTable.module.css";
+import { table } from "console";
 
 const COLUMNS = [
   {
@@ -31,6 +32,11 @@ interface InputOutputTableProps {
 export default function InputOutputTable({ title, rawData, setRawData, submitButtonRef }: InputOutputTableProps) {
   const [dataSource, setDataSource] = useState<object[]>([]);
   const [columns, setColumns] = useState(COLUMNS);
+  const [showTable, setShowTable] = useState(true);
+
+  const toggleTableVisibility = () => {
+    setShowTable(!showTable);
+  };
 
   const convertAndStyleValue = (value: any, property: string, editable: boolean) => {
     let displayValue = value;
@@ -119,14 +125,20 @@ export default function InputOutputTable({ title, rawData, setRawData, submitBut
 
   return (
     <div>
-      <h4 className={styles.tableTitle}>{title}</h4>
-      <Table
-        columns={columns}
-        showHeader={false}
-        dataSource={dataSource}
-        bordered
-        pagination={{ hideOnSinglePage: true }}
-      />
+      <h4 className={styles.tableTitle}>
+        {title} {title === "Outputs" && <Button onClick={toggleTableVisibility}>{showTable ? "Hide" : "Show"}</Button>}
+      </h4>
+      {showTable && (
+        <>
+          <Table
+            columns={columns}
+            showHeader={false}
+            dataSource={dataSource}
+            bordered
+            pagination={{ hideOnSinglePage: true }}
+          />
+        </>
+      )}
     </div>
   );
 }

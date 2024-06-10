@@ -1,4 +1,8 @@
 .tableTitle {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between; 
+  align-items: center; 
   margin: 0;
   background: #f9f9f9;
   padding: 16px;
