@@ -6,7 +6,7 @@ import { DecisionGraphType } from "@gorules/jdm-editor/dist/components/decision-
 import type { ReactFlowInstance } from "reactflow";
 import { Spin } from "antd";
 import { SubmissionData } from "../../types/submission";
-import { getDocument, postDecision, getOutputSchema } from "../../utils/api";
+import { getDocument, postDecision, getRuleRunSchema } from "../../utils/api";
 import styles from "./RulesDecisionGraph.module.css";
 
 interface RulesViewerProps {
@@ -55,11 +55,11 @@ export default function RulesDecisionGraph({
       const data = await postDecision(jsonFile, decisionGraph, context);
       console.info("Simulation Results:", data, data?.result);
       setResultsOfSimulation(data?.result);
-      const outputData = await getOutputSchema(data);
-      // Filter out properties from outputData that are also present in data.result
-      const uniqueOutputs = Object.keys(outputData?.result || {}).reduce((acc: any, key: string) => {
+      const ruleRunSchema = await getRuleRunSchema(data);
+      // Filter out properties from ruleRunSchema outputs that are also present in data.result
+      const uniqueOutputs = Object.keys(ruleRunSchema?.result?.output || {}).reduce((acc: any, key: string) => {
         if (!(key in data?.result)) {
-          acc[key] = outputData?.result[key];
+          acc[key] = ruleRunSchema?.result[key];
         }
         return acc;
       }, {});

@@ -1,7 +1,6 @@
 import { useState, useEffect, FocusEvent } from "react";
 import { Table, Tag, Input, Button } from "antd";
 import styles from "./InputOutputTable.module.css";
-import { table } from "console";
 
 const COLUMNS = [
   {

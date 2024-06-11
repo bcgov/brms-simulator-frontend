@@ -135,14 +135,14 @@ export const getRuleMapByName = async (goRulesJSONFilename: string): Promise<Rul
 };
 
 /**
- * Assess the rule response and return the output schema.
- * @param ruleResponse The response from the rule evaluation.
- * @returns The output schema.
+ * Assess the rule response and return the schema based on a run of the rule.
+ * @param ruleResponse The response from the rule evaluation. Assesses the trace response.
+ * @returns The inputs and outputs schema.
  * @throws If an error occurs while retrieving the rule data.
  */
-export const getOutputSchema = async (ruleResponse: unknown) => {
+export const getRuleRunSchema = async (ruleResponse: unknown) => {
   try {
-    const { data } = await axios.post(`${API_URI}/rulemap/outputschema`, ruleResponse);
+    const { data } = await axios.post(`${API_URI}/rulemap/rulerunschema`, ruleResponse);
     return data;
   } catch (error) {
     console.error(`Error posting output schema: ${error}`);

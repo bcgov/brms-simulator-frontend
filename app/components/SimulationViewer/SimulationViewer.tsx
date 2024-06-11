@@ -44,7 +44,6 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap
     setOutputSchema(ruleMapOutputs);
     setResultsOfSimulation(ruleMapFinalOutputs);
   };
-  console.log(ruleMapOutputs, "this is the rule map outputs");
 
   const runSimulation = () => {
     // set the context to simulate - RulesDecisionGraph will use this context to run the simulation
