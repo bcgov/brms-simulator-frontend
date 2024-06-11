@@ -27,7 +27,7 @@ export default function Home() {
       key: _id,
       titleLink: (
         <b>
-          <Link href={`/rule/${_id}`}>{title}</Link>
+          <Link href={`/rule/${_id}`}>{title || goRulesJSONFilename}</Link>
         </b>
       ),
       downloadRule: (

@@ -17,7 +17,7 @@ export default async function Rule({ params: { ruleId } }: { params: { ruleId: s
         <Link href="/">
           <HomeOutlined />
         </Link>
-        <h1>{title}</h1>
+        <h1>{title || goRulesJSONFilename}</h1>
       </Flex>
       <SimulationViewer jsonFile={goRulesJSONFilename} chefsFormId={chefsFormId} />
     </>

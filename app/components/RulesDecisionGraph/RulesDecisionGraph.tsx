@@ -11,7 +11,6 @@ import styles from "./RulesDecisionGraph.module.css";
 
 interface RulesViewerProps {
   jsonFile: string;
-  docId: string;
   contextToSimulate?: SubmissionData | null;
   setResultsOfSimulation: (results: Record<string, any>) => void;
 }

@@ -11,41 +11,66 @@ const axiosAPIInstance = axios.create({
 });
 
 /**
+ * Retrieves a rule data from the API based on the provided rule ID.
+ * @param ruleId The ID of the rule data to retrieve.
+ * @returns The rule data.
+ * @throws If an error occurs while retrieving the rule data.
+ */
+export const getRuleDataById = async (ruleId: string): Promise<RuleInfo> => {
+  try {
+    const { data } = await axiosAPIInstance.get(`/ruleData/${ruleId}`);
+    return data;
+  } catch (error) {
+    console.error(`Error getting rule data: ${error}`);
+    throw error;
+  }
+};
+
+/**
+ * Retrieves all rules data from the API.
+ * @returns The rule data list.
+ * @throws If an error occurs while fetching the rule data.
+ */
+export const getAllRuleData = async (): Promise<RuleInfo[]> => {
+  try {
+    const { data } = await axiosAPIInstance.get("/ruleData/list");
+    return data;
+  } catch (error) {
+    console.error(`Error fetching rule data: ${error}`);
+    throw error;
+  }
+};
+
+/**
+ * Gets list of all rule documents
+ * @returns The rule documents list.
+ * @throws If an error occurs while fetching the rule documents list.
+ */
+export const getAllRuleDocuments = async (): Promise<string[]> => {
+  try {
+    const { data } = await axiosAPIInstance.get("/documents");
+    return data;
+  } catch (error) {
+    console.error(`Error fetching rule data: ${error}`);
+    throw error;
+  }
+};
+
+/**
  * Retrieves a document from the API based on the provided document ID.
  * @param docId The ID of the document to retrieve.
  * @returns The content of the document.
  * @throws If an error occurs while retrieving the document.
  */
-export const getDocument = async (jsonFile: string): Promise<DecisionGraphType> => {
+export const getDocument = async (jsonFilePath: string): Promise<DecisionGraphType> => {
   try {
-    const { data } = await axiosAPIInstance.get(`/documents/${jsonFile}`);
+    const { data } = await axiosAPIInstance.get(`/documents/${encodeURIComponent(jsonFilePath)}`);
     if (!data || !data.nodes || !data.edges) {
       throw new Error("Unexpected format of the returned data");
     }
     return data;
   } catch (error) {
     console.error(`Error getting the gorules document: ${error}`);
-    throw error;
-  }
-};
-
-/**
- * Posts a decision to the API for evaluation.
- * @param jsonFile The JSON file to use for the decision.
- * @param decisionGraph The decision graph to evaluate.
- * @param context The context for the decision evaluation.
- * @returns The result of the decision evaluation.
- * @throws If an error occurs while simulating the decision.
- */
-export const postDecision = async (jsonFile: string, context: unknown) => {
-  try {
-    const { data } = await axiosAPIInstance.post(`/decisions/evaluate/${jsonFile}`, {
-      context,
-      trace: true,
-    });
-    return data;
-  } catch (error) {
-    console.error(`Error simulating decision: ${error}`);
     throw error;
   }
 };
@@ -81,32 +106,22 @@ export const getSubmissionFromCHEFSById = async (formId: string, id: string) => 
 };
 
 /**
- * Retrieves a rule data from the API based on the provided rule ID.
- * @param ruleId The ID of the rule data to retrieve.
- * @returns The rule data.
- * @throws If an error occurs while retrieving the rule data.
+ * Posts a decision to the API for evaluation.
+ * @param jsonFile The JSON file to use for the decision.
+ * @param decisionGraph The decision graph to evaluate.
+ * @param context The context for the decision evaluation.
+ * @returns The result of the decision evaluation.
+ * @throws If an error occurs while simulating the decision.
  */
-export const getRuleDataById = async (ruleId: string): Promise<RuleInfo> => {
+export const postDecision = async (jsonFile: string, context: unknown) => {
   try {
-    const { data } = await axiosAPIInstance.get(`/ruleData/${ruleId}`);
+    const { data } = await axiosAPIInstance.post(`/decisions/evaluate/${jsonFile}`, {
+      context,
+      trace: true,
+    });
     return data;
   } catch (error) {
-    console.error(`Error getting rule data: ${error}`);
-    throw error;
-  }
-};
-
-/**
- * Retrieves all rules data from the API.
- * @returns The rule data list.
- * @throws If an error occurs while fetching the rule data.
- */
-export const getAllRuleData = async (): Promise<RuleInfo[]> => {
-  try {
-    const { data } = await axiosAPIInstance.get(`/ruleData/list`);
-    return data;
-  } catch (error) {
-    console.error(`Error fetching rule data: ${error}`);
+    console.error(`Error simulating decision: ${error}`);
     throw error;
   }
 };
