@@ -14,11 +14,10 @@ const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr:
 
 interface SimulationViewerProps {
   jsonFile: string;
-  docId: string;
   chefsFormId: string;
 }
 
-export default function SimulationViewer({ jsonFile, docId, chefsFormId }: SimulationViewerProps) {
+export default function SimulationViewer({ jsonFile, chefsFormId }: SimulationViewerProps) {
   const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>();
   const [contextToSimulate, setContextToSimulate] = useState<SubmissionData | null>();
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
@@ -43,7 +42,6 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId }: Simul
       <div className={styles.rulesWrapper}>
         <RulesDecisionGraph
           jsonFile={jsonFile}
-          docId={docId}
           contextToSimulate={contextToSimulate}
           setResultsOfSimulation={setResultsOfSimulation}
         />
