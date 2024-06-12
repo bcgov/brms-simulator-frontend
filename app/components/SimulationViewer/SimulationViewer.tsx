@@ -15,12 +15,11 @@ const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr:
 
 interface SimulationViewerProps {
   jsonFile: string;
-  docId: string;
   chefsFormId: string;
   rulemap: RuleMap;
 }
 
-export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap }: SimulationViewerProps) {
+export default function SimulationViewer({ jsonFile, chefsFormId, rulemap }: SimulationViewerProps) {
   const createRuleMap = (array: any[], defaultObj: { rulemap: boolean }) => {
     return array.reduce((acc, obj) => {
       acc[obj.property] = null;
@@ -63,7 +62,6 @@ export default function SimulationViewer({ jsonFile, docId, chefsFormId, rulemap
       <div className={styles.rulesWrapper}>
         <RulesDecisionGraph
           jsonFile={jsonFile}
-          docId={docId}
           contextToSimulate={contextToSimulate}
           setResultsOfSimulation={setResultsOfSimulation}
           setOutputsOfSimulation={setOutputSchema}

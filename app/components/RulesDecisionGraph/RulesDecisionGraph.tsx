@@ -11,7 +11,6 @@ import styles from "./RulesDecisionGraph.module.css";
 
 interface RulesViewerProps {
   jsonFile: string;
-  docId: string;
   contextToSimulate?: SubmissionData | null;
   setResultsOfSimulation: (results: Record<string, any>) => void;
   setOutputsOfSimulation: (outputs: Record<string, any>) => void;
@@ -19,25 +18,25 @@ interface RulesViewerProps {
 
 export default function RulesDecisionGraph({
   jsonFile,
-  docId,
   contextToSimulate,
   setResultsOfSimulation,
   setOutputsOfSimulation,
 }: RulesViewerProps) {
   const decisionGraphRef: any = useRef<DecisionGraphRef>();
   const [graphJSON, setGraphJSON] = useState<DecisionGraphType>();
+  
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getDocument(docId);
+        const data = await getDocument(jsonFile);
         setGraphJSON(data);
       } catch (error) {
         console.error("Error fetching JSON:", error);
       }
     };
     fetchData();
-  }, [docId]);
+  }, [jsonFile]);
 
   // Can set additional react flow options here if we need to change how graph looks when it's loaded in
   const reactFlowInit = (reactFlow: ReactFlowInstance) => {
@@ -49,10 +48,10 @@ export default function RulesDecisionGraph({
     decisionGraphRef?.current?.runSimulator(contextToSimulate);
   }, [contextToSimulate]);
 
-  const simulateRun = async ({ decisionGraph, context }: { decisionGraph: DecisionGraphType; context: unknown }) => {
+  const simulateRun = async ({ context }: { context: unknown }) => {
     if (contextToSimulate) {
       console.info("Simulate:", context);
-      const data = await postDecision(jsonFile, decisionGraph, context);
+      const data = await postDecision(jsonFile, context);
       console.info("Simulation Results:", data, data?.result);
       setResultsOfSimulation(data?.result);
       const ruleRunSchema = await getRuleRunSchema(data);
