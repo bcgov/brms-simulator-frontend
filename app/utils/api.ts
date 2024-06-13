@@ -177,8 +177,8 @@ export const deleteRuleData = async (ruleId: string) => {
 };
 
 /**
- * Retrieves a rule map from the API based on the provided rule ID.
- * @param ruleId The ID of the rule data to retrieve.
+ * Retrieves a rule map from the API based on the provided json filename.
+ * @param goRulesJSONFilename The ID of the rule data to retrieve.
  * @returns The rule map.
  * @throws If an error occurs while retrieving the rule data.
  */
@@ -201,6 +201,22 @@ export const getRuleMapByName = async (goRulesJSONFilename: string): Promise<Rul
 export const getRuleRunSchema = async (ruleResponse: unknown) => {
   try {
     const { data } = await axiosAPIInstance.post(`/rulemap/rulerunschema`, ruleResponse);
+    return data;
+  } catch (error) {
+    console.error(`Error posting output schema: ${error}`);
+    throw error;
+  }
+};
+
+/**
+ * Retrieves the scenarios for a rule from the API based on the provided filename
+ * @param goRulesJSONFilename The name of the rule data to retrieve.
+ * @returns The scenarios for the rule.
+ * @throws If an error occurs while retrieving the rule data.
+ */
+export const getScenariosByFilename = async (goRulesJSONFilename: string) => {
+  try {
+    const { data } = await axiosAPIInstance.get(`/scenario/by-filename/${goRulesJSONFilename}`);
     return data;
   } catch (error) {
     console.error(`Error posting output schema: ${error}`);

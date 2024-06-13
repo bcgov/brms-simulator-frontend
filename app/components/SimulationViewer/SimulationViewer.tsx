@@ -8,7 +8,9 @@ import { SubmissionData } from "../../types/submission";
 import SubmissionSelector from "../SubmissionSelector";
 import InputOutputTable from "../InputOutputTable";
 import { RuleMap } from "../../types/rulemap";
+import { Scenario } from "@/app/types/scenario";
 import styles from "./SimulationViewer.module.css";
+import ScenarioViewer from "../ScenarioViewer/ScenarioViewer";
 
 // Need to disable SSR when loading this component so it works properly
 const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr: false });
@@ -17,9 +19,10 @@ interface SimulationViewerProps {
   jsonFile: string;
   chefsFormId: string;
   rulemap: RuleMap;
+  scenarios: Scenario[];
 }
 
-export default function SimulationViewer({ jsonFile, chefsFormId, rulemap }: SimulationViewerProps) {
+export default function SimulationViewer({ jsonFile, chefsFormId, rulemap, scenarios }: SimulationViewerProps) {
   const createRuleMap = (array: any[], defaultObj: { rulemap: boolean }) => {
     return array.reduce((acc, obj) => {
       acc[obj.property] = null;
@@ -52,6 +55,7 @@ export default function SimulationViewer({ jsonFile, chefsFormId, rulemap }: Sim
   useEffect(() => {
     // reset context/results when a new submission is selected
     resetContextAndResults();
+    console.log(selectedSubmissionInputs, "this is submissionn inputs updating");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSubmissionInputs]);
 
@@ -67,6 +71,7 @@ export default function SimulationViewer({ jsonFile, chefsFormId, rulemap }: Sim
           setOutputsOfSimulation={setOutputSchema}
         />
       </div>
+      {/* 
       <Flex justify="space-between" align="center" className={styles.contentSection}>
         <Flex gap="middle">
           <SubmissionSelector
@@ -109,7 +114,13 @@ export default function SimulationViewer({ jsonFile, chefsFormId, rulemap }: Sim
         )}
         {outputSchema && <InputOutputTable title="Outputs" rawData={outputSchema} setRawData={setOutputSchema} />}
         {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
-      </Flex>
+      </Flex> */}
+      <ScenarioViewer
+        scenarios={scenarios}
+        setSelectedSubmissionInputs={setSelectedSubmissionInputs}
+        resultsOfSimulation={resultsOfSimulation}
+        runSimulation={runSimulation}
+      />
     </Flex>
   );
 }

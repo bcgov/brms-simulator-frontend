@@ -23,7 +23,7 @@ interface rawDataProps {
 
 interface InputOutputTableProps {
   title: string;
-  rawData: rawDataProps;
+  rawData: rawDataProps | null;
   setRawData?: (data: object) => void;
   submitButtonRef?: React.RefObject<HTMLButtonElement>;
 }

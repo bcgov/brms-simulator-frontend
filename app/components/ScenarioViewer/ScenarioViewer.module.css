@@ -1,0 +1,39 @@
+/* ScenarioViewer.module.css */
+.scenarioViewer {
+  display: flex;
+  gap: 1rem;
+}
+
+.scenarioList, .selectedScenarioDetails, .resultsColumn {
+  flex: 1 1 auto; /* Each column takes up equal space initially */
+  box-sizing: border-box;
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.scenarioList {
+  min-width: 300px; /* Preferable width of 300px */
+  max-width: 300px; /* Stable width of 300px */
+  border: 1px solid #ccc; /* Border for scenarioList */
+}
+
+.selectedScenarioDetails {
+  min-width: 450px; /* Preferable width of 450px */
+  max-width: 450px; /* Stable width of 450px */
+  border: 1px solid #ccc; /* Border for selectedScenarioDetails */
+}
+
+.resultsColumn {
+  flex: 1 1 300px; /* Preferable width of 300px, but can expand */
+  min-width: 300px; /* Stable width of 300px */
+  max-width: 300px; /* Maximum width of 300px */
+  display: none; /* Initially hidden */
+  white-space: pre-wrap; /* For better readability of JSON */
+}
+
+@media (min-width: 768px) {
+  .resultsColumn {
+    display: block; /* Displayed when viewport width is 768px or more */
+    border: 1px solid #ccc; /* Border for resultsColumn */
+  }
+}
