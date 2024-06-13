@@ -40,6 +40,7 @@ export default function SimulationViewer({ jsonFile, chefsFormId, rulemap, scena
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
   const simulateButtonRef = useRef<HTMLButtonElement>(null);
+  const [manualOrPredefined, setManualOrPredefined] = useState<boolean>(false);
 
   const resetContextAndResults = () => {
     setContextToSimulate(null);
@@ -71,6 +72,32 @@ export default function SimulationViewer({ jsonFile, chefsFormId, rulemap, scena
           setOutputsOfSimulation={setOutputSchema}
         />
       </div>
+      <Flex justify="space-between" align="center" className={styles.contentSection}>
+        <Flex gap="middle">
+          <Button
+            size="large"
+            type="default"
+            onClick={() => {
+              setManualOrPredefined((prev) => !prev);
+              setSelectedSubmissionInputs(ruleMapInputs);
+              setResetTrigger((prev) => !prev);
+            }}
+          >
+            Switch
+          </Button>
+          <Button
+            size="large"
+            type="default"
+            onClick={() => {
+              setSelectedSubmissionInputs(ruleMapInputs);
+              setResetTrigger((prev) => !prev);
+            }}
+          >
+            Reset ↻
+          </Button>
+        </Flex>
+      </Flex>
+
       {/* 
       <Flex justify="space-between" align="center" className={styles.contentSection}>
         <Flex gap="middle">
@@ -115,12 +142,36 @@ export default function SimulationViewer({ jsonFile, chefsFormId, rulemap, scena
         {outputSchema && <InputOutputTable title="Outputs" rawData={outputSchema} setRawData={setOutputSchema} />}
         {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
       </Flex> */}
-      <ScenarioViewer
-        scenarios={scenarios}
-        setSelectedSubmissionInputs={setSelectedSubmissionInputs}
-        resultsOfSimulation={resultsOfSimulation}
-        runSimulation={runSimulation}
-      />
+      <Flex justify="space-between" align="center" className={styles.contentSection}>
+        <Flex gap="middle">
+          {manualOrPredefined ? (
+            <>
+              {selectedSubmissionInputs && (
+                <>
+                  <Button ref={simulateButtonRef} size="large" type="primary" onClick={runSimulation}>
+                    Simulate ▶
+                  </Button>
+                  <InputOutputTable
+                    title="Inputs"
+                    rawData={selectedSubmissionInputs}
+                    setRawData={setSelectedSubmissionInputs}
+                    submitButtonRef={simulateButtonRef}
+                  />
+                </>
+              )}
+              {outputSchema && <InputOutputTable title="Outputs" rawData={outputSchema} setRawData={setOutputSchema} />}
+              {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
+            </>
+          ) : (
+            <ScenarioViewer
+              scenarios={scenarios}
+              setSelectedSubmissionInputs={setSelectedSubmissionInputs}
+              resultsOfSimulation={resultsOfSimulation}
+              runSimulation={runSimulation}
+            />
+          )}
+        </Flex>
+      </Flex>
     </Flex>
   );
 }
