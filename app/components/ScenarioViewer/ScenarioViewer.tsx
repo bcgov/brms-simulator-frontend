@@ -10,7 +10,7 @@ import { Scenario, Variable } from "@/app/types/scenario";
 
 interface ScenarioViewerProps {
   scenarios: Scenario[];
-  resultsOfSimulation: Record<string, any> | null;
+  resultsOfSimulation: Record<string, any> | null | undefined;
   setSelectedSubmissionInputs: (data: any) => void;
   runSimulation: () => void;
 }
