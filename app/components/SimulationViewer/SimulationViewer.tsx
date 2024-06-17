@@ -6,7 +6,6 @@ import { Flex, Button, Tabs } from "antd";
 import type { TabsProps } from "antd";
 import { ExportOutlined } from "@ant-design/icons";
 import { SubmissionData } from "../../types/submission";
-import SubmissionSelector from "../SubmissionSelector";
 import InputOutputTable from "../InputOutputTable";
 import { RuleMap } from "../../types/rulemap";
 import { Scenario } from "@/app/types/scenario";
@@ -16,7 +15,6 @@ import ScenarioViewer from "../ScenarioViewer/ScenarioViewer";
 // Need to disable SSR when loading this component so it works properly
 const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr: false });
 
-const { TabPane } = Tabs;
 interface SimulationViewerProps {
   jsonFile: string;
   chefsFormId: string;
@@ -24,7 +22,7 @@ interface SimulationViewerProps {
   scenarios: Scenario[];
 }
 
-export default function SimulationViewer({ jsonFile, chefsFormId, rulemap, scenarios }: SimulationViewerProps) {
+export default function SimulationViewer({ jsonFile, rulemap, scenarios }: SimulationViewerProps) {
   const createRuleMap = (array: any[], defaultObj: { rulemap: boolean }) => {
     return array.reduce((acc, obj) => {
       acc[obj.property] = null;
@@ -40,10 +38,8 @@ export default function SimulationViewer({ jsonFile, chefsFormId, rulemap, scena
   const [contextToSimulate, setContextToSimulate] = useState<SubmissionData | null>();
   const [outputSchema, setOutputSchema] = useState<Record<string, any> | null>(ruleMapOutputs);
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
-  const [activeTab, setActiveTab] = useState("scenarios");
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
   const simulateButtonRef = useRef<HTMLButtonElement>(null);
-  const [manualOrPredefined, setManualOrPredefined] = useState<boolean>(false);
 
   const resetContextAndResults = () => {
     setContextToSimulate(null);
@@ -104,12 +100,6 @@ export default function SimulationViewer({ jsonFile, chefsFormId, rulemap, scena
     </Flex>
   );
 
-  const resetTab = (
-    <Button onClick={handleReset} size="large" type="primary">
-      Reset ↻
-    </Button>
-  );
-
   const items: TabsProps["items"] = [
     {
       key: "1",
@@ -134,8 +124,11 @@ export default function SimulationViewer({ jsonFile, chefsFormId, rulemap, scena
         />
       </div>
       <Flex justify="space-between" align="center" className={styles.contentSection}>
-        <Flex gap="middle">
-          <Tabs defaultActiveKey="1" items={items} onChange={handleTabChange} tabBarExtraContent={resetTab}></Tabs>
+        <Flex gap="middle" justify="space-between">
+          <Tabs defaultActiveKey="1" tabBarStyle={{ gap: "10rem" }} items={items} onChange={handleTabChange}></Tabs>
+          <Button onClick={handleReset} size="large" type="primary">
+            Reset ↻
+          </Button>
         </Flex>
       </Flex>
     </Flex>
