@@ -17,6 +17,8 @@ interface ScenarioGeneratorProps {
   outputSchema: Record<string, any> | null;
   setOutputSchema: (data: any) => void;
   resetTrigger: boolean;
+  ruleId: string;
+  jsonFile: string;
 }
 
 export default function ScenarioGenerator({
@@ -29,6 +31,8 @@ export default function ScenarioGenerator({
   outputSchema,
   setOutputSchema,
   resetTrigger,
+  ruleId,
+  jsonFile,
 }: ScenarioGeneratorProps) {
   const [simulationRun, setSimulationRun] = useState(false);
   const [isInputsValid, setIsInputsValid] = useState(false);
@@ -37,22 +41,23 @@ export default function ScenarioGenerator({
   const handleSaveScenario = async () => {
     if (!simulationRun || !selectedSubmissionInputs || !newScenarioName) return;
 
-    const variables = Object.entries(selectedSubmissionInputs).map(([key, value]) => ({ key, value }));
+    const variables = Object.entries(selectedSubmissionInputs)
+      .filter(([name, value]) => name !== "rulemap")
+      .map(([name, value]) => ({ name, value }));
 
     const newScenario: Scenario = {
-      title: newScenarioName, // User-defined title
-      ruleID: "**Replace with your rule ID**", // Replace with the actual rule ID
-      goRulesJsonFilename: "**Replace with your rule filename**", // Replace with the actual rule filename
+      title: newScenarioName,
+      ruleID: ruleId,
+      goRulesJSONFilename: jsonFile,
       variables,
-      _id: "",
     };
 
     try {
       await createScenario(newScenario);
-      console.log("Scenario created successfully!"); // Handle success
-      setNewScenarioName(""); // Clear the input field after successful save
+      console.log("Scenario created successfully!");
+      setNewScenarioName("");
     } catch (error) {
-      console.error("Error creating scenario:", error); // Handle error
+      console.error("Error creating scenario:", error);
     }
   };
 

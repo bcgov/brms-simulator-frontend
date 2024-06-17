@@ -17,13 +17,14 @@ import ScenarioGenerator from "../ScenarioGenerator/ScenarioGenerator";
 const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr: false });
 
 interface SimulationViewerProps {
+  ruleId: string;
   jsonFile: string;
   chefsFormId: string;
   rulemap: RuleMap;
   scenarios: Scenario[];
 }
 
-export default function SimulationViewer({ jsonFile, rulemap, scenarios }: SimulationViewerProps) {
+export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios }: SimulationViewerProps) {
   const createRuleMap = (array: any[], defaultObj: { rulemap: boolean }) => {
     return array.reduce((acc, obj) => {
       acc[obj.property] = null;
@@ -116,6 +117,8 @@ export default function SimulationViewer({ jsonFile, rulemap, scenarios }: Simul
         outputSchema={outputSchema}
         setOutputSchema={setOutputSchema}
         resetTrigger={resetTrigger}
+        ruleId={ruleId}
+        jsonFile={jsonFile}
       />
       <Button onClick={handleReset} size="large" type="primary">
         Reset ↻

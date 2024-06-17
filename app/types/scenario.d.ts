@@ -1,8 +1,8 @@
 export interface Scenario {
-  _id: string;
+  _id?: string; //optional for create scenario as generated id
   title: string;
   ruleID: string;
-  goRulesJsonFilename: string;
+  goRulesJSONFilename: string;
   variables: any[];
 }
 

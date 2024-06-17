@@ -24,6 +24,7 @@ export default async function Rule({ params: { ruleId } }: { params: { ruleId: s
         <h1>{title || goRulesJSONFilename}</h1>
       </Flex>
       <SimulationViewer
+        ruleId={ruleId}
         rulemap={rulemap}
         jsonFile={goRulesJSONFilename}
         chefsFormId={chefsFormId}
