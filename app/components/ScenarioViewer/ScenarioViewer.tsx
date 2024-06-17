@@ -2,11 +2,13 @@
 import React, { useState, useEffect, useRef, use } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Flex, Button } from "antd";
-import { ExportOutlined } from "@ant-design/icons";
+import { Flex, Button, Popconfirm, message } from "antd";
+import type { PopconfirmProps } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
 import InputOutputTable from "../InputOutputTable";
 import styles from "./ScenarioViewer.module.css";
 import { Scenario, Variable } from "@/app/types/scenario";
+import { deleteScenario } from "@/app/utils/api";
 
 interface ScenarioViewerProps {
   scenarios: Scenario[];
@@ -23,7 +25,7 @@ export default function ScenarioViewer({
 }: ScenarioViewerProps) {
   const [scenariosDisplay, setScenariosDisplay] = useState<Scenario[] | null>(scenarios);
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
-
+  const [manageScenarios, setManageScenarios] = useState(false);
   useEffect(() => {
     setScenariosDisplay(scenarios);
   }, [scenarios]);
@@ -41,21 +43,59 @@ export default function ScenarioViewer({
     runSimulation();
   };
 
+  const handleDeleteScenario = async (scenario: Scenario) => {
+    const scenarioID = scenario._id || "";
+    try {
+      await deleteScenario(scenarioID);
+      scenariosDisplay ? setScenariosDisplay(scenariosDisplay.filter((s) => s._id !== scenarioID)) : null;
+      message.success("Scenario deleted");
+      setManageScenarios(false);
+    } catch (e) {
+      message.error("Error deleting scenario");
+    }
+  };
+
+  const cancel: PopconfirmProps["onCancel"] = (e) => {
+    console.log(e);
+  };
+
   return (
     <Flex className={styles.scenarioViewer}>
-      <Flex className={styles.scenarioList}>
+      <Flex className={styles.scenarioList} vertical>
         {scenariosDisplay && scenariosDisplay.length > 0 ? (
-          <ol>
-            {scenariosDisplay.map((scenario, index) => (
-              <li
-                key={index}
-                onClick={() => handleSelectScenario(scenario)}
-                className={selectedScenario === scenario ? styles.selected : ""}
-              >
-                {scenario.title}
-              </li>
-            ))}
-          </ol>
+          <>
+            <ol>
+              {scenariosDisplay.map((scenario, index) => (
+                <li
+                  key={index}
+                  onClick={() => handleSelectScenario(scenario)}
+                  className={selectedScenario === scenario ? styles.selected : ""}
+                >
+                  {scenario.title} {"  "}
+                  {manageScenarios && (
+                    <>
+                      <Popconfirm
+                        title="Are you sure you want to delete this scenario?"
+                        onConfirm={() => handleDeleteScenario(scenario)}
+                        onCancel={cancel}
+                        okText="Yes, delete scenario"
+                        cancelText="No"
+                      >
+                        <Button
+                          shape="circle"
+                          icon={<DeleteOutlined />}
+                          disabled={!manageScenarios}
+                          size="small"
+                          danger
+                        ></Button>
+                      </Popconfirm>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ol>
+            <Button onClick={() => setManageScenarios(!manageScenarios)}>Manage Scenarios</Button>
+          </>
         ) : (
           <div>No scenarios available</div>
         )}

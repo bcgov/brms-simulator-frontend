@@ -54,8 +54,11 @@ export default function ScenarioGenerator({
 
     try {
       await createScenario(newScenario);
+
       console.log("Scenario created successfully!");
       setNewScenarioName("");
+      // Reload the page after the scenario is successfully created
+      window.location.reload();
     } catch (error) {
       console.error("Error creating scenario:", error);
     }
@@ -122,9 +125,9 @@ export default function ScenarioGenerator({
             </Flex>
           </Flex>
         )}
-        <Flex gap={"small"}>
+        {/* <Flex gap={"small"}>
           {outputSchema && <InputOutputTable title="Outputs" rawData={outputSchema} setRawData={setOutputSchema} />}
-        </Flex>
+        </Flex> */}
         <Flex gap={"small"} vertical>
           {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
         </Flex>

@@ -85,26 +85,6 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
     />
   );
 
-  const manualInputTab = (
-    <Flex gap="middle">
-      {selectedSubmissionInputs && (
-        <Flex vertical gap={"small"} align="end" className={styles.inputSection}>
-          <InputOutputTable
-            title="Inputs"
-            rawData={selectedSubmissionInputs}
-            setRawData={setSelectedSubmissionInputs}
-            submitButtonRef={simulateButtonRef}
-          />
-          <Button ref={simulateButtonRef} size="large" type="primary" onClick={runSimulation}>
-            Simulate ▶
-          </Button>
-        </Flex>
-      )}
-      {outputSchema && <InputOutputTable title="Outputs" rawData={outputSchema} setRawData={setOutputSchema} />}
-      {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
-    </Flex>
-  );
-
   const scenarioGenerator = (
     <Flex gap="small">
       <ScenarioGenerator
@@ -134,12 +114,7 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
     },
     {
       key: "2",
-      label: "Simulate inputs manually",
-      children: manualInputTab,
-    },
-    {
-      key: "3",
-      label: "Scenario Generator",
+      label: "Simulate inputs manually and create new scenarios",
       children: scenarioGenerator,
     },
   ];
@@ -156,7 +131,7 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
       </div>
       <Flex justify="space-between" align="center" className={styles.contentSection}>
         <Flex gap="middle" justify="space-between">
-          <Tabs defaultActiveKey="3" tabBarStyle={{ gap: "10rem" }} items={items} onChange={handleTabChange}></Tabs>
+          <Tabs defaultActiveKey="1" tabBarStyle={{ gap: "10rem" }} items={items} onChange={handleTabChange}></Tabs>
         </Flex>
       </Flex>
     </Flex>
