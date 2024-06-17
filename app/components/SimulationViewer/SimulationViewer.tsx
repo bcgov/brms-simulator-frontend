@@ -11,6 +11,7 @@ import { RuleMap } from "../../types/rulemap";
 import { Scenario } from "@/app/types/scenario";
 import styles from "./SimulationViewer.module.css";
 import ScenarioViewer from "../ScenarioViewer/ScenarioViewer";
+import ScenarioGenerator from "../ScenarioGenerator/ScenarioGenerator";
 
 // Need to disable SSR when loading this component so it works properly
 const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr: false });
@@ -61,13 +62,16 @@ export default function SimulationViewer({ jsonFile, rulemap, scenarios }: Simul
   useEffect(() => {}, [resultsOfSimulation]);
 
   const handleTabChange = (key: string) => {
-    if (key === "reset") {
+    if (key === "1") {
       handleReset();
     }
   };
 
   const handleReset = () => {
-    setSelectedSubmissionInputs(ruleMapInputs);
+    setSelectedSubmissionInputs({});
+    setTimeout(() => {
+      setSelectedSubmissionInputs(ruleMapInputs);
+    }, 0);
     setResetTrigger((prev) => !prev);
   };
 
@@ -100,6 +104,25 @@ export default function SimulationViewer({ jsonFile, rulemap, scenarios }: Simul
     </Flex>
   );
 
+  const scenarioGenerator = (
+    <Flex gap="small">
+      <ScenarioGenerator
+        scenarios={scenarios}
+        setSelectedSubmissionInputs={setSelectedSubmissionInputs}
+        resultsOfSimulation={resultsOfSimulation}
+        runSimulation={runSimulation}
+        simulateButtonRef={simulateButtonRef}
+        selectedSubmissionInputs={selectedSubmissionInputs}
+        outputSchema={outputSchema}
+        setOutputSchema={setOutputSchema}
+        resetTrigger={resetTrigger}
+      />
+      <Button onClick={handleReset} size="large" type="primary">
+        Reset ↻
+      </Button>
+    </Flex>
+  );
+
   const items: TabsProps["items"] = [
     {
       key: "1",
@@ -110,6 +133,11 @@ export default function SimulationViewer({ jsonFile, rulemap, scenarios }: Simul
       key: "2",
       label: "Simulate inputs manually",
       children: manualInputTab,
+    },
+    {
+      key: "3",
+      label: "Scenario Generator",
+      children: scenarioGenerator,
     },
   ];
 
@@ -125,10 +153,7 @@ export default function SimulationViewer({ jsonFile, rulemap, scenarios }: Simul
       </div>
       <Flex justify="space-between" align="center" className={styles.contentSection}>
         <Flex gap="middle" justify="space-between">
-          <Tabs defaultActiveKey="1" tabBarStyle={{ gap: "10rem" }} items={items} onChange={handleTabChange}></Tabs>
-          <Button onClick={handleReset} size="large" type="primary">
-            Reset ↻
-          </Button>
+          <Tabs defaultActiveKey="3" tabBarStyle={{ gap: "10rem" }} items={items} onChange={handleTabChange}></Tabs>
         </Flex>
       </Flex>
     </Flex>

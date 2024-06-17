@@ -223,3 +223,19 @@ export const getScenariosByFilename = async (goRulesJSONFilename: string) => {
     throw error;
   }
 };
+
+/**
+ * Creates a new scenario for a rule
+ * @param scenarioResponse The response from scenario creation.
+ * @returns The confirmation of rule posting.
+ * @throws If an error occurs while retrieving the rule data.
+ */
+export const createScenario = async (scenarioResponse: unknown) => {
+  try {
+    const { data } = await axiosAPIInstance.post(`/scenario`, scenarioResponse);
+    return data;
+  } catch (error) {
+    console.error(`Error posting output schema: ${error}`);
+    throw error;
+  }
+};
