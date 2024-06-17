@@ -15,6 +15,37 @@
   min-width: 300px; /* Preferable width of 300px */
   max-width: 300px; /* Stable width of 300px */
   border: 1px solid #ccc; /* Border for scenarioList */
+  .selected {
+    background-color: rgba(209, 230, 255, 0.5);
+    border-radius: 5px; /* Adjust value for desired corner roundness */
+  }
+}
+
+.scenarioList ol {
+  list-style-type: none; /* Remove default bullets */
+  counter-reset: item; /* Create a counter for the list items */
+  padding: 0; /* Remove default padding */
+}
+
+.scenarioList li {
+  cursor: pointer; /* Add a pointer cursor to the scenarioList */
+  counter-increment: item; /* Increment the counter for each list item */
+  padding-block: 1rem; /* Add some space between list items */
+  padding-inline: 0.75rem; /* Add some space between list items */
+  margin-block: 0.5rem; /* Add some space between list items */
+}
+
+.scenarioList li:before {
+  content: counter(item) ""; /* Add a counter before each list item */
+  /* font-weight: bold; Make the counter bold */
+  color: white; /* Change the color of the counter */
+  background-color: black; /* Change the background color of the counter */
+  margin-right: 10px; /* Add some space after the counter */
+  border-radius: 50%; /* Add border-radius to make it circular */
+  width:30px;
+  height: 20px;
+  padding-block: 5px;
+  padding-inline: 10px;
 }
 
 .selectedScenarioDetails {
