@@ -6,3 +6,7 @@
 .contentSection {
   margin: "0 8px";
 }
+
+.inputSection button {
+  width: 10rem;
+}

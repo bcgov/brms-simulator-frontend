@@ -14,7 +14,6 @@
 .scenarioList {
   min-width: 300px; /* Preferable width of 300px */
   max-width: 300px; /* Stable width of 300px */
-  border: 1px solid #ccc; /* Border for scenarioList */
   .selected {
     background-color: rgba(209, 230, 255, 0.5);
     border-radius: 5px; /* Adjust value for desired corner roundness */
@@ -54,17 +53,25 @@
   border: 1px solid #ccc; /* Border for selectedScenarioDetails */
 }
 
+.selectedScenarioDetails button {
+  width: 10rem;
+  align-self: end;
+}
+
 .resultsColumn {
   flex: 1 1 300px; /* Preferable width of 300px, but can expand */
   min-width: 300px; /* Stable width of 300px */
   max-width: 300px; /* Maximum width of 300px */
   display: none; /* Initially hidden */
-  white-space: pre-wrap; /* For better readability of JSON */
+  white-space: pre-wrap;
+  border: 1px solid #6fb1fe;
+  background-color: rgba(209, 230, 255, 0.5);
+  border-radius: 5px; 
 }
 
 @media (min-width: 768px) {
   .resultsColumn {
     display: block; /* Displayed when viewport width is 768px or more */
-    border: 1px solid #ccc; /* Border for resultsColumn */
+
   }
 }

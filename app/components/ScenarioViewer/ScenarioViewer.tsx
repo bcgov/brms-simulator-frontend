@@ -42,8 +42,8 @@ export default function ScenarioViewer({
   };
 
   return (
-    <div className={styles.scenarioViewer}>
-      <div className={styles.scenarioList}>
+    <Flex className={styles.scenarioViewer}>
+      <Flex className={styles.scenarioList}>
         {scenariosDisplay && scenariosDisplay.length > 0 ? (
           <ol>
             {scenariosDisplay.map((scenario, index) => (
@@ -59,28 +59,36 @@ export default function ScenarioViewer({
         ) : (
           <div>No scenarios available</div>
         )}
-      </div>
+      </Flex>
       {selectedScenario && (
-        <div className={styles.selectedScenarioDetails}>
-          <h3>Selected Scenario</h3>
-          <p>{selectedScenario.title}</p>
-          <div className={styles.variablesTable}>
-            <InputOutputTable
-              title="Inputs"
-              rawData={selectedScenario.variables.reduce((acc, variable) => {
-                acc[variable.name] = variable.value;
-                return acc;
-              }, {} as Record<string, any>)}
-            />
-          </div>
-          <button onClick={handleRunScenario}>Run Scenario</button>
-        </div>
+        <Flex vertical gap={"small"} className={styles.selectedScenarioDetails}>
+          <Flex vertical gap={"small"} className={styles.scenarioDetails}>
+            <div className={styles.variablesTable}>
+              <InputOutputTable
+                title="Inputs"
+                rawData={selectedScenario.variables.reduce((acc, variable) => {
+                  acc[variable.name] = variable.value;
+                  return acc;
+                }, {} as Record<string, any>)}
+              />
+            </div>
+          </Flex>
+          <Button size="large" type="primary" onClick={handleRunScenario}>
+            Simulate ▶
+          </Button>
+        </Flex>
       )}
+
       {!resultsOfSimulation?.rulemap && (
-        <div className={styles.resultsColumn}>
-          <InputOutputTable title="Results" rawData={resultsOfSimulation} />
-        </div>
+        <>
+          <Flex vertical align="center" justify="center">
+            <>→</>
+          </Flex>
+          <Flex className={styles.resultsColumn}>
+            <InputOutputTable title="Decision" rawData={resultsOfSimulation} />
+          </Flex>
+        </>
       )}
-    </div>
+    </Flex>
   );
 }

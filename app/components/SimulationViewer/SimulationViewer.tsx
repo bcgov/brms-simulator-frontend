@@ -147,17 +147,17 @@ export default function SimulationViewer({ jsonFile, chefsFormId, rulemap, scena
           {manualOrPredefined ? (
             <>
               {selectedSubmissionInputs && (
-                <>
-                  <Button ref={simulateButtonRef} size="large" type="primary" onClick={runSimulation}>
-                    Simulate ▶
-                  </Button>
+                <Flex vertical gap={"small"} align="end" className={styles.inputSection}>
                   <InputOutputTable
                     title="Inputs"
                     rawData={selectedSubmissionInputs}
                     setRawData={setSelectedSubmissionInputs}
                     submitButtonRef={simulateButtonRef}
                   />
-                </>
+                  <Button ref={simulateButtonRef} size="large" type="primary" onClick={runSimulation}>
+                    Simulate ▶
+                  </Button>
+                </Flex>
               )}
               {outputSchema && <InputOutputTable title="Outputs" rawData={outputSchema} setRawData={setOutputSchema} />}
               {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
