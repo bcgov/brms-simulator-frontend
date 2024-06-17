@@ -239,3 +239,19 @@ export const createScenario = async (scenarioResponse: unknown) => {
     throw error;
   }
 };
+
+/**
+ * Deletes a scenario by its ID
+ * @param scenarioId The ID of the scenario to delete.
+ * @returns The confirmation of scenario deletion.
+ * @throws If an error occurs while deleting the scenario.
+ */
+export const deleteScenario = async (scenarioId: string) => {
+  try {
+    const { data } = await axiosAPIInstance.delete(`/scenario/${scenarioId}`);
+    return data;
+  } catch (error) {
+    console.error(`Error deleting scenario: ${error}`);
+    throw error;
+  }
+};
