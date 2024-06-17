@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Table, Input, Button, Flex } from "antd";
 import { ColumnsType } from "antd/es/table";
+import { HomeOutlined } from "@ant-design/icons";
 import { RuleInfo } from "../types/ruleInfo";
 import { getAllRuleData, getAllRuleDocuments, postRuleData, updateRuleData, deleteRuleData } from "../utils/api";
 
@@ -166,6 +167,9 @@ export default function Admin() {
   return (
     <>
       <Flex justify="space-between" align="center">
+        <Link href="/">
+          <HomeOutlined />
+        </Link>
         <h1>Admin</h1>
         {!isLoading && (
           <Button type="primary" size="large" onClick={saveAllRuleUpdates}>
