@@ -64,7 +64,7 @@ export const getAllRuleDocuments = async (): Promise<string[]> => {
  */
 export const getDocument = async (jsonFilePath: string): Promise<DecisionGraphType> => {
   try {
-    const { data } = await axiosAPIInstance.get(`/documents?ruleFileName=${jsonFilePath}`);
+    const { data } = await axiosAPIInstance.get(`/documents?ruleFileName=${encodeURIComponent(jsonFilePath)}`);
     if (!data || !data.nodes || !data.edges) {
       throw new Error("Unexpected format of the returned data");
     }

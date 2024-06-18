@@ -31,7 +31,7 @@ export default function Home() {
         </b>
       ),
       downloadRule: (
-        <a href={`/api/documents?ruleFileName=${goRulesJSONFilename}`}>
+        <a href={`/api/documents?ruleFileName=${encodeURIComponent(goRulesJSONFilename)}`}>
           Download JSON
         </a>
       ),
