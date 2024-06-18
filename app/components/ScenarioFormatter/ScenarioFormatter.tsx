@@ -81,7 +81,6 @@ export default function ScenarioFormatter({
             options={valuesArray}
             defaultValue={value}
             onBlur={(e) => handleValueChange((e.target as HTMLInputElement).value, property)}
-            onKeyDown={(e) => handleKeyDown(e.target as HTMLInputElement, property)}
             style={{ width: 200 }}
             onChange={(val) => handleInputChange(val, property)}
           />

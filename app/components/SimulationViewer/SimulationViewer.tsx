@@ -77,12 +77,15 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
   };
 
   const scenarioTab = (
-    <ScenarioViewer
-      scenarios={scenarios}
-      setSelectedSubmissionInputs={setSelectedSubmissionInputs}
-      resultsOfSimulation={resultsOfSimulation}
-      runSimulation={runSimulation}
-    />
+    <>
+      <ScenarioViewer
+        scenarios={scenarios}
+        setSelectedSubmissionInputs={setSelectedSubmissionInputs}
+        resultsOfSimulation={resultsOfSimulation}
+        runSimulation={runSimulation}
+      />
+      <a href={`/api/scenario/evaluationcsv/${encodeURIComponent(jsonFile)}`}>Export Scenario Results</a>
+    </>
   );
 
   const scenarioGenerator = (
