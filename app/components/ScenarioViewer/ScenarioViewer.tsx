@@ -1,14 +1,13 @@
 "use client";
 import React, { useState, useEffect, useRef, use } from "react";
-import dynamic from "next/dynamic";
-import Link from "next/link";
 import { Flex, Button, Popconfirm, message } from "antd";
 import type { PopconfirmProps } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import InputOutputTable from "../InputOutputTable";
 import styles from "./ScenarioViewer.module.css";
-import { Scenario, Variable } from "@/app/types/scenario";
+import { Scenario } from "@/app/types/scenario";
 import { deleteScenario } from "@/app/utils/api";
+import ScenarioFormatter from "../ScenarioFormatter";
 
 interface ScenarioViewerProps {
   scenarios: Scenario[];
@@ -104,8 +103,16 @@ export default function ScenarioViewer({
         <Flex vertical gap={"small"} className={styles.selectedScenarioDetails}>
           <Flex vertical gap={"small"} className={styles.scenarioDetails}>
             <div className={styles.variablesTable}>
-              <InputOutputTable
+              {/* <InputOutputTable
                 title="Inputs"
+                rawData={selectedScenario.variables.reduce((acc, variable) => {
+                  acc[variable.name] = variable.value;
+                  return acc;
+                }, {} as Record<string, any>)}
+              /> */}
+              <ScenarioFormatter
+                title="Inputs"
+                scenarios={scenarios}
                 rawData={selectedScenario.variables.reduce((acc, variable) => {
                   acc[variable.name] = variable.value;
                   return acc;

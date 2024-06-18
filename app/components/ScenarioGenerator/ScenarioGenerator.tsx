@@ -6,6 +6,7 @@ import styles from "./ScenarioGenerator.module.css";
 import { Scenario } from "@/app/types/scenario";
 import { SubmissionData } from "@/app/types/submission";
 import { createScenario } from "@/app/utils/api";
+import ScenarioFormatter from "../ScenarioFormatter";
 
 interface ScenarioGeneratorProps {
   scenarios: Scenario[];
@@ -66,6 +67,7 @@ export default function ScenarioGenerator({
 
   const runScenarioSimulation = () => {
     if (!selectedSubmissionInputs) return;
+    console.log("Running scenario simulation", selectedSubmissionInputs);
 
     runSimulation();
     setSimulationRun(true);
@@ -89,7 +91,7 @@ export default function ScenarioGenerator({
       <Flex gap="middle">
         {selectedSubmissionInputs && (
           <Flex vertical gap={"small"} align="end" className={styles.inputSection}>
-            <InputOutputTable
+            <ScenarioFormatter
               title="Inputs"
               rawData={selectedSubmissionInputs}
               setRawData={(data) => {
@@ -97,6 +99,7 @@ export default function ScenarioGenerator({
                 setIsInputsValid(validateInputs(data));
               }}
               submitButtonRef={simulateButtonRef}
+              scenarios={scenarios}
             />
             <Flex gap={"small"} align="end" vertical>
               <Button
