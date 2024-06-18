@@ -49,7 +49,7 @@ export const getAllRuleData = async (): Promise<RuleInfo[]> => {
  */
 export const getAllRuleDocuments = async (): Promise<string[]> => {
   try {
-    const { data } = await axiosAPIInstance.get("/documents");
+    const { data } = await axiosAPIInstance.get("/documents/all");
     return data;
   } catch (error) {
     console.error(`Error fetching rule data: ${error}`);
@@ -65,7 +65,7 @@ export const getAllRuleDocuments = async (): Promise<string[]> => {
  */
 export const getDocument = async (jsonFilePath: string): Promise<DecisionGraphType> => {
   try {
-    const { data } = await axiosAPIInstance.get(`/documents/${encodeURIComponent(jsonFilePath)}`);
+    const { data } = await axiosAPIInstance.get(`/documents?ruleFileName=${encodeURIComponent(jsonFilePath)}`);
     if (!data || !data.nodes || !data.edges) {
       throw new Error("Unexpected format of the returned data");
     }
@@ -116,10 +116,13 @@ export const getSubmissionFromCHEFSById = async (formId: string, id: string) => 
  */
 export const postDecision = async (jsonFile: string, context: unknown) => {
   try {
-    const { data } = await axiosAPIInstance.post(`/decisions/evaluate/${jsonFile}`, {
-      context,
-      trace: true,
-    });
+    const { data } = await axiosAPIInstance.post(
+      `/decisions/evaluateByFile/?ruleFileName=${encodeURIComponent(jsonFile)}`,
+      {
+        context,
+        trace: true,
+      }
+    );
     return data;
   } catch (error) {
     console.error(`Error simulating decision: ${error}`);

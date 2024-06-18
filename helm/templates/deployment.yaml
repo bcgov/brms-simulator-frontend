@@ -13,6 +13,9 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: brms-frontend
+      annotations:
+        helm.sh/release: "{{ .Release.Name }}"
+        helm.sh/revision: "{{ .Release.Revision }}"
     spec:
       containers:
         - name: brms-frontend
