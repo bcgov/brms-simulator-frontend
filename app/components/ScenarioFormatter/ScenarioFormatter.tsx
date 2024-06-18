@@ -102,9 +102,8 @@ export default function ScenarioFormatter({
       if (value === null || value === undefined) {
         return (
           <Input
-            onBlur={(e) => handleValueChange(e, property)}
+            onBlur={(e) => handleValueChange(e.target.value, property)}
             onKeyDown={(e) => handleKeyDown(e, property)}
-            onChange={(e) => handleInputChange(e.target.value, property)}
           />
         );
       }
