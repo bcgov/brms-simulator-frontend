@@ -67,8 +67,6 @@ export default function ScenarioGenerator({
 
   const runScenarioSimulation = () => {
     if (!selectedSubmissionInputs) return;
-    console.log("Running scenario simulation", selectedSubmissionInputs);
-
     runSimulation();
     setSimulationRun(true);
   };
