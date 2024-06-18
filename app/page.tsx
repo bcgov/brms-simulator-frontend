@@ -22,17 +22,17 @@ export default function Home() {
     getRules();
   }, []);
 
-  const mappedRules = rules.map(({ _id, title, chefsFormId }) => {
+  const mappedRules = rules.map(({ _id, title, goRulesJSONFilename, chefsFormId }) => {
     return {
       key: _id,
       titleLink: (
         <b>
-          <Link href={`/rule/${_id}`}>{title}</Link>
+          <Link href={`/rule/${_id}`}>{title || goRulesJSONFilename}</Link>
         </b>
       ),
-      editRule: (
-        <a href={`https://sdpr.gorules.io/projects/${process.env.NEXT_PUBLIC_GO_RULES_PROJECT_ID}/documents/${_id}`}>
-          Edit
+      downloadRule: (
+        <a href={`/api/documents?ruleFileName=${encodeURIComponent(goRulesJSONFilename)}`}>
+          Download JSON
         </a>
       ),
       submissionFormLink: <a href={`https://submit.digital.gov.bc.ca/app/form/submit?f=${chefsFormId}`}>Submission</a>,
@@ -45,8 +45,8 @@ export default function Home() {
       dataIndex: "titleLink",
     },
     {
-      title: "Edit Rule",
-      dataIndex: "editRule",
+      title: "Download Rule",
+      dataIndex: "downloadRule",
     },
     {
       title: "Submission Form",

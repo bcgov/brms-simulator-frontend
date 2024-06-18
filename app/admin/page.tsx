@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Table, Input, Button, Flex } from "antd";
 import { ColumnsType } from "antd/es/table";
+import { HomeOutlined } from "@ant-design/icons";
 import { RuleInfo } from "../types/ruleInfo";
-import { getAllRuleData, postRuleData, updateRuleData, deleteRuleData } from "../utils/api";
+import { getAllRuleData, getAllRuleDocuments, postRuleData, updateRuleData, deleteRuleData } from "../utils/api";
 
 enum ACTION_STATUS {
   NEW = "new",
@@ -18,9 +19,18 @@ export default function Admin() {
   const [rules, setRules] = useState<RuleInfo[]>([]);
 
   const getOrRefreshRuleList = async () => {
-    const data = await getAllRuleData();
-    setInitialRules(data);
-    setRules(JSON.parse(JSON.stringify(data))); // JSON.parse(JSON.stringify(data)) is a hacky way to deep copy the data - needed for comparison later
+    // Get rules that are already defined in the DB
+    const existingRules = await getAllRuleData();
+    setInitialRules(existingRules);
+    // Get rules that exist in the rules repository, but aren't yet defined in the DB
+    const existingRuleDocuments = await getAllRuleDocuments();
+    const undefinedRules = existingRuleDocuments
+      .filter((ruleJSON: string) => {
+        return !existingRules.find((rule: RuleInfo) => rule.goRulesJSONFilename === ruleJSON);
+      })
+      .map((ruleJSON: string) => ({ goRulesJSONFilename: ruleJSON }));
+    const ruleData = [...existingRules, ...undefinedRules];
+    setRules(JSON.parse(JSON.stringify(ruleData))); // JSON.parse(JSON.stringify(data)) is a hacky way to deep copy the data - needed for comparison later
     setIsLoading(false);
   };
 
@@ -82,19 +92,19 @@ export default function Admin() {
     const entriesToUpdate = getRulesToUpdate();
     await Promise.all(
       entriesToUpdate.map(async ({ rule, action }) => {
-        if (rule?._id) {
           try {
             if (action === ACTION_STATUS.NEW) {
               await postRuleData(rule);
-            } else if (action === ACTION_STATUS.UPDATE) {
-              await updateRuleData(rule._id, rule);
-            } else if (action === ACTION_STATUS.DELETE) {
-              await deleteRuleData(rule._id);
+            } else if (rule?._id) {
+              if (action === ACTION_STATUS.UPDATE) {
+                await updateRuleData(rule._id, rule);
+              } else if (action === ACTION_STATUS.DELETE) {
+                await deleteRuleData(rule._id);
+              }
             }
           } catch (error) {
             console.error(`Error performing action ${action} on rule ${rule._id}: ${error}`);
           }
-        }
       })
     );
     getOrRefreshRuleList();
@@ -113,6 +123,7 @@ export default function Admin() {
       title: "Title",
       dataIndex: "title",
       render: renderInputField("title"),
+      width: "220px"
     },
     {
       title: "GoRules Id",
@@ -123,6 +134,7 @@ export default function Admin() {
       title: "GoRules JSON Filename",
       dataIndex: "goRulesJSONFilename",
       render: renderInputField("goRulesJSONFilename"),
+      width: "260px"
     },
     {
       title: "CHEFS Form Id",
@@ -155,6 +167,9 @@ export default function Admin() {
   return (
     <>
       <Flex justify="space-between" align="center">
+        <Link href="/">
+          <HomeOutlined />
+        </Link>
         <h1>Admin</h1>
         {!isLoading && (
           <Button type="primary" size="large" onClick={saveAllRuleUpdates}>
