@@ -115,10 +115,13 @@ export const getSubmissionFromCHEFSById = async (formId: string, id: string) => 
  */
 export const postDecision = async (jsonFile: string, context: unknown) => {
   try {
-    const { data } = await axiosAPIInstance.post(`/decisions/evaluate/${jsonFile}`, {
-      context,
-      trace: true,
-    });
+    const { data } = await axiosAPIInstance.post(
+      `/decisions/evaluateByFile/?ruleFileName=${encodeURIComponent(jsonFile)}`,
+      {
+        context,
+        trace: true,
+      }
+    );
     return data;
   } catch (error) {
     console.error(`Error simulating decision: ${error}`);
