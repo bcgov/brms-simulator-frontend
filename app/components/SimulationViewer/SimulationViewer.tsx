@@ -84,7 +84,7 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
         resultsOfSimulation={resultsOfSimulation}
         runSimulation={runSimulation}
       />
-      <a href={`/api/scenario/evaluationcsv/${encodeURIComponent(jsonFile)}`}>Export Scenario Results</a>
+      <a href={`/api/scenario/evaluation/${encodeURIComponent(jsonFile)}`}>Export Scenario Results</a>
     </>
   );
 
