@@ -25,6 +25,7 @@ export default function ScenarioViewer({
   const [scenariosDisplay, setScenariosDisplay] = useState<Scenario[] | null>(scenarios);
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
   const [manageScenarios, setManageScenarios] = useState(false);
+
   useEffect(() => {
     setScenariosDisplay(scenarios);
   }, [scenarios]);
@@ -103,13 +104,6 @@ export default function ScenarioViewer({
         <Flex vertical gap={"small"} className={styles.selectedScenarioDetails}>
           <Flex vertical gap={"small"} className={styles.scenarioDetails}>
             <div className={styles.variablesTable}>
-              {/* <InputOutputTable
-                title="Inputs"
-                rawData={selectedScenario.variables.reduce((acc, variable) => {
-                  acc[variable.name] = variable.value;
-                  return acc;
-                }, {} as Record<string, any>)}
-              /> */}
               <ScenarioFormatter
                 title="Inputs"
                 scenarios={scenarios}
