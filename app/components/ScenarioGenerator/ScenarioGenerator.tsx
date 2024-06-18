@@ -101,7 +101,7 @@ export default function ScenarioGenerator({
             />
             <Flex gap={"small"} align="end" vertical>
               <Button
-                disabled={!isInputsValid}
+                // disabled={!isInputsValid}
                 ref={simulateButtonRef}
                 size="large"
                 type="primary"
