@@ -26,9 +26,16 @@ interface InputOutputTableProps {
   rawData: rawDataProps | null | undefined;
   setRawData?: (data: object) => void;
   submitButtonRef?: React.RefObject<HTMLButtonElement>;
+  editable?: boolean;
 }
 
-export default function InputOutputTable({ title, rawData, setRawData, submitButtonRef }: InputOutputTableProps) {
+export default function InputOutputTable({
+  title,
+  rawData,
+  setRawData,
+  submitButtonRef,
+  editable = false,
+}: InputOutputTableProps) {
   const [dataSource, setDataSource] = useState<object[]>([]);
   const [columns, setColumns] = useState(COLUMNS);
   const [showTable, setShowTable] = useState(true);
@@ -106,7 +113,6 @@ export default function InputOutputTable({ title, rawData, setRawData, submitBut
 
   useEffect(() => {
     if (rawData) {
-      const editable = title === "Inputs" && rawData.rulemap === true;
       const newData = Object.entries(rawData)
         .filter(([property]) => !PROPERTIES_TO_IGNORE.includes(property))
         .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
