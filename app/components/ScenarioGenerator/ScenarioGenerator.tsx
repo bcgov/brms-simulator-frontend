@@ -1,5 +1,4 @@
-"use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Flex, Button, Input } from "antd";
 import InputOutputTable from "../InputOutputTable";
 import styles from "./ScenarioGenerator.module.css";
@@ -13,10 +12,7 @@ interface ScenarioGeneratorProps {
   resultsOfSimulation: Record<string, any> | null | undefined;
   setSelectedSubmissionInputs: (data: any) => void;
   runSimulation: () => void;
-  simulateButtonRef: React.RefObject<HTMLButtonElement>;
   selectedSubmissionInputs: SubmissionData;
-  outputSchema: Record<string, any> | null;
-  setOutputSchema: (data: any) => void;
   resetTrigger: boolean;
   ruleId: string;
   jsonFile: string;
@@ -27,16 +23,12 @@ export default function ScenarioGenerator({
   resultsOfSimulation,
   setSelectedSubmissionInputs,
   runSimulation,
-  simulateButtonRef,
   selectedSubmissionInputs,
-  outputSchema,
-  setOutputSchema,
   resetTrigger,
   ruleId,
   jsonFile,
 }: ScenarioGeneratorProps) {
   const [simulationRun, setSimulationRun] = useState(false);
-  const [isInputsValid, setIsInputsValid] = useState(false);
   const [newScenarioName, setNewScenarioName] = useState("");
 
   const handleSaveScenario = async () => {
@@ -55,8 +47,6 @@ export default function ScenarioGenerator({
 
     try {
       await createScenario(newScenario);
-
-      console.log("Scenario created successfully!");
       setNewScenarioName("");
       // Reload the page after the scenario is successfully created
       window.location.reload();
@@ -70,14 +60,6 @@ export default function ScenarioGenerator({
     runSimulation();
     setSimulationRun(true);
   };
-
-  const validateInputs = (inputs: object) => {
-    return Object.values(inputs).every((value) => value !== null && value !== undefined);
-  };
-
-  useEffect(() => {
-    setIsInputsValid(validateInputs(selectedSubmissionInputs));
-  }, [selectedSubmissionInputs]);
 
   useEffect(() => {
     setSimulationRun(false);
@@ -94,19 +76,11 @@ export default function ScenarioGenerator({
               rawData={selectedSubmissionInputs}
               setRawData={(data) => {
                 setSelectedSubmissionInputs(data);
-                setIsInputsValid(validateInputs(data));
               }}
-              submitButtonRef={simulateButtonRef}
               scenarios={scenarios}
             />
             <Flex gap={"small"} align="end" vertical>
-              <Button
-                // disabled={!isInputsValid}
-                ref={simulateButtonRef}
-                size="large"
-                type="primary"
-                onClick={runScenarioSimulation}
-              >
+              <Button size="large" type="primary" onClick={runScenarioSimulation}>
                 Simulate ▶
               </Button>
               <Flex gap={"small"} align="end">
@@ -126,9 +100,6 @@ export default function ScenarioGenerator({
             </Flex>
           </Flex>
         )}
-        {/* <Flex gap={"small"}>
-          {outputSchema && <InputOutputTable title="Outputs" rawData={outputSchema} setRawData={setOutputSchema} />}
-        </Flex> */}
         <Flex gap={"small"} vertical>
           {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
         </Flex>

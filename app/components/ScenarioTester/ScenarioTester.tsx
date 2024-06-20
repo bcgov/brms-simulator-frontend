@@ -131,23 +131,14 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jsonFile]);
 
-  const handleUpload = (info: any) => {
-    setFile(info.file.originFileObj);
-    message.success(`${info.file.name} file uploaded successfully.`);
-    console.log("File uploaded:", info.file.originFileObj);
-  };
-
   const handleRunUploadScenarios = async () => {
     if (!file) {
       message.error("No file uploaded.");
       return;
     }
-
     try {
-      console.log("Uploading file");
       const csvContent = await uploadCSVAndProcess(file, jsonFile);
-      message.success("Scenarios processed successfully.");
-      console.log("Processed CSV content:", csvContent);
+      message.success(`Scenarios Test: ${csvContent}`);
     } catch (error) {
       message.error("Error processing scenarios.");
       console.error("Error:", error);

@@ -1,4 +1,4 @@
-import { useState, useEffect, FocusEvent } from "react";
+import { useState, useEffect } from "react";
 import { Table, Tag, Input, Button, Radio, AutoComplete, InputNumber } from "antd";
 import { Scenario } from "@/app/types/scenario";
 import styles from "./ScenarioFormatter.module.css";
@@ -26,17 +26,10 @@ interface ScenarioFormatterProps {
   title: string;
   rawData: rawDataProps | null | undefined;
   setRawData?: (data: object) => void;
-  submitButtonRef?: React.RefObject<HTMLButtonElement>;
   scenarios?: Scenario[];
 }
 
-export default function ScenarioFormatter({
-  title,
-  rawData,
-  setRawData,
-  submitButtonRef,
-  scenarios,
-}: ScenarioFormatterProps) {
+export default function ScenarioFormatter({ title, rawData, setRawData, scenarios }: ScenarioFormatterProps) {
   const [dataSource, setDataSource] = useState<object[]>([]);
   const [columns, setColumns] = useState(COLUMNS);
   const [showTable, setShowTable] = useState(true);
@@ -92,19 +85,13 @@ export default function ScenarioFormatter({
           <InputNumber
             value={value}
             onBlur={(e) => handleValueChange(e.target.value, property)}
-            onKeyDown={(e) => handleKeyDown(e, property)}
             onChange={(val) => handleInputChange(val, property)}
           />
         );
       }
 
       if (value === null || value === undefined) {
-        return (
-          <Input
-            onBlur={(e) => handleValueChange(e.target.value, property)}
-            onKeyDown={(e) => handleKeyDown(e, property)}
-          />
-        );
+        return <Input onBlur={(e) => handleValueChange(e.target.value, property)} />;
       }
     } else {
       if (type === "boolean" || typeof value === "boolean") {
@@ -138,33 +125,22 @@ export default function ScenarioFormatter({
 
   const handleValueChange = (value: any, property: string) => {
     let queryValue: any = value;
-    // Handle booleans
     if (typeof value === "string") {
       if (value.toLowerCase() === "true") {
         queryValue = true;
       } else if (value.toLowerCase() === "false") {
         queryValue = false;
       } else if (!isNaN(Number(value))) {
-        // Handle numbers
         queryValue = Number(value);
       }
     }
 
     const updatedData = { ...rawData, [property]: queryValue } || {};
 
-    // Ensure setRawData is defined before calling it
     if (typeof setRawData === "function") {
       setRawData(updatedData);
     } else {
       console.error("setRawData is not a function or is undefined");
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, property: string) => {
-    if (e.key === "Enter" && submitButtonRef) {
-      if (submitButtonRef.current) {
-        submitButtonRef.current.click();
-      }
     }
   };
 

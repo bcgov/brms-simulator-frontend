@@ -95,10 +95,7 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
         setSelectedSubmissionInputs={setSelectedSubmissionInputs}
         resultsOfSimulation={resultsOfSimulation}
         runSimulation={runSimulation}
-        simulateButtonRef={simulateButtonRef}
         selectedSubmissionInputs={selectedSubmissionInputs}
-        outputSchema={outputSchema}
-        setOutputSchema={setOutputSchema}
         resetTrigger={resetTrigger}
         ruleId={ruleId}
         jsonFile={jsonFile}
