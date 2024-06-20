@@ -4,6 +4,7 @@ export interface Scenario {
   ruleID: string;
   goRulesJSONFilename: string;
   variables: any[];
+  expectedResults: any[];
 }
 
 export interface Variable {
