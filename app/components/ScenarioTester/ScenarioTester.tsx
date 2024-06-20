@@ -151,7 +151,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
         <Flex gap={"small"}>
           <a href={`/api/scenario/evaluation/${encodeURIComponent(jsonFile)}`}>Download Scenarios</a>
           <Upload
-            accept="csv"
+            accept=".csv"
             multiple={false}
             maxCount={1}
             customRequest={({ file, onSuccess }) => {
