@@ -112,6 +112,8 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
 
   const scenarioTests = <ScenarioTester jsonFile={jsonFile} />;
 
+  const csvScenarioTests = <ScenarioTester jsonFile={jsonFile} uploader />;
+
   const items: TabsProps["items"] = [
     {
       key: "1",
@@ -127,6 +129,11 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
       key: "3",
       label: "Export Scenario Results",
       children: scenarioTests,
+    },
+    {
+      key: "4",
+      label: "CSV Tests",
+      children: csvScenarioTests,
     },
   ];
 

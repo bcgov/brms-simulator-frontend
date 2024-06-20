@@ -4,35 +4,15 @@ import { UploadOutlined } from "@ant-design/icons";
 import styles from "./ScenarioTester.module.css";
 import { runDecisionsForScenarios, uploadCSVAndProcess } from "@/app/utils/api";
 
-const COLUMNS = [
-  {
-    title: "Property",
-    dataIndex: "property",
-    key: "property",
-  },
-  {
-    title: "Value",
-    dataIndex: "value",
-    key: "value",
-  },
-];
-
-const PROPERTIES_TO_IGNORE = ["submit", "lateEntry", "rulemap"];
-
-interface rawDataProps {
-  rulemap?: boolean;
-}
-
 interface ScenarioTesterProps {
   jsonFile: string;
+  uploader?: boolean;
 }
 
-export default function ScenarioTester({ jsonFile }: ScenarioTesterProps) {
-  const [dataSource, setDataSource] = useState<object[]>([]);
-  const [columns, setColumns] = useState(COLUMNS);
-  const [showTable, setShowTable] = useState(true);
+export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterProps) {
   const [scenarioResults, setScenarioResults] = useState<any | null>({});
   const [file, setFile] = useState<File | null>(null);
+  const [uploadedFile, setUploadedFile] = useState(false);
 
   type DataType = {
     key: string;
@@ -147,96 +127,6 @@ export default function ScenarioTester({ jsonFile }: ScenarioTesterProps) {
   useEffect(() => {
     updateScenarioResults(jsonFile);
   }, [jsonFile]);
-  /*
-  const toggleTableVisibility = () => {
-    setShowTable(!showTable);
-  };
-
-  const convertAndStyleValue = (value: any, property: string, editable: boolean) => {
-    let displayValue = value;
-
-    if (editable) {
-      return (
-        <Input
-          defaultValue={displayValue}
-          onBlur={(e) => handleValueChange(e, property)}
-          onKeyDown={(e) => handleKeyDown(e)}
-        />
-      );
-    }
-
-    // Custom formatting for non-editable booleans and numbers
-    if (typeof value === "boolean") {
-      return value ? <Tag color="green">TRUE</Tag> : <Tag color="red">FALSE</Tag>;
-    }
-    if (typeof value === "number" && property.toLowerCase().includes("amount")) {
-      displayValue = `$${value}`;
-    }
-
-    if (value === null || value === undefined) {
-      return;
-    }
-
-    return <b>{displayValue}</b>;
-  };
-
-  const handleValueChange = (e: FocusEvent<HTMLInputElement, Element>, property: string) => {
-    if (!e.target) return;
-    const newValue = (e.target as HTMLInputElement).value;
-    let queryValue: any = newValue;
-
-    // Handle booleans
-    if (newValue.toLowerCase() === "true") {
-      queryValue = true;
-    } else if (newValue.toLowerCase() === "false") {
-      queryValue = false;
-    }
-
-    // Handle numbers
-    if (!isNaN(Number(newValue))) {
-      queryValue = Number(newValue);
-    }
-
-    const updatedData = { ...rawData, [property]: queryValue } || {};
-
-    // Ensure setRawData is defined before calling it
-    if (typeof setRawData === "function") {
-      setRawData(updatedData);
-    } else {
-      console.error("setRawData is not a function or is undefined");
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && submitButtonRef) {
-      if (submitButtonRef.current) {
-        submitButtonRef.current.click();
-      }
-    }
-  };
-
-  const showColumn = (data: any[], columnKey: string) => {
-    return data.some((item) => item[columnKey] !== null && item[columnKey] !== undefined);
-  };
-
-  useEffect(() => {
-    if (rawData) {
-      const editable = title === "Inputs" && rawData.rulemap === true;
-      const newData = Object.entries(rawData)
-        .filter(([property]) => !PROPERTIES_TO_IGNORE.includes(property))
-        .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
-        .map(([property, value], index) => ({
-          property,
-          value: convertAndStyleValue(value, property, editable),
-          key: index,
-        }));
-      setDataSource(newData);
-      const newColumns = COLUMNS.filter((column) => showColumn(newData, column.dataIndex));
-      setColumns(newColumns);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rawData]);
-*/
 
   const handleUpload = (info: any) => {
     setFile(info.file.originFileObj);
@@ -263,30 +153,45 @@ export default function ScenarioTester({ jsonFile }: ScenarioTesterProps) {
 
   return (
     <div>
-      {showTable && (
+      {uploader ? (
+        <Flex gap={"small"}>
+          <a href={`/api/scenario/evaluation/${encodeURIComponent(jsonFile)}`}>Download Scenarios</a>
+          <Upload
+            accept="csv"
+            multiple={false}
+            maxCount={1}
+            customRequest={({ file, onSuccess }) => {
+              setFile(file as File);
+              message.success(`${(file as File).name} file uploaded successfully.`);
+              onSuccess && onSuccess("ok");
+              setUploadedFile(true);
+            }}
+            onRemove={() => {
+              setFile(null);
+              setUploadedFile(false);
+            }}
+            showUploadList={true}
+          >
+            <Button size="large" type="primary" icon={<UploadOutlined />}>
+              Upload Scenarios
+            </Button>
+          </Upload>
+          <Button
+            disabled={!uploadedFile}
+            size="large"
+            type="primary"
+            onClick={handleRunUploadScenarios}
+            style={{ marginLeft: "10px" }}
+          >
+            Run Upload Scenarios
+          </Button>
+        </Flex>
+      ) : (
         <>
           <Flex gap={"small"} justify="space-between">
             <Button onClick={() => updateScenarioResults(jsonFile)} size="large" type="primary">
               Run Scenarios
             </Button>
-            <Flex gap={"small"} vertical>
-              <a href={`/api/scenario/evaluation/${encodeURIComponent(jsonFile)}`}>Download Scenarios</a>
-              <Upload
-                customRequest={({ file, onSuccess }) => {
-                  setFile(file as File);
-                  message.success(`${(file as File).name} file uploaded successfully.`);
-                  onSuccess && onSuccess("ok");
-                }}
-                showUploadList={false}
-              >
-                <Button size="large" type="primary" icon={<UploadOutlined />}>
-                  Upload Scenarios
-                </Button>
-              </Upload>
-              <Button size="large" type="primary" onClick={handleRunUploadScenarios} style={{ marginLeft: "10px" }}>
-                Run Upload Scenarios
-              </Button>
-            </Flex>
           </Flex>
           <Flex gap="small" vertical>
             <Table

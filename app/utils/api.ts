@@ -274,10 +274,6 @@ export const runDecisionsForScenarios = async (goRulesJSONFilename: string) => {
   }
 };
 
-interface FileUploadResponse {
-  data: string;
-}
-
 /**
  * Uploads a CSV file containing scenarios and processes the scenarios against the specified rule.
  * @param file The file to be uploaded.
@@ -294,7 +290,7 @@ export const uploadCSVAndProcess = async (file: File, goRulesJSONFilename: strin
       headers: {
         "Content-Type": "multipart/form-data",
       },
-      responseType: "blob", // Important: This ensures that the response is treated as a file
+      responseType: "blob",
     });
 
     const blob = new Blob([response.data], { type: "text/csv" });
@@ -302,7 +298,10 @@ export const uploadCSVAndProcess = async (file: File, goRulesJSONFilename: strin
     const a = document.createElement("a");
     a.href = url;
     const timestamp = new Date().toISOString().replace(/:/g, "-").replace(/\.\d+/, "");
-    a.download = `${goRulesJSONFilename}_tested_scenarios_${timestamp}.csv`;
+    a.download = `${goRulesJSONFilename.replace(".json", "")}_testing_${file.name.replace(
+      ".csv",
+      ""
+    )}_${timestamp}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
 
