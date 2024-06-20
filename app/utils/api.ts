@@ -258,3 +258,57 @@ export const deleteScenario = async (scenarioId: string) => {
     throw error;
   }
 };
+/**
+ * Runs all scenarios against a rule and exports the results as a CSV.
+ * @param goRulesJSONFilename The filename of the rule to evaluate scenarios against.
+ * @returns The CSV data containing the results of the scenario evaluations.
+ * @throws If an error occurs while running the scenarios or generating the CSV.
+ */
+export const runDecisionsForScenarios = async (goRulesJSONFilename: string) => {
+  try {
+    const { data } = await axiosAPIInstance.get(`/scenario/run-decisions/${goRulesJSONFilename}`);
+    return data;
+  } catch (error) {
+    console.error(`Error running scenarios: ${error}`);
+    throw error;
+  }
+};
+
+interface FileUploadResponse {
+  data: string;
+}
+
+/**
+ * Uploads a CSV file containing scenarios and processes the scenarios against the specified rule.
+ * @param file The file to be uploaded.
+ * @param goRulesJSONFilename The filename for the JSON rule.
+ * @returns The processed CSV content as a string.
+ * @throws If an error occurs during file upload or processing.
+ */
+export const uploadCSVAndProcess = async (file: File, goRulesJSONFilename: string): Promise<string> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await axiosAPIInstance.post(`/scenario/evaluation/upload/${goRulesJSONFilename}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      responseType: "blob", // Important: This ensures that the response is treated as a file
+    });
+
+    const blob = new Blob([response.data], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const timestamp = new Date().toISOString().replace(/:/g, "-").replace(/\.\d+/, "");
+    a.download = `${goRulesJSONFilename}_tested_scenarios_${timestamp}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    return "File processed successfully";
+  } catch (error) {
+    console.error(`Error processing CSV file: ${error}`);
+    throw new Error("Error processing CSV file");
+  }
+};

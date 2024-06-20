@@ -12,6 +12,7 @@ import { Scenario } from "@/app/types/scenario";
 import styles from "./SimulationViewer.module.css";
 import ScenarioViewer from "../ScenarioViewer/ScenarioViewer";
 import ScenarioGenerator from "../ScenarioGenerator/ScenarioGenerator";
+import ScenarioTester from "../ScenarioTester/ScenarioTester";
 
 // Need to disable SSR when loading this component so it works properly
 const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr: false });
@@ -109,6 +110,8 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
     </Flex>
   );
 
+  const scenarioTests = <ScenarioTester jsonFile={jsonFile} />;
+
   const items: TabsProps["items"] = [
     {
       key: "1",
@@ -119,6 +122,11 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
       key: "2",
       label: "Simulate inputs manually and create new scenarios",
       children: scenarioGenerator,
+    },
+    {
+      key: "3",
+      label: "Export Scenario Results",
+      children: scenarioTests,
     },
   ];
 
@@ -134,7 +142,7 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
       </div>
       <Flex justify="space-between" align="center" className={styles.contentSection}>
         <Flex gap="middle" justify="space-between">
-          <Tabs defaultActiveKey="1" tabBarStyle={{ gap: "10rem" }} items={items} onChange={handleTabChange}></Tabs>
+          <Tabs defaultActiveKey="3" tabBarStyle={{ gap: "10rem" }} items={items} onChange={handleTabChange}></Tabs>
         </Flex>
       </Flex>
     </Flex>
