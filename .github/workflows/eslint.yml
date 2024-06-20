@@ -32,10 +32,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload ESLint report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: eslint-report
           path: eslint-report.html
-
-      - name: Display ESLint report link
-        run: echo "::set-output name=eslint-report::${{ steps.upload.outputs.artifact_path }}"
