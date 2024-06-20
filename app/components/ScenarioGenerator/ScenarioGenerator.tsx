@@ -30,6 +30,7 @@ export default function ScenarioGenerator({
 }: ScenarioGeneratorProps) {
   const [simulationRun, setSimulationRun] = useState(false);
   const [newScenarioName, setNewScenarioName] = useState("");
+  const [scenarioExpectedOutput, setScenarioExpectedOutput] = useState({});
 
   const handleSaveScenario = async () => {
     if (!simulationRun || !selectedSubmissionInputs || !newScenarioName) return;
@@ -38,11 +39,16 @@ export default function ScenarioGenerator({
       .filter(([name, value]) => name !== "rulemap")
       .map(([name, value]) => ({ name, value }));
 
+    const expectedResults = Object.entries(scenarioExpectedOutput)
+      .filter(([name, value]) => name !== "rulemap")
+      .map(([name, value]) => ({ name, value }));
+
     const newScenario: Scenario = {
       title: newScenarioName,
       ruleID: ruleId,
       goRulesJSONFilename: jsonFile,
       variables,
+      expectedResults,
     };
 
     try {
@@ -65,6 +71,14 @@ export default function ScenarioGenerator({
     setSimulationRun(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetTrigger]);
+
+  // Update scenarioExpectedOutput on first render to display full rulemap possible results
+  useEffect(() => {
+    if (resultsOfSimulation) {
+      setScenarioExpectedOutput(resultsOfSimulation);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Flex className={styles.ScenarioGenerator}>
@@ -102,6 +116,18 @@ export default function ScenarioGenerator({
         )}
         <Flex gap={"small"} vertical>
           {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
+        </Flex>
+        <Flex gap={"small"} vertical>
+          {scenarioExpectedOutput && (
+            <InputOutputTable
+              setRawData={(data) => {
+                setScenarioExpectedOutput(data);
+              }}
+              title="Expected Results"
+              rawData={scenarioExpectedOutput}
+              editable
+            />
+          )}
         </Flex>
       </Flex>
     </Flex>
