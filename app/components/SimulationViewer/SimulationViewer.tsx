@@ -1,12 +1,9 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { Flex, Button, Tabs } from "antd";
 import type { TabsProps } from "antd";
-import { ExportOutlined } from "@ant-design/icons";
 import { SubmissionData } from "../../types/submission";
-import InputOutputTable from "../InputOutputTable";
 import { RuleMap } from "../../types/rulemap";
 import { Scenario } from "@/app/types/scenario";
 import styles from "./SimulationViewer.module.css";
@@ -79,18 +76,20 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
 
   const scenarioTab = (
     <>
-      <ScenarioViewer
-        scenarios={scenarios}
-        setSelectedSubmissionInputs={setSelectedSubmissionInputs}
-        resultsOfSimulation={resultsOfSimulation}
-        runSimulation={runSimulation}
-      />
-      <a href={`/api/scenario/evaluation/${encodeURIComponent(jsonFile)}`}>Export Scenario Results</a>
+      <Flex gap="small" style={{ marginBottom: "5rem" }} vertical>
+        <ScenarioViewer
+          scenarios={scenarios}
+          setSelectedSubmissionInputs={setSelectedSubmissionInputs}
+          resultsOfSimulation={resultsOfSimulation}
+          runSimulation={runSimulation}
+        />
+        <a href={`/api/scenario/evaluation/${encodeURIComponent(jsonFile)}`}>Export Scenario Results</a>
+      </Flex>
     </>
   );
 
   const scenarioGenerator = (
-    <Flex gap="small">
+    <Flex gap="small" style={{ marginBottom: "15rem" }}>
       <ScenarioGenerator
         scenarios={scenarios}
         setSelectedSubmissionInputs={setSelectedSubmissionInputs}
@@ -112,7 +111,11 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
 
   const scenarioTests = <ScenarioTester jsonFile={jsonFile} />;
 
-  const csvScenarioTests = <ScenarioTester jsonFile={jsonFile} uploader />;
+  const csvScenarioTests = (
+    <Flex gap="small" style={{ marginBottom: "30rem" }}>
+      <ScenarioTester jsonFile={jsonFile} uploader />
+    </Flex>
+  );
 
   const items: TabsProps["items"] = [
     {
