@@ -18,13 +18,13 @@ const COLUMNS = [
 const PROPERTIES_TO_IGNORE = ["submit", "lateEntry", "rulemap"];
 
 interface rawDataProps {
-  rulemap?: boolean;
+  [key: string]: any;
 }
 
 interface InputOutputTableProps {
   title: string;
   rawData: rawDataProps | null | undefined;
-  setRawData?: (data: object) => void;
+  setRawData?: (data: rawDataProps) => void;
   submitButtonRef?: React.RefObject<HTMLButtonElement>;
   editable?: boolean;
 }
@@ -45,31 +45,25 @@ export default function InputOutputTable({
   };
 
   const convertAndStyleValue = (value: any, property: string, editable: boolean) => {
-    let displayValue = value;
-
     if (editable) {
       return (
         <Input
-          defaultValue={displayValue}
+          defaultValue={value}
           onBlur={(e) => handleValueChange(e, property)}
           onKeyDown={(e) => handleKeyDown(e)}
         />
       );
     }
 
-    // Custom formatting for non-editable booleans and numbers
     if (typeof value === "boolean") {
       return value ? <Tag color="green">TRUE</Tag> : <Tag color="red">FALSE</Tag>;
     }
+
     if (typeof value === "number" && property.toLowerCase().includes("amount")) {
-      displayValue = `$${value}`;
+      return `$${value}`;
     }
 
-    if (value === null || value === undefined) {
-      return;
-    }
-
-    return <b>{displayValue}</b>;
+    return <b>{value}</b>;
   };
 
   const handleValueChange = (e: FocusEvent<HTMLInputElement, Element>, property: string) => {
@@ -77,21 +71,16 @@ export default function InputOutputTable({
     const newValue = (e.target as HTMLInputElement).value;
     let queryValue: any = newValue;
 
-    // Handle booleans
     if (newValue.toLowerCase() === "true") {
       queryValue = true;
     } else if (newValue.toLowerCase() === "false") {
       queryValue = false;
-    }
-
-    // Handle numbers
-    if (!isNaN(Number(newValue))) {
+    } else if (!isNaN(Number(newValue))) {
       queryValue = Number(newValue);
     }
 
     const updatedData = { ...rawData, [property]: queryValue } || {};
 
-    // Ensure setRawData is defined before calling it
     if (typeof setRawData === "function") {
       setRawData(updatedData);
     } else {
@@ -105,10 +94,6 @@ export default function InputOutputTable({
         submitButtonRef.current.click();
       }
     }
-  };
-
-  const showColumn = (data: any[], columnKey: string) => {
-    return data.some((item) => item[columnKey] !== null && item[columnKey] !== undefined);
   };
 
   useEffect(() => {
@@ -128,21 +113,23 @@ export default function InputOutputTable({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawData]);
 
+  const showColumn = (data: any[], columnKey: string) => {
+    return data.some((item) => item[columnKey] !== null && item[columnKey] !== undefined);
+  };
+
   return (
     <div>
       <h4 className={styles.tableTitle}>
         {title} {title === "Outputs" && <Button onClick={toggleTableVisibility}>{showTable ? "Hide" : "Show"}</Button>}
       </h4>
       {showTable && (
-        <>
-          <Table
-            columns={columns}
-            showHeader={false}
-            dataSource={dataSource}
-            bordered
-            pagination={{ hideOnSinglePage: true }}
-          />
-        </>
+        <Table
+          columns={columns}
+          showHeader={false}
+          dataSource={dataSource}
+          bordered
+          pagination={{ hideOnSinglePage: true }}
+        />
       )}
     </div>
   );
