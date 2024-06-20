@@ -1,46 +1,44 @@
-/* ScenarioViewer.module.css */
 .scenarioViewer {
   display: flex;
   gap: 1rem;
 }
 
 .scenarioList, .selectedScenarioDetails, .resultsColumn {
-  flex: 1 1 auto; /* Each column takes up equal space initially */
+  flex: 1 1 auto; /* Initializes with each column taking up equal space */
   box-sizing: border-box;
   padding: 1rem;
   border-radius: 4px;
 }
 
 .scenarioList {
-  min-width: 300px; /* Preferable width of 300px */
-  max-width: 300px; /* Stable width of 300px */
+  min-width: 300px; 
+  max-width: 300px; 
   .selected {
     background-color: rgba(209, 230, 255, 0.5);
-    border-radius: 5px; /* Adjust value for desired corner roundness */
+    border-radius: 5px;
   }
 }
 
 .scenarioList ol {
-  list-style-type: none; /* Remove default bullets */
-  counter-reset: item; /* Create a counter for the list items */
-  padding: 0; /* Remove default padding */
+  list-style-type: none; 
+  counter-reset: item; 
+  padding: 0; 
 }
 
 .scenarioList li {
-  cursor: pointer; /* Add a pointer cursor to the scenarioList */
-  counter-increment: item; /* Increment the counter for each list item */
-  padding-block: 1rem; /* Add some space between list items */
-  padding-inline: 0.75rem; /* Add some space between list items */
-  margin-block: 0.5rem; /* Add some space between list items */
+  cursor: pointer; 
+  counter-increment: item; 
+  padding-block: 1rem; 
+  padding-inline: 0.75rem; 
+  margin-block: 0.5rem;
 }
 
 .scenarioList li:before {
-  content: counter(item) ""; /* Add a counter before each list item */
-  /* font-weight: bold; Make the counter bold */
-  color: white; /* Change the color of the counter */
-  background-color: black; /* Change the background color of the counter */
-  margin-right: 10px; /* Add some space after the counter */
-  border-radius: 50%; /* Add border-radius to make it circular */
+  content: counter(item) ""; 
+  color: white; 
+  background-color: black; 
+  margin-right: 10px; 
+  border-radius: 50%;
   width:30px;
   height: 20px;
   padding-block: 5px;
@@ -48,9 +46,9 @@
 }
 
 .selectedScenarioDetails {
-  min-width: 450px; /* Preferable width of 450px */
-  max-width: 450px; /* Stable width of 450px */
-  border: 1px solid #ccc; /* Border for selectedScenarioDetails */
+  min-width: 450px; 
+  max-width: 450px; 
+  border: 1px solid #ccc; 
 }
 
 .selectedScenarioDetails button {
@@ -59,10 +57,10 @@
 }
 
 .resultsColumn {
-  flex: 1 1 300px; /* Preferable width of 300px, but can expand */
-  min-width: 300px; /* Stable width of 300px */
-  max-width: 300px; /* Maximum width of 300px */
-  display: none; /* Initially hidden */
+  flex: 1 1 300px; 
+  min-width: 300px; 
+  max-width: 300px; 
+  display: none; 
   white-space: pre-wrap;
   border: 1px solid #6fb1fe;
   background-color: rgba(209, 230, 255, 0.5);
@@ -71,7 +69,7 @@
 
 @media (min-width: 768px) {
   .resultsColumn {
-    display: block; /* Displayed when viewport width is 768px or more */
+    display: block;
 
   }
 }

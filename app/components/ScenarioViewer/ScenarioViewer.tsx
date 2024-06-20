@@ -1,5 +1,4 @@
-"use client";
-import React, { useState, useEffect, useRef, use } from "react";
+import React, { useState, useEffect } from "react";
 import { Flex, Button, Popconfirm, message } from "antd";
 import type { PopconfirmProps } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
