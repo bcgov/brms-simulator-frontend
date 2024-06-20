@@ -1,5 +1,5 @@
-import { useState, useEffect, FocusEvent, use } from "react";
-import { Table, Tag, Input, Button, TableProps, Flex, Upload, message } from "antd";
+import { useState, useEffect } from "react";
+import { Table, Tag, Button, TableProps, Flex, Upload, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import styles from "./ScenarioTester.module.css";
 import { runDecisionsForScenarios, uploadCSVAndProcess } from "@/app/utils/api";
@@ -20,7 +20,9 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
     [key: string]: any;
   };
 
-  const formatData = (data: any): { formattedData: DataType[]; columns: TableProps<DataType>["columns"] } => {
+  const formatData = (
+    data: Record<string, { inputs: Record<string, any>; outputs: Record<string, any> }>
+  ): { formattedData: DataType[]; columns: TableProps<DataType>["columns"] } => {
     const uniqueInputKeys = new Set<string>();
     const uniqueOutputKeys = new Set<string>();
 
@@ -86,7 +88,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
         title: key,
         dataIndex: `${prefix.toLowerCase()}_${key}`,
         key: `${prefix.toLowerCase()}_${key}`,
-        render: (value) => applyConditionalStyling(value, key),
+        render: (value: any) => applyConditionalStyling(value, key),
       }));
     };
 
@@ -126,6 +128,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
 
   useEffect(() => {
     updateScenarioResults(jsonFile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jsonFile]);
 
   const handleUpload = (info: any) => {
