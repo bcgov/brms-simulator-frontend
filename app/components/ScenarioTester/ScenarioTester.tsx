@@ -21,22 +21,29 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
   };
 
   const formatData = (
-    data: Record<string, { inputs: Record<string, any>; outputs: Record<string, any> }>
+    data: Record<
+      string,
+      {
+        result: Record<string, any>;
+        inputs: Record<string, any>;
+        outputs: Record<string, any>;
+      }
+    >
   ): { formattedData: DataType[]; columns: TableProps<DataType>["columns"] } => {
     const uniqueInputKeys = new Set<string>();
-    const uniqueOutputKeys = new Set<string>();
+    const uniqueResultKeys = new Set<string>();
 
-    // Collect unique input and output keys
+    // Collect unique input and result keys
     for (const entry of Object.values(data)) {
       Object.keys(entry.inputs).forEach((key) => uniqueInputKeys.add(key));
-      Object.keys(entry.outputs).forEach((key) => uniqueOutputKeys.add(key));
+      Object.keys(entry.result).forEach((key) => uniqueResultKeys.add(key));
     }
 
     const sortKeys = (keys: string[]) => keys.sort((a, b) => a.localeCompare(b));
 
     // Convert sets to arrays for easier iteration
     const inputKeys = sortKeys(Array.from(uniqueInputKeys));
-    const outputKeys = sortKeys(Array.from(uniqueOutputKeys));
+    const resultKeys = sortKeys(Array.from(uniqueResultKeys));
 
     const applyConditionalStyling = (value: any, property: string): React.ReactNode => {
       // Handle null or undefined values
@@ -75,9 +82,9 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
       });
 
       // Add outputs
-      outputKeys.forEach((key) => {
+      resultKeys.forEach((key) => {
         formattedEntry[`output_${key}`] =
-          entry.outputs[key] !== undefined ? applyConditionalStyling(entry.outputs[key], key) : null;
+          entry.result[key] !== undefined ? applyConditionalStyling(entry.result[key], key) : null;
       });
 
       return formattedEntry;
@@ -93,7 +100,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
     };
 
     const inputColumns = generateColumns(inputKeys, "input");
-    const outputColumns = generateColumns(outputKeys, "output");
+    const outputColumns = generateColumns(resultKeys, "output");
 
     const columns: TableProps<DataType>["columns"] = [
       {
@@ -108,7 +115,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
         children: inputColumns,
       },
       {
-        title: "Outputs",
+        title: "Results",
         children: outputColumns,
       },
     ];
@@ -119,6 +126,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
   const updateScenarioResults = async (goRulesJSONFilename: string) => {
     try {
       const results = await runDecisionsForScenarios(goRulesJSONFilename);
+      console.log(results, "these are unformatted?");
       const formattedResults = formatData(results);
       setScenarioResults(formattedResults);
     } catch (error) {
