@@ -76,20 +76,19 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
 
   const scenarioTab = (
     <>
-      <Flex gap="small" style={{ marginBottom: "5rem" }} vertical>
+      <Flex gap="small" vertical>
         <ScenarioViewer
           scenarios={scenarios}
           setSelectedSubmissionInputs={setSelectedSubmissionInputs}
           resultsOfSimulation={resultsOfSimulation}
           runSimulation={runSimulation}
         />
-        <a href={`/api/scenario/evaluation/${encodeURIComponent(jsonFile)}`}>Export Scenario Results</a>
       </Flex>
     </>
   );
 
   const scenarioGenerator = (
-    <Flex gap="small" style={{ marginBottom: "15rem" }}>
+    <Flex gap="small">
       <ScenarioGenerator
         scenarios={scenarios}
         setSelectedSubmissionInputs={setSelectedSubmissionInputs}
@@ -106,10 +105,14 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
     </Flex>
   );
 
-  const scenarioTests = <ScenarioTester jsonFile={jsonFile} />;
+  const scenarioTests = (
+    <Flex gap="small">
+      <ScenarioTester jsonFile={jsonFile} />
+    </Flex>
+  );
 
   const csvScenarioTests = (
-    <Flex gap="small" style={{ marginBottom: "30rem" }}>
+    <Flex gap="small">
       <ScenarioTester jsonFile={jsonFile} uploader />
     </Flex>
   );

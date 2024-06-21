@@ -166,19 +166,22 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
       dataIndex: entry.property,
       key: entry.property,
       render: (value: any) => {
-        // Apply conditional styling or formatting here
         return applyConditionalStyling(value, entry.property);
       },
     }));
 
     return (
-      <Flex gap="small">
-        <Flex gap="small" vertical>
-          <h2>Expected Results: </h2>
-          <h3>{record?.name}</h3>
+      <div className={styles.expectedResultsExpanded}>
+        <Flex gap="small">
+          <Table
+            title={() => `Expected results for scenario: ${record?.name}`}
+            columns={expandedDataColumns}
+            dataSource={[record]}
+            pagination={false}
+            bordered
+          />
         </Flex>
-        <Table columns={expandedDataColumns} dataSource={[record]} pagination={false} />
-      </Flex>
+      </div>
     );
   };
 
@@ -266,7 +269,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
           </ol>
         </Flex>
       ) : (
-        <>
+        <div className={styles.scenarioContainer}>
           <Flex gap={"small"} justify="space-between">
             <Button onClick={() => updateScenarioResults(jsonFile)} size="large" type="primary">
               Run Scenarios
@@ -282,9 +285,11 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
                 expandedRowRender: (record: any) => expandedRowRender(record),
                 rowExpandable: (record: any) => rowExpandable(record),
               }}
+              className={styles.scenarioTable}
+              size="middle"
             />
           </Flex>
-        </>
+        </div>
       )}
     </div>
   );

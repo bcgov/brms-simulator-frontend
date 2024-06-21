@@ -69,3 +69,55 @@
 .ant-upload-list-item-name {
   color: #333;
 }
+
+.scenarioContainer {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  max-width: 100%;
+  overflow: auto;
+}
+
+.scenarioTable {
+  max-width: 100%;
+  overflow: auto;
+}
+
+.ant-table {
+  font-size: 14px;
+}
+
+.ant-table th, .ant-table td {
+  padding: 8px;
+  white-space: nowrap;
+}
+
+.ant-table-bordered .ant-table-container {
+  border: 1px solid #ddd;
+}
+
+.ant-table-bordered .ant-table-header, .ant-table-bordered .ant-table-body {
+  border: 1px solid #ddd;
+}
+
+.ant-table-thead > tr > th {
+  background-color: #fafafa;
+}
+
+.ant-table-tbody > tr > td {
+  background-color: #fff;
+}
+
+.ant-pagination {
+  margin: 16px 0;
+  text-align: right;
+}
+
+.ant-btn {
+  font-size: 14px;
+}
+
+.expectedResultsExpanded {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
