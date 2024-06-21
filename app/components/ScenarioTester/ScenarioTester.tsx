@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Table, Tag, Button, TableProps, Flex, Upload, message } from "antd";
+import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { UploadOutlined } from "@ant-design/icons";
 import styles from "./ScenarioTester.module.css";
 import { runDecisionsForScenarios, uploadCSVAndProcess } from "@/app/utils/api";
@@ -20,6 +21,46 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
     [key: string]: any;
   };
 
+  const applyConditionalStyling = (value: any, property: string): React.ReactNode => {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    if (typeof value === "boolean" && property === "resultMatch") {
+      return value ? (
+        <span className="result-match">
+          <Tag color="success" icon={<CheckCircleOutlined />}></Tag>
+        </span>
+      ) : (
+        <span className="result-mismatch">
+          <Tag color="error" icon={<CloseCircleOutlined />}></Tag>
+        </span>
+      );
+    } else if (typeof value === "boolean") {
+      return value ? <Tag color="green">TRUE</Tag> : <Tag color="red">FALSE</Tag>;
+    }
+
+    // Handle numbers with "amount" in the property name
+    let displayValue = value;
+    if (typeof value === "number" && property.toLowerCase().includes("amount")) {
+      displayValue = `$${value}`;
+    } else if (typeof value === "number") {
+      displayValue = <Tag color="blue">{value}</Tag>;
+    }
+
+    // Default formatting for other values
+    return <b>{displayValue}</b>;
+  };
+
+  const generateColumns = (keys: string[], prefix: string) => {
+    return keys.map((key) => ({
+      title: key,
+      dataIndex: `${prefix.toLowerCase()}_${key}`,
+      key: `${prefix.toLowerCase()}_${key}`,
+      render: (value: any) => applyConditionalStyling(value, key),
+    }));
+  };
+
   const formatData = (
     data: Record<
       string,
@@ -28,6 +69,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
         inputs: Record<string, any>;
         outputs: Record<string, any>;
         expectedResults: Record<string, any>;
+        resultMatch: boolean;
       }
     >
   ): { formattedData: DataType[]; columns: TableProps<DataType>["columns"] } => {
@@ -48,30 +90,6 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
     const inputKeys = sortKeys(Array.from(uniqueInputKeys));
     const resultKeys = sortKeys(Array.from(uniqueResultKeys));
     const expectedKeys = sortKeys(Array.from(uniqueExpectedKeys));
-    console.log(expectedKeys, "expected keys");
-
-    const applyConditionalStyling = (value: any, property: string): React.ReactNode => {
-      // Handle null or undefined values
-      if (value === null || value === undefined) {
-        return null;
-      }
-
-      // Handle booleans
-      if (typeof value === "boolean") {
-        return value ? <Tag color="green">TRUE</Tag> : <Tag color="red">FALSE</Tag>;
-      }
-
-      // Handle numbers with "amount" in the property name
-      let displayValue = value;
-      if (typeof value === "number" && property.toLowerCase().includes("amount")) {
-        displayValue = `$${value}`;
-      } else if (typeof value === "number") {
-        displayValue = <Tag color="blue">{value}</Tag>;
-      }
-
-      // Default formatting for other values
-      return <b>{displayValue}</b>;
-    };
 
     // Format the data
     const formattedData: DataType[] = Object.entries(data).map(([name, entry], index) => {
@@ -98,23 +116,23 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
           entry.expectedResults[key] !== undefined ? applyConditionalStyling(entry.expectedResults[key], key) : null;
       });
 
+      formattedEntry.resultMatch = applyConditionalStyling(entry.resultMatch, "resultMatch");
+
       return formattedEntry;
     });
 
-    const generateColumns = (keys: string[], prefix: string) => {
-      return keys.map((key) => ({
-        title: key,
-        dataIndex: `${prefix.toLowerCase()}_${key}`,
-        key: `${prefix.toLowerCase()}_${key}`,
-        render: (value: any) => applyConditionalStyling(value, key),
-      }));
-    };
-
     const inputColumns = generateColumns(inputKeys, "input");
     const outputColumns = generateColumns(resultKeys, "result");
+    //Unused columns for now, unless we'd like to display the expected results as columns on the frontend
     const expectedColumns = generateColumns(expectedKeys, "expected_result");
 
     const columns: TableProps<DataType>["columns"] = [
+      {
+        title: "Status",
+        dataIndex: "resultMatch",
+        key: "resultMatch",
+        fixed: "left",
+      },
       {
         title: "Name",
         dataIndex: "name",
@@ -130,20 +148,49 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
         title: "Results",
         children: outputColumns,
       },
-      {
-        title: "Expected Results",
-        children: expectedColumns,
-      },
     ];
 
     return { formattedData, columns };
+  };
+
+  const expandedRowRender = (record: { name: string }) => {
+    const expandedData = Object.entries(record || {})
+      .map(([property, value], index) => ({
+        key: index.toString(),
+        property,
+        value,
+      }))
+      .filter((entry) => entry.property.includes("expected_result"));
+    const expandedDataColumns = expandedData.map((entry) => ({
+      title: entry.property.replace("expected_result_", ""),
+      dataIndex: entry.property,
+      key: entry.property,
+      render: (value: any) => {
+        // Apply conditional styling or formatting here
+        return applyConditionalStyling(value, entry.property);
+      },
+    }));
+
+    return (
+      <Flex gap="small">
+        <Flex gap="small" vertical>
+          <h2>Expected Results: </h2>
+          <h3>{record?.name}</h3>
+        </Flex>
+        <Table columns={expandedDataColumns} dataSource={[record]} pagination={false} />
+      </Flex>
+    );
+  };
+
+  const rowExpandable = (record: { resultMatch: { props: { className: string } } }) => {
+    const resultStatus = record.resultMatch.props.className === "result-mismatch" ? true : false;
+    return resultStatus;
   };
 
   const updateScenarioResults = async (goRulesJSONFilename: string) => {
     try {
       const results = await runDecisionsForScenarios(goRulesJSONFilename);
       const formattedResults = formatData(results);
-      console.log(formattedResults, "these are formatted?");
       setScenarioResults(formattedResults);
     } catch (error) {
       console.error("Error fetching scenario results:", error);
@@ -217,6 +264,10 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
               bordered
               dataSource={scenarioResults.formattedData}
               columns={scenarioResults.columns}
+              expandable={{
+                expandedRowRender: (record: any) => expandedRowRender(record),
+                rowExpandable: (record: any) => rowExpandable(record),
+              }}
             />
           </Flex>
         </>
