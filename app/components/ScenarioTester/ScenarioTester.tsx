@@ -220,36 +220,50 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
     <div>
       {uploader ? (
         <Flex gap={"small"}>
-          <a href={`/api/scenario/evaluation/${encodeURIComponent(jsonFile)}`}>Download Scenarios</a>
-          <Upload
-            accept=".csv"
-            multiple={false}
-            maxCount={1}
-            customRequest={({ file, onSuccess }) => {
-              setFile(file as File);
-              message.success(`${(file as File).name} file uploaded successfully.`);
-              onSuccess && onSuccess("ok");
-              setUploadedFile(true);
-            }}
-            onRemove={() => {
-              setFile(null);
-              setUploadedFile(false);
-            }}
-            showUploadList={true}
-          >
-            <Button size="large" type="primary" icon={<UploadOutlined />}>
-              Upload Scenarios
-            </Button>
-          </Upload>
-          <Button
-            disabled={!uploadedFile}
-            size="large"
-            type="primary"
-            onClick={handleRunUploadScenarios}
-            style={{ marginLeft: "10px" }}
-          >
-            Run Upload Scenarios
-          </Button>
+          <ol className={styles.instructionsList}>
+            <li>
+              Download a template CSV file:{" "}
+              <a href={`/api/scenario/evaluation/${encodeURIComponent(jsonFile)}`}>Download Scenarios/Template</a>
+            </li>
+            <li>Add additional scenarios to the CSV file</li>
+            <li>
+              Upload your edited CSV file with scenarios:{" "}
+              <Upload
+                accept=".csv"
+                multiple={false}
+                maxCount={1}
+                customRequest={({ file, onSuccess }) => {
+                  setFile(file as File);
+                  message.success(`${(file as File).name} file uploaded successfully.`);
+                  onSuccess && onSuccess("ok");
+                  setUploadedFile(true);
+                }}
+                onRemove={() => {
+                  setFile(null);
+                  setUploadedFile(false);
+                }}
+                showUploadList={true}
+                className={styles.upload}
+              >
+                <Button size="large" type="primary" icon={<UploadOutlined />}>
+                  Upload Scenarios
+                </Button>
+              </Upload>
+            </li>
+            <li>
+              Run the scenarios against the GO Rules JSON file:{" "}
+              <Button
+                disabled={!uploadedFile}
+                size="large"
+                type="primary"
+                onClick={handleRunUploadScenarios}
+                className="styles.runButton"
+              >
+                Run Upload Scenarios
+              </Button>
+            </li>
+            <li>Receive a csv file with the results! 🎉</li>
+          </ol>
         </Flex>
       ) : (
         <>
