@@ -1,12 +1,26 @@
 import SimulationViewer from "../../../components/SimulationViewer";
-import { getRuleDataById } from "../../../utils/api";
+import { getRuleDataById, getRuleMapByName, getScenariosByFilename } from "../../../utils/api";
+import { RuleMap } from "@/app/types/rulemap";
+import { Scenario } from "@/app/types/scenario";
 
-export default async function RuleEmbedded({ params: { ruleId } }: { params: { ruleId: string } }) {
+export default async function Rule({ params: { ruleId } }: { params: { ruleId: string } }) {
   const { _id, goRulesJSONFilename, chefsFormId } = await getRuleDataById(ruleId);
+  const rulemap: RuleMap = await getRuleMapByName(goRulesJSONFilename);
+  const scenarios: Scenario[] = await getScenariosByFilename(goRulesJSONFilename);
 
   if (!_id) {
     return <h1>Rule not found</h1>;
   }
 
-  return <SimulationViewer jsonFile={goRulesJSONFilename} chefsFormId={chefsFormId} />;
+  return (
+    <>
+      <SimulationViewer
+        ruleId={ruleId}
+        rulemap={rulemap}
+        jsonFile={goRulesJSONFilename}
+        chefsFormId={chefsFormId}
+        scenarios={scenarios}
+      />
+    </>
+  );
 }
