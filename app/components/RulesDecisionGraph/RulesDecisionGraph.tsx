@@ -6,7 +6,8 @@ import { DecisionGraphType } from "@gorules/jdm-editor/dist/components/decision-
 import type { ReactFlowInstance } from "reactflow";
 import { Spin } from "antd";
 import { SubmissionData } from "../../types/submission";
-import { getDocument, postDecision, getRuleRunSchema } from "../../utils/api";
+import { Scenario } from "@/app/types/scenario";
+import { getDocument, postDecision, getRuleRunSchema, getScenariosByFilename } from "../../utils/api";
 import styles from "./RulesDecisionGraph.module.css";
 
 interface RulesViewerProps {
@@ -24,7 +25,6 @@ export default function RulesDecisionGraph({
 }: RulesViewerProps) {
   const decisionGraphRef: any = useRef<DecisionGraphRef>();
   const [graphJSON, setGraphJSON] = useState<DecisionGraphType>();
-  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,6 +69,74 @@ export default function RulesDecisionGraph({
     // Reset the result if there is no contextToSimulate (used to reset the trace)
     return { result: {} };
   };
+
+  const downloadJSON = (jsonData: any, filename: string) => {
+    const jsonString = JSON.stringify(jsonData, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up and remove the link
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleScenarioInsertion = async () => {
+    try {
+      const jsonData = await getDocument(jsonFile);
+      const scenarios: Scenario[] = await getScenariosByFilename(jsonFile);
+      const scenarioObject = {
+        tests: scenarios.map((scenario) => ({
+          name: scenario.title || "Default name",
+          input: scenario.variables.reduce((obj, each) => {
+            obj[each.name] = each.value;
+            return obj;
+          }, {}),
+          output: scenario.expectedResults.reduce((obj, each) => {
+            obj[each.name] = each.value;
+            return obj;
+          }, {}),
+        })),
+      };
+      const updatedJSON = {
+        ...jsonData,
+        ...scenarioObject,
+      };
+      return downloadJSON(updatedJSON, jsonFile);
+    } catch (error) {
+      console.error("Error fetching JSON:", error);
+      throw error;
+    }
+  };
+
+  const interceptJSONDownload = async (event: any) => {
+    if (decisionGraphRef.current && event.target?.download === "graph.json") {
+      event.preventDefault();
+      try {
+        await handleScenarioInsertion();
+      } catch (error) {
+        console.error("Error intercepting JSON download:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const clickHandler = (event: any) => {
+      interceptJSONDownload(event);
+    };
+
+    document.addEventListener("click", clickHandler);
+
+    return () => {
+      document.removeEventListener("click", clickHandler);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!graphJSON) {
     return (
