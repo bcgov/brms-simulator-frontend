@@ -130,7 +130,7 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
     },
     {
       key: "3",
-      label: "Export Scenario Results",
+      label: "Scenario Results",
       children: scenarioTests,
     },
     {
