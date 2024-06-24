@@ -36,11 +36,11 @@ export default function ScenarioGenerator({
     if (!simulationRun || !selectedSubmissionInputs || !newScenarioName) return;
 
     const variables = Object.entries(selectedSubmissionInputs)
-      .filter(([name, value]) => name !== "rulemap")
+      .filter(([name, value]) => name !== "rulemap" && value !== null && value !== undefined)
       .map(([name, value]) => ({ name, value }));
 
     const expectedResults = Object.entries(scenarioExpectedOutput)
-      .filter(([name, value]) => name !== "rulemap")
+      .filter(([name, value]) => name !== "rulemap" && value !== null && value !== undefined)
       .map(([name, value]) => ({ name, value }));
 
     const newScenario: Scenario = {
