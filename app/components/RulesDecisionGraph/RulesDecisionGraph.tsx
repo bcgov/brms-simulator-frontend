@@ -4,7 +4,7 @@ import "@gorules/jdm-editor/dist/style.css";
 import { JdmConfigProvider, DecisionGraph, DecisionGraphRef } from "@gorules/jdm-editor";
 import { DecisionGraphType } from "@gorules/jdm-editor/dist/components/decision-graph/context/dg-store.context";
 import type { ReactFlowInstance } from "reactflow";
-import { Spin } from "antd";
+import { Spin, message } from "antd";
 import { SubmissionData } from "../../types/submission";
 import { Scenario } from "@/app/types/scenario";
 import { getDocument, postDecision, getRuleRunSchema, getScenariosByFilename } from "../../utils/api";
@@ -44,27 +44,44 @@ export default function RulesDecisionGraph({
   };
 
   useEffect(() => {
-    // Run the simulator when the context updates
-    decisionGraphRef?.current?.runSimulator(contextToSimulate);
+    try {
+      // Run the simulator when the context updates
+      decisionGraphRef?.current?.runSimulator(contextToSimulate);
+    } catch (e: any) {
+      message.error("An error occurred while running the simulator: " + e);
+      console.error("Error running the simulator:", e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contextToSimulate]);
 
   const simulateRun = async ({ context }: { context: unknown }) => {
     if (contextToSimulate) {
       console.info("Simulate:", context);
-      const data = await postDecision(jsonFile, context);
-      console.info("Simulation Results:", data, data?.result);
-      setResultsOfSimulation(data?.result);
-      const ruleRunSchema = await getRuleRunSchema(data);
-      // Filter out properties from ruleRunSchema outputs that are also present in data.result
-      const uniqueOutputs = Object.keys(ruleRunSchema?.result?.output || {}).reduce((acc: any, key: string) => {
-        if (!(key in data?.result)) {
-          acc[key] = ruleRunSchema?.result[key];
+      try {
+        const data = await postDecision(jsonFile, context);
+        console.info("Simulation Results:", data, data?.result);
+        // Check if data.result is an array and throw error as object is required
+        if (Array.isArray(data?.result)) {
+          throw new Error("Please update your rule and ensure that outputs are on one line.");
         }
-        return acc;
-      }, {});
 
-      setOutputsOfSimulation(uniqueOutputs);
-      return { result: data };
+        setResultsOfSimulation(data?.result);
+        const ruleRunSchema = await getRuleRunSchema(data);
+        // Filter out properties from ruleRunSchema outputs that are also present in data.result
+        const uniqueOutputs = Object.keys(ruleRunSchema?.result?.output || {}).reduce((acc: any, key: string) => {
+          if (!(key in data?.result)) {
+            acc[key] = ruleRunSchema?.result[key];
+          }
+          return acc;
+        }, {});
+
+        setOutputsOfSimulation(uniqueOutputs);
+        return { result: data };
+      } catch (e: any) {
+        message.error("Error during simulation run: " + e);
+        console.error("Error during simulation run:", e);
+        return { result: {} };
+      }
     }
     // Reset the result if there is no contextToSimulate (used to reset the trace)
     return { result: {} };

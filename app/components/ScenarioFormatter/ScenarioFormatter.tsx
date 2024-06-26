@@ -166,6 +166,10 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
           value: convertAndStyleValue(value, property, editable),
           key: index,
         }));
+      // Check if data.result is an array
+      if (Array.isArray(rawData)) {
+        throw new Error("Please update your rule and ensure that outputs are on one line.");
+      }
       setDataSource(newData);
       const newColumns = COLUMNS.filter((column) => showColumn(newData, column.dataIndex));
       setColumns(newColumns);

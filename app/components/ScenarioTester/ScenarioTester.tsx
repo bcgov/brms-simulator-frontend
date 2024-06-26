@@ -193,10 +193,18 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
   const updateScenarioResults = async (goRulesJSONFilename: string) => {
     try {
       const results = await runDecisionsForScenarios(goRulesJSONFilename);
+      // Loop through object and check if data.result is an array
+      for (const key in results) {
+        if (Array.isArray(results[key].result)) {
+          throw new Error(
+            `Error with results for: ${key}. Please update your rule and ensure that outputs are on one line.`
+          );
+        }
+      }
       const formattedResults = formatData(results);
       setScenarioResults(formattedResults);
     } catch (error) {
-      console.error("Error fetching scenario results:", error);
+      message.error("Error fetching scenario results: " + error);
     }
   };
 
