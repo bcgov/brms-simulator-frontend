@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Table, Tag, Button, TableProps, Flex, Upload, message } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { UploadOutlined } from "@ant-design/icons";
@@ -14,6 +14,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
   const [scenarioResults, setScenarioResults] = useState<any | null>({});
   const [file, setFile] = useState<File | null>(null);
   const [uploadedFile, setUploadedFile] = useState(false);
+  const hasError = useRef(false);
 
   type DataType = {
     key: string;
@@ -204,11 +205,15 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
       const formattedResults = formatData(results);
       setScenarioResults(formattedResults);
     } catch (error) {
-      message.error("Error fetching scenario results: " + error);
+      if (!hasError.current) {
+        hasError.current = true;
+        message.error("Error fetching scenario results: " + error);
+      }
     }
   };
 
   useEffect(() => {
+    hasError.current = false;
     updateScenarioResults(jsonFile);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jsonFile]);
