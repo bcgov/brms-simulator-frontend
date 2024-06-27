@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Table, Tag, Input, Button, Radio, AutoComplete, InputNumber } from "antd";
 import { Scenario } from "@/app/types/scenario";
 import styles from "./ScenarioFormatter.module.css";
+import { RuleMap } from "@/app/types/rulemap";
 
 const COLUMNS = [
   {
@@ -27,9 +28,10 @@ interface ScenarioFormatterProps {
   rawData: rawDataProps | null | undefined;
   setRawData?: (data: object) => void;
   scenarios?: Scenario[];
+  rulemap: RuleMap;
 }
 
-export default function ScenarioFormatter({ title, rawData, setRawData, scenarios }: ScenarioFormatterProps) {
+export default function ScenarioFormatter({ title, rawData, setRawData, scenarios, rulemap }: ScenarioFormatterProps) {
   const [dataSource, setDataSource] = useState<object[]>([]);
   const [columns, setColumns] = useState(COLUMNS);
   const [showTable, setShowTable] = useState(true);
@@ -158,11 +160,12 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
   useEffect(() => {
     if (rawData) {
       const editable = title === "Inputs" && rawData.rulemap === true;
+      const propertyRuleMap = Object.values(rulemap || {}).flat();
       const newData = Object.entries(rawData)
         .filter(([property]) => !PROPERTIES_TO_IGNORE.includes(property))
         .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
         .map(([property, value], index) => ({
-          property,
+          property: propertyRuleMap?.find((item) => item.property === property)?.name || property,
           value: convertAndStyleValue(value, property, editable),
           key: index,
         }));

@@ -1,5 +1,6 @@
 import { useState, useEffect, FocusEvent } from "react";
 import { Table, Tag, Input, Button } from "antd";
+import { RuleMap } from "@/app/types/rulemap";
 import styles from "./InputOutputTable.module.css";
 
 const COLUMNS = [
@@ -27,6 +28,7 @@ interface InputOutputTableProps {
   setRawData?: (data: rawDataProps) => void;
   submitButtonRef?: React.RefObject<HTMLButtonElement>;
   editable?: boolean;
+  rulemap?: RuleMap;
 }
 
 export default function InputOutputTable({
@@ -35,6 +37,7 @@ export default function InputOutputTable({
   setRawData,
   submitButtonRef,
   editable = false,
+  rulemap,
 }: InputOutputTableProps) {
   const [dataSource, setDataSource] = useState<object[]>([]);
   const [columns, setColumns] = useState(COLUMNS);
@@ -98,11 +101,12 @@ export default function InputOutputTable({
 
   useEffect(() => {
     if (rawData) {
+      const propertyRuleMap = Object.values(rulemap || {}).flat();
       const newData = Object.entries(rawData)
         .filter(([property]) => !PROPERTIES_TO_IGNORE.includes(property))
         .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
         .map(([property, value], index) => ({
-          property,
+          property: propertyRuleMap?.find((item) => item.property === property)?.name || property,
           value: convertAndStyleValue(value, property, editable),
           key: index,
         }));

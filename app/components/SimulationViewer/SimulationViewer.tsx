@@ -82,6 +82,7 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
           setSelectedSubmissionInputs={setSelectedSubmissionInputs}
           resultsOfSimulation={resultsOfSimulation}
           runSimulation={runSimulation}
+          rulemap={rulemap}
         />
       </Flex>
     </>
@@ -98,6 +99,7 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
         resetTrigger={resetTrigger}
         ruleId={ruleId}
         jsonFile={jsonFile}
+        rulemap={rulemap}
       />
       <Button onClick={handleReset} size="large" type="primary">
         Reset ↻

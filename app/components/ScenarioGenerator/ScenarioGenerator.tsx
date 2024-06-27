@@ -6,6 +6,7 @@ import { Scenario } from "@/app/types/scenario";
 import { SubmissionData } from "@/app/types/submission";
 import { createScenario } from "@/app/utils/api";
 import ScenarioFormatter from "../ScenarioFormatter";
+import { RuleMap } from "@/app/types/rulemap";
 
 interface ScenarioGeneratorProps {
   scenarios: Scenario[];
@@ -16,6 +17,7 @@ interface ScenarioGeneratorProps {
   resetTrigger: boolean;
   ruleId: string;
   jsonFile: string;
+  rulemap: RuleMap;
 }
 
 export default function ScenarioGenerator({
@@ -27,6 +29,7 @@ export default function ScenarioGenerator({
   resetTrigger,
   ruleId,
   jsonFile,
+  rulemap,
 }: ScenarioGeneratorProps) {
   const [simulationRun, setSimulationRun] = useState(false);
   const [newScenarioName, setNewScenarioName] = useState("");
@@ -92,6 +95,7 @@ export default function ScenarioGenerator({
                 setSelectedSubmissionInputs(data);
               }}
               scenarios={scenarios}
+              rulemap={rulemap}
             />
             <Flex gap={"small"} align="end" vertical>
               <Button size="large" type="primary" onClick={runScenarioSimulation}>
@@ -115,7 +119,7 @@ export default function ScenarioGenerator({
           </Flex>
         )}
         <Flex gap={"small"} vertical>
-          {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
+          {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} rulemap={rulemap} />}
         </Flex>
         <Flex gap={"small"} vertical>
           {scenarioExpectedOutput && (
@@ -126,6 +130,7 @@ export default function ScenarioGenerator({
               title="Expected Results"
               rawData={scenarioExpectedOutput}
               editable
+              rulemap={rulemap}
             />
           )}
         </Flex>

@@ -7,12 +7,14 @@ import styles from "./ScenarioViewer.module.css";
 import { Scenario } from "@/app/types/scenario";
 import { deleteScenario } from "@/app/utils/api";
 import ScenarioFormatter from "../ScenarioFormatter";
+import { RuleMap } from "@/app/types/rulemap";
 
 interface ScenarioViewerProps {
   scenarios: Scenario[];
   resultsOfSimulation: Record<string, any> | null | undefined;
   setSelectedSubmissionInputs: (data: any) => void;
   runSimulation: () => void;
+  rulemap: RuleMap;
 }
 
 export default function ScenarioViewer({
@@ -20,6 +22,7 @@ export default function ScenarioViewer({
   resultsOfSimulation,
   setSelectedSubmissionInputs,
   runSimulation,
+  rulemap,
 }: ScenarioViewerProps) {
   const [scenariosDisplay, setScenariosDisplay] = useState<Scenario[] | null>(scenarios);
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
@@ -106,6 +109,7 @@ export default function ScenarioViewer({
               <ScenarioFormatter
                 title="Inputs"
                 scenarios={scenarios}
+                rulemap={rulemap}
                 rawData={selectedScenario.variables.reduce((acc, variable) => {
                   acc[variable.name] = variable.value;
                   return acc;
@@ -125,7 +129,7 @@ export default function ScenarioViewer({
             <>→</>
           </Flex>
           <Flex className={styles.resultsColumn}>
-            <InputOutputTable title="Decision" rawData={resultsOfSimulation} />
+            <InputOutputTable title="Decision" rawData={resultsOfSimulation} rulemap={rulemap} />
           </Flex>
         </>
       )}
