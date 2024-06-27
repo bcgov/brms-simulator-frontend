@@ -244,27 +244,30 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
             <li>Add additional scenarios to the CSV file</li>
             <li>
               Upload your edited CSV file with scenarios:{" "}
-              <Upload
-                accept=".csv"
-                multiple={false}
-                maxCount={1}
-                customRequest={({ file, onSuccess }) => {
-                  setFile(file as File);
-                  message.success(`${(file as File).name} file uploaded successfully.`);
-                  onSuccess && onSuccess("ok");
-                  setUploadedFile(true);
-                }}
-                onRemove={() => {
-                  setFile(null);
-                  setUploadedFile(false);
-                }}
-                showUploadList={true}
-                className={styles.upload}
-              >
-                <Button size="large" type="primary" icon={<UploadOutlined />}>
-                  Upload Scenarios
-                </Button>
-              </Upload>
+              <label className="labelsmall">
+                <Upload
+                  accept=".csv"
+                  multiple={false}
+                  maxCount={1}
+                  customRequest={({ file, onSuccess }) => {
+                    setFile(file as File);
+                    message.success(`${(file as File).name} file uploaded successfully.`);
+                    onSuccess && onSuccess("ok");
+                    setUploadedFile(true);
+                  }}
+                  onRemove={() => {
+                    setFile(null);
+                    setUploadedFile(false);
+                  }}
+                  showUploadList={true}
+                  className={styles.upload}
+                >
+                  <Button size="large" type="primary" icon={<UploadOutlined />}>
+                    Upload Scenarios
+                  </Button>
+                </Upload>
+                {!file ? `Select file for upload.` : `File Selected.`}
+              </label>
             </li>
             <li>
               Run the scenarios against the GO Rules JSON file:{" "}
@@ -297,6 +300,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
               expandable={{
                 expandedRowRender: (record: any) => expandedRowRender(record),
                 rowExpandable: (record: any) => rowExpandable(record),
+                columnTitle: "View Expected Results",
               }}
               className={styles.scenarioTable}
               size="middle"

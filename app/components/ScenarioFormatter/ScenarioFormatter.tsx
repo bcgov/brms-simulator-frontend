@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Table, Tag, Input, Button, Radio, AutoComplete, InputNumber } from "antd";
+import { Table, Tag, Input, Button, Radio, AutoComplete, InputNumber, Flex } from "antd";
 import { Scenario } from "@/app/types/scenario";
 import styles from "./ScenarioFormatter.module.css";
 import { RuleMap } from "@/app/types/rulemap";
@@ -63,37 +63,59 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
     if (editable) {
       if (type === "boolean" || typeof value === "boolean") {
         return (
-          <Radio.Group onChange={(e) => handleInputChange(e.target.value, property)} value={value}>
-            <Radio value={true}>Yes</Radio>
-            <Radio value={false}>No</Radio>
-          </Radio.Group>
+          <Flex gap={"small"} align="center" vertical>
+            <label className="labelsmall">
+              <Radio.Group onChange={(e) => handleInputChange(e.target.value, property)} value={value}>
+                <Radio value={true}>Yes</Radio>
+                <Radio value={false}>No</Radio>
+              </Radio.Group>
+              <span className="label-text">{property}</span>
+            </label>
+          </Flex>
         );
       }
 
       if (type === "string" || typeof value === "string") {
         return (
-          <AutoComplete
-            options={valuesArray}
-            defaultValue={value}
-            onBlur={(e) => handleValueChange((e.target as HTMLInputElement).value, property)}
-            style={{ width: 200 }}
-            onChange={(val) => handleInputChange(val, property)}
-          />
+          <>
+            <label className="labelsmall">
+              <AutoComplete
+                options={valuesArray}
+                defaultValue={value}
+                onBlur={(e) => handleValueChange((e.target as HTMLInputElement).value, property)}
+                style={{ width: 200 }}
+                onChange={(val) => handleInputChange(val, property)}
+              />
+              <span className="label-text">{property}</span>
+            </label>
+          </>
         );
       }
 
       if (type === "number" || typeof value === "number") {
         return (
-          <InputNumber
-            value={value}
-            onBlur={(e) => handleValueChange(e.target.value, property)}
-            onChange={(val) => handleInputChange(val, property)}
-          />
+          <>
+            <label className="labelsmall">
+              <InputNumber
+                value={value}
+                onBlur={(e) => handleValueChange(e.target.value, property)}
+                onChange={(val) => handleInputChange(val, property)}
+              />
+              <span className="label-text">{property}</span>
+            </label>
+          </>
         );
       }
 
       if (value === null || value === undefined) {
-        return <Input onBlur={(e) => handleValueChange(e.target.value, property)} />;
+        return (
+          <>
+            <label className="labelsmall">
+              <Input onBlur={(e) => handleValueChange(e.target.value, property)} />;
+              <span className="label-text">{property}</span>
+            </label>
+          </>
+        );
       }
     } else {
       if (type === "boolean" || typeof value === "boolean") {

@@ -50,11 +50,14 @@ export default function InputOutputTable({
   const convertAndStyleValue = (value: any, property: string, editable: boolean) => {
     if (editable) {
       return (
-        <Input
-          defaultValue={value}
-          onBlur={(e) => handleValueChange(e, property)}
-          onKeyDown={(e) => handleKeyDown(e)}
-        />
+        <label className="labelsmall">
+          <Input
+            defaultValue={value}
+            onBlur={(e) => handleValueChange(e, property)}
+            onKeyDown={(e) => handleKeyDown(e)}
+          />
+          <span className="label-text">{property}</span>
+        </label>
       );
     }
 
