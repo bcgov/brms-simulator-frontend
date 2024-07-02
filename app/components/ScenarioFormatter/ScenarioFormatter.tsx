@@ -111,7 +111,7 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
         return (
           <>
             <label className="labelsmall">
-              <Input onBlur={(e) => handleValueChange(e.target.value, property)} />;
+              <Input onBlur={(e) => handleValueChange(e.target.value, property)} />
               <span className="label-text">{property}</span>
             </label>
           </>
