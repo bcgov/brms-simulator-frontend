@@ -17,7 +17,6 @@ const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr:
 interface SimulationViewerProps {
   ruleId: string;
   jsonFile: string;
-  chefsFormId: string;
   rulemap: RuleMap;
   scenarios: Scenario[];
 }

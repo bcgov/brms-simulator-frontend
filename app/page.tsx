@@ -22,7 +22,7 @@ export default function Home() {
     getRules();
   }, []);
 
-  const mappedRules = rules.map(({ _id, title, goRulesJSONFilename, chefsFormId }) => {
+  const mappedRules = rules.map(({ _id, title, goRulesJSONFilename }) => {
     return {
       key: _id,
       titleLink: (
@@ -33,7 +33,6 @@ export default function Home() {
       downloadRule: (
         <a href={`/api/documents?ruleFileName=${encodeURIComponent(goRulesJSONFilename)}`}>Download JSON</a>
       ),
-      submissionFormLink: <a href={`https://submit.digital.gov.bc.ca/app/form/submit?f=${chefsFormId}`}>Submission</a>,
     };
   });
 
@@ -45,10 +44,6 @@ export default function Home() {
     {
       title: "Download Rule",
       dataIndex: "downloadRule",
-    },
-    {
-      title: "Submission Form",
-      dataIndex: "submissionFormLink",
     },
   ];
 

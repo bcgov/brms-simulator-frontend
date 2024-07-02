@@ -6,7 +6,7 @@ import { Scenario } from "@/app/types/scenario";
 
 export default async function Rule({ params: { ruleId } }: { params: { ruleId: string } }) {
   const ruleInfo = await getRuleDataById(ruleId);
-  const { _id, goRulesJSONFilename, chefsFormId } = ruleInfo;
+  const { _id, goRulesJSONFilename } = ruleInfo;
   const rulemap: RuleMap = await getRuleMapByName(goRulesJSONFilename);
   const scenarios: Scenario[] = await getScenariosByFilename(goRulesJSONFilename);
 
@@ -21,7 +21,6 @@ export default async function Rule({ params: { ruleId } }: { params: { ruleId: s
         ruleId={ruleId}
         rulemap={rulemap}
         jsonFile={goRulesJSONFilename}
-        chefsFormId={chefsFormId}
         scenarios={scenarios}
       />
     </>
