@@ -22,33 +22,13 @@ export default function Admin() {
     // Get rules that are already defined in the DB
     const existingRules = await getAllRuleData();
     setInitialRules(existingRules);
-    // Get rules that exist in the rules repository, but aren't yet defined in the DB
-    const existingRuleDocuments = await getAllRuleDocuments();
-    const undefinedRules = existingRuleDocuments
-      .filter((ruleJSON: string) => {
-        return !existingRules.find((rule: RuleInfo) => rule.goRulesJSONFilename === ruleJSON);
-      })
-      .map((ruleJSON: string) => ({ goRulesJSONFilename: ruleJSON }));
-    const ruleData = [...existingRules, ...undefinedRules];
-    setRules(JSON.parse(JSON.stringify(ruleData))); // JSON.parse(JSON.stringify(data)) is a hacky way to deep copy the data - needed for comparison later
+    setRules(JSON.parse(JSON.stringify([...existingRules]))); // JSON.parse(JSON.stringify(data)) is a hacky way to deep copy the data - needed for comparison later
     setIsLoading(false);
   };
 
   useEffect(() => {
     getOrRefreshRuleList();
   }, []);
-
-  const addNewRule = async () => {
-    const newRules = [...rules];
-    newRules.push({
-      _id: "",
-      title: "",
-      goRulesJSONFilename: "",
-      chefsFormId: "",
-      chefsFormAPIKey: "",
-    });
-    setRules(newRules);
-  };
 
   const updateRule = (e: React.ChangeEvent<HTMLInputElement>, index: number, property: keyof RuleInfo) => {
     const newRules = [...rules];
@@ -72,9 +52,7 @@ export default function Admin() {
         } else if (
           initialRule._id !== rule._id ||
           initialRule.title !== rule.title ||
-          initialRule.goRulesJSONFilename !== rule.goRulesJSONFilename ||
-          initialRule.chefsFormId !== rule.chefsFormId ||
-          initialRule.chefsFormAPIKey !== rule.chefsFormAPIKey
+          initialRule.goRulesJSONFilename !== rule.goRulesJSONFilename
         ) {
           return { rule, action: ACTION_STATUS.UPDATE };
         }
@@ -92,19 +70,19 @@ export default function Admin() {
     const entriesToUpdate = getRulesToUpdate();
     await Promise.all(
       entriesToUpdate.map(async ({ rule, action }) => {
-          try {
-            if (action === ACTION_STATUS.NEW) {
-              await postRuleData(rule);
-            } else if (rule?._id) {
-              if (action === ACTION_STATUS.UPDATE) {
-                await updateRuleData(rule._id, rule);
-              } else if (action === ACTION_STATUS.DELETE) {
-                await deleteRuleData(rule._id);
-              }
+        try {
+          if (action === ACTION_STATUS.NEW) {
+            await postRuleData(rule);
+          } else if (rule?._id) {
+            if (action === ACTION_STATUS.UPDATE) {
+              await updateRuleData(rule._id, rule);
+            } else if (action === ACTION_STATUS.DELETE) {
+              await deleteRuleData(rule._id);
             }
-          } catch (error) {
-            console.error(`Error performing action ${action} on rule ${rule._id}: ${error}`);
           }
+        } catch (error) {
+          console.error(`Error performing action ${action} on rule ${rule._id}: ${error}`);
+        }
       })
     );
     getOrRefreshRuleList();
@@ -123,28 +101,13 @@ export default function Admin() {
       title: "Title",
       dataIndex: "title",
       render: renderInputField("title"),
-      width: "220px"
-    },
-    {
-      title: "GoRules Id",
-      dataIndex: "_id",
-      render: renderInputField("_id"),
+      width: "220px",
     },
     {
       title: "GoRules JSON Filename",
       dataIndex: "goRulesJSONFilename",
       render: renderInputField("goRulesJSONFilename"),
-      width: "260px"
-    },
-    {
-      title: "CHEFS Form Id",
-      dataIndex: "chefsFormId",
-      render: renderInputField("chefsFormId"),
-    },
-    {
-      title: "CHEFS Form API Key",
-      dataIndex: "chefsFormAPIKey",
-      render: renderInputField("chefsFormAPIKey"),
+      width: "260px",
     },
     {
       dataIndex: "delete",
@@ -180,15 +143,7 @@ export default function Admin() {
       {isLoading ? (
         <p>Loading...</p>
       ) : (
-        <Table
-          columns={columns}
-          dataSource={rules.map((rule, key) => ({ key, ...rule }))}
-          footer={() => (
-            <Button type="primary" onClick={addNewRule}>
-              Add New Rule +
-            </Button>
-          )}
-        />
+        <Table columns={columns} dataSource={rules.map((rule, key) => ({ key, ...rule }))} />
       )}
     </>
   );
