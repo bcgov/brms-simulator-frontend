@@ -22,16 +22,19 @@ interface SimulationViewerProps {
 }
 
 export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios }: SimulationViewerProps) {
-  const createRuleMap = (array: any[], defaultObj: { rulemap: boolean }) => {
-    return array.reduce((acc, obj) => {
-      acc[obj.property] = null;
-      return acc;
-    }, defaultObj);
+  const createRuleMap = (array: any[]) => {
+    return array.reduce(
+      (acc, obj) => {
+        acc[obj.property] = null;
+        return acc;
+      },
+      { rulemap: true }
+    );
   };
 
-  const ruleMapInputs = createRuleMap(rulemap.inputs, { rulemap: true });
-  const ruleMapOutputs = createRuleMap(rulemap.outputs, { rulemap: true });
-  const ruleMapResultOutputs = createRuleMap(rulemap.resultOutputs, { rulemap: true });
+  const ruleMapInputs = createRuleMap(rulemap.inputs);
+  const ruleMapOutputs = createRuleMap(rulemap.outputs);
+  const ruleMapResultOutputs = createRuleMap(rulemap.resultOutputs);
 
   const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>(ruleMapInputs);
   const [contextToSimulate, setContextToSimulate] = useState<SubmissionData | null>();
