@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Flex, Button, Input } from "antd";
 import InputOutputTable from "../InputOutputTable";
-import styles from "./ScenarioGenerator.module.css";
 import { Scenario } from "@/app/types/scenario";
 import { SubmissionData } from "@/app/types/submission";
 import { createScenario } from "@/app/utils/api";
@@ -84,10 +83,10 @@ export default function ScenarioGenerator({
   }, []);
 
   return (
-    <Flex className={styles.ScenarioGenerator}>
+    <Flex>
       <Flex gap="middle">
         {selectedSubmissionInputs && (
-          <Flex vertical gap={"small"} align="end" className={styles.inputSection}>
+          <Flex vertical gap={"small"} align="end">
             <ScenarioFormatter
               title="Inputs"
               rawData={selectedSubmissionInputs}

@@ -6,7 +6,7 @@ import { DecisionGraphType } from "@gorules/jdm-editor/dist/components/decision-
 import type { ReactFlowInstance } from "reactflow";
 import { Spin, message } from "antd";
 import { SubmissionData } from "../../types/submission";
-import { Scenario } from "@/app/types/scenario";
+import { Scenario, Variable } from "@/app/types/scenario";
 import { getDocument, postDecision, getRuleRunSchema, getScenariosByFilename } from "../../utils/api";
 import styles from "./RulesDecisionGraph.module.css";
 
@@ -108,9 +108,9 @@ export default function RulesDecisionGraph({
       const jsonData = await getDocument(jsonFile);
       const scenarios: Scenario[] = await getScenariosByFilename(jsonFile);
       const scenarioObject = {
-        tests: scenarios.map((scenario) => ({
+        tests: scenarios.map((scenario: Scenario) => ({
           name: scenario.title || "Default name",
-          input: scenario.variables.reduce((obj, each) => {
+          input: scenario.variables.reduce((obj: any, each: Variable) => {
             obj[each.name] = each.value;
             return obj;
           }, {}),
