@@ -7,9 +7,14 @@ import styles from "./SubmissionSelector.module.css";
 interface SubmissionSelectorProps {
   chefsFormId: string;
   setSelectedSubmissionInputs: (newSelection: SubmissionData) => void;
+  resetTrigger: boolean;
 }
 
-export default function SubmissionSelector({ chefsFormId, setSelectedSubmissionInputs }: SubmissionSelectorProps) {
+export default function SubmissionSelector({
+  chefsFormId,
+  setSelectedSubmissionInputs,
+  resetTrigger,
+}: SubmissionSelectorProps) {
   const [options, setOptions] = useState<{ value: string }[]>([]);
   const [valueToIdMap, setValueToIdMap] = useState<Record<string, string>>({});
   const [searchText, setSearchText] = useState("");
@@ -22,6 +27,7 @@ export default function SubmissionSelector({ chefsFormId, setSelectedSubmissionI
       },
     } = await getSubmissionFromCHEFSById(chefsFormId, valueToIdMap[value]);
     setSelectedSubmissionInputs(data);
+    setSearchText(value);
   };
 
   // Extracted data transformation logic
@@ -50,11 +56,16 @@ export default function SubmissionSelector({ chefsFormId, setSelectedSubmissionI
     fetchData();
   }, [chefsFormId]);
 
+  useEffect(() => {
+    setSearchText("");
+  }, [resetTrigger]);
+
   return (
     <AutoComplete
       options={options}
       onSelect={onSelect}
       onSearch={setSearchText}
+      value={searchText}
       className={styles.selector}
       aria-label="Search for submissions"
     >
