@@ -7,6 +7,11 @@
   margin: "0 8px";
 }
 
+.inputSection button {
+  width: 10rem;
+}
+
 .spinner {
   min-height: 500px;
+
 }
