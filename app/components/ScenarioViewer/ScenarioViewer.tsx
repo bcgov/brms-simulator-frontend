@@ -15,6 +15,7 @@ interface ScenarioViewerProps {
   setSelectedSubmissionInputs: (data: any) => void;
   runSimulation: () => void;
   rulemap: RuleMap;
+  editing?: boolean;
 }
 
 export default function ScenarioViewer({
@@ -23,6 +24,7 @@ export default function ScenarioViewer({
   setSelectedSubmissionInputs,
   runSimulation,
   rulemap,
+  editing = true,
 }: ScenarioViewerProps) {
   const [scenariosDisplay, setScenariosDisplay] = useState<Scenario[] | null>(scenarios);
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
@@ -96,7 +98,7 @@ export default function ScenarioViewer({
                 </li>
               ))}
             </ol>
-            <Button onClick={() => setManageScenarios(!manageScenarios)}>Manage Scenarios</Button>
+            {editing && <Button onClick={() => setManageScenarios(!manageScenarios)}>Manage Scenarios</Button>}
           </>
         ) : (
           <div>No scenarios available</div>

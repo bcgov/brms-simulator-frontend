@@ -19,9 +19,16 @@ interface SimulationViewerProps {
   jsonFile: string;
   rulemap: RuleMap;
   scenarios: Scenario[];
+  editing?: boolean;
 }
 
-export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios }: SimulationViewerProps) {
+export default function SimulationViewer({
+  ruleId,
+  jsonFile,
+  rulemap,
+  scenarios,
+  editing = true,
+}: SimulationViewerProps) {
   const createRuleMap = (array: any[]) => {
     return array.reduce(
       (acc, obj) => {
@@ -83,6 +90,7 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
         resultsOfSimulation={resultsOfSimulation}
         runSimulation={runSimulation}
         rulemap={rulemap}
+        editing={editing}
       />
     </Flex>
   );
@@ -99,6 +107,7 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
         ruleId={ruleId}
         jsonFile={jsonFile}
         rulemap={rulemap}
+        editing={editing}
       />
       <Button onClick={handleReset} size="large" type="primary">
         Reset ↻
@@ -123,23 +132,29 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
       key: "1",
       label: "Simulate pre-defined test scenarios",
       children: scenarioTab,
+      disabled: false,
     },
     {
       key: "2",
       label: "Simulate inputs manually and create new scenarios",
       children: scenarioGeneratorTab,
+      disabled: false,
     },
     {
       key: "3",
       label: "Scenario Results",
       children: scenarioTestsTab,
+      disabled: editing ? false : true,
     },
     {
       key: "4",
       label: "CSV Tests",
       children: csvScenarioTestsTab,
+      disabled: editing ? false : true,
     },
   ];
+
+  const filteredItems = editing ? items : items?.filter((item) => item.disabled !== true) || [];
 
   return (
     <Flex gap="large" vertical>
@@ -153,7 +168,12 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
       </div>
       <Flex justify="space-between" align="center" className={styles.contentSection}>
         <Flex gap="middle" justify="space-between">
-          <Tabs defaultActiveKey="3" tabBarStyle={{ gap: "10rem" }} items={items} onChange={handleTabChange}></Tabs>
+          <Tabs
+            defaultActiveKey={editing ? "3" : "1"}
+            tabBarStyle={{ gap: "10rem" }}
+            items={filteredItems}
+            onChange={handleTabChange}
+          ></Tabs>
         </Flex>
       </Flex>
     </Flex>

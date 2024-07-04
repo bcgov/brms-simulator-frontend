@@ -17,6 +17,7 @@ interface ScenarioGeneratorProps {
   ruleId: string;
   jsonFile: string;
   rulemap: RuleMap;
+  editing?: boolean;
 }
 
 export default function ScenarioGenerator({
@@ -29,6 +30,7 @@ export default function ScenarioGenerator({
   ruleId,
   jsonFile,
   rulemap,
+  editing = true,
 }: ScenarioGeneratorProps) {
   const [simulationRun, setSimulationRun] = useState(false);
   const [newScenarioName, setNewScenarioName] = useState("");
@@ -101,7 +103,7 @@ export default function ScenarioGenerator({
                 Simulate ▶
               </Button>
               <Flex gap={"small"} align="end">
-                {simulationRun && (
+                {simulationRun && editing && (
                   <>
                     <Input
                       value={newScenarioName}
@@ -121,7 +123,7 @@ export default function ScenarioGenerator({
           {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} rulemap={rulemap} />}
         </Flex>
         <Flex gap={"small"} vertical>
-          {scenarioExpectedOutput && (
+          {scenarioExpectedOutput && editing && (
             <InputOutputTable
               setRawData={(data) => {
                 setScenarioExpectedOutput(data);
