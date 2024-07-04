@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Flex, Button, Tabs } from "antd";
 import type { TabsProps } from "antd";
@@ -38,7 +38,6 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
   const [outputSchema, setOutputSchema] = useState<Record<string, any> | null>(ruleMapOutputs);
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
-  const simulateButtonRef = useRef<HTMLButtonElement>(null);
 
   const resetContextAndResults = () => {
     setContextToSimulate(null);
@@ -74,20 +73,18 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
   };
 
   const scenarioTab = (
-    <>
-      <Flex gap="small" vertical>
-        <ScenarioViewer
-          scenarios={scenarios}
-          setSelectedSubmissionInputs={setSelectedSubmissionInputs}
-          resultsOfSimulation={resultsOfSimulation}
-          runSimulation={runSimulation}
-          rulemap={rulemap}
-        />
-      </Flex>
-    </>
+    <Flex gap="small" vertical>
+      <ScenarioViewer
+        scenarios={scenarios}
+        setSelectedSubmissionInputs={setSelectedSubmissionInputs}
+        resultsOfSimulation={resultsOfSimulation}
+        runSimulation={runSimulation}
+        rulemap={rulemap}
+      />
+    </Flex>
   );
 
-  const scenarioGenerator = (
+  const scenarioGeneratorTab = (
     <Flex gap="small">
       <ScenarioGenerator
         scenarios={scenarios}
@@ -106,13 +103,13 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
     </Flex>
   );
 
-  const scenarioTests = (
+  const scenarioTestsTab = (
     <Flex gap="small">
       <ScenarioTester jsonFile={jsonFile} />
     </Flex>
   );
 
-  const csvScenarioTests = (
+  const csvScenarioTestsTab = (
     <Flex gap="small">
       <ScenarioTester jsonFile={jsonFile} uploader />
     </Flex>
@@ -127,17 +124,17 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
     {
       key: "2",
       label: "Simulate inputs manually and create new scenarios",
-      children: scenarioGenerator,
+      children: scenarioGeneratorTab,
     },
     {
       key: "3",
       label: "Scenario Results",
-      children: scenarioTests,
+      children: scenarioTestsTab,
     },
     {
       key: "4",
       label: "CSV Tests",
-      children: csvScenarioTests,
+      children: csvScenarioTestsTab,
     },
   ];
 
