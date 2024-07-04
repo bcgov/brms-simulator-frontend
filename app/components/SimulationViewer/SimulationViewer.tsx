@@ -31,7 +31,7 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
 
   const ruleMapInputs = createRuleMap(rulemap.inputs, { rulemap: true });
   const ruleMapOutputs = createRuleMap(rulemap.outputs, { rulemap: true });
-  const ruleMapFinalOutputs = createRuleMap(rulemap.finalOutputs, { rulemap: true });
+  const ruleMapResultOutputs = createRuleMap(rulemap.resultOutputs, { rulemap: true });
 
   const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>(ruleMapInputs);
   const [contextToSimulate, setContextToSimulate] = useState<SubmissionData | null>();
@@ -43,7 +43,7 @@ export default function SimulationViewer({ ruleId, jsonFile, rulemap, scenarios 
   const resetContextAndResults = () => {
     setContextToSimulate(null);
     setOutputSchema(ruleMapOutputs);
-    setResultsOfSimulation(ruleMapFinalOutputs);
+    setResultsOfSimulation(ruleMapResultOutputs);
   };
 
   const runSimulation = () => {
