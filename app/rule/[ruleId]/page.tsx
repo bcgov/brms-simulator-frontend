@@ -19,7 +19,7 @@ export default async function Rule({ params: { ruleId } }: { params: { ruleId: s
         </Link>
         <h1>{title || goRulesJSONFilename}</h1>
       </Flex>
-      <SimulationViewer jsonFile={goRulesJSONFilename} chefsFormId={chefsFormId} />
+      <SimulationViewer jsonFile={goRulesJSONFilename} chefsFormId={chefsFormId} isEditable />
     </>
   );
 }

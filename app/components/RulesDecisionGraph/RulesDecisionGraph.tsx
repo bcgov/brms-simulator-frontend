@@ -1,81 +1,112 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
-import "@gorules/jdm-editor/dist/style.css";
-import { JdmConfigProvider, DecisionGraph, DecisionGraphRef } from "@gorules/jdm-editor";
-import { DecisionGraphType } from "@gorules/jdm-editor/dist/components/decision-graph/context/dg-store.context";
+import { useState, useMemo, useEffect } from "react";
 import type { ReactFlowInstance } from "reactflow";
-import { Spin } from "antd";
+import "@gorules/jdm-editor/dist/style.css";
+import {
+  JdmConfigProvider,
+  DecisionGraph,
+  NodeSpecification,
+  DecisionGraphType,
+  Simulation,
+} from "@gorules/jdm-editor";
+import { ApartmentOutlined, PlayCircleOutlined } from "@ant-design/icons";
 import { SubmissionData } from "../../types/submission";
-import { getDocument, postDecision } from "../../utils/api";
-import styles from "./RulesDecisionGraph.module.css";
+import LinkRuleComponent from "./LinkRuleComponent";
+import SimulatorPanel from "./SimulatorPanel";
 
 interface RulesViewerProps {
-  jsonFile: string;
+  graphJSON: DecisionGraphType;
   contextToSimulate?: SubmissionData | null;
-  setResultsOfSimulation: (results: Record<string, any>) => void;
+  setContextToSimulate: (results: Record<string, any>) => void;
+  simulation?: Simulation;
+  runSimulation: (results: unknown) => void;
+  isEditable?: boolean;
 }
 
 export default function RulesDecisionGraph({
-  jsonFile,
+  graphJSON,
   contextToSimulate,
-  setResultsOfSimulation,
+  setContextToSimulate,
+  simulation,
+  runSimulation,
+  isEditable = true,
 }: RulesViewerProps) {
-  const decisionGraphRef: any = useRef<DecisionGraphRef>();
-  const [graphJSON, setGraphJSON] = useState<DecisionGraphType>();
-  
+  const [graphValue, setGraphValue] = useState<any>(graphJSON);
+  const [reactFlowRef, setReactFlowRef] = useState<ReactFlowInstance>();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await getDocument(jsonFile);
-        setGraphJSON(data);
-      } catch (error) {
-        console.error("Error fetching JSON:", error);
-      }
-    };
-    fetchData();
-  }, [jsonFile]);
+    setGraphValue(graphJSON);
+    fitGraphToView();
+  }, [graphJSON]);
+
+  useEffect(() => {
+    fitGraphToView();
+  }, [reactFlowRef]);
+
+  // Ensure graph is in view
+  const fitGraphToView = () => {
+    if (reactFlowRef) {
+      reactFlowRef.fitView();
+      // Set timeout to fix issue with trying to fit view because fully loaded
+      setTimeout(() => {
+        reactFlowRef.fitView();
+      }, 100);
+    }
+  };
 
   // Can set additional react flow options here if we need to change how graph looks when it's loaded in
   const reactFlowInit = (reactFlow: ReactFlowInstance) => {
-    reactFlow.fitView(); // ensure graph is in view
+    setReactFlowRef(reactFlow);
   };
 
-  useEffect(() => {
-    // Run the simulator when the context updates
-    decisionGraphRef?.current?.runSimulator(contextToSimulate);
-  }, [contextToSimulate]);
+  // This is to add the decision node - note that this may be added to the DecisionGraph library
+  const additionalComponents: NodeSpecification[] = useMemo(
+    () => [
+      {
+        type: "decisionNode",
+        displayName: "Rule",
+        shortDescription: "Linked rule to execute",
+        icon: <ApartmentOutlined />,
+        generateNode: () => ({ name: "Linked Rule" }),
+        renderNode: ({ specification, id, selected, data }) => (
+          <LinkRuleComponent specification={specification} id={id} isSelected={selected} name={data?.name} />
+        ),
+      },
+    ],
+    []
+  );
 
-  const simulateRun = async ({ context }: { context: unknown }) => {
-    if (contextToSimulate) {
-      console.info("Simulate:", context);
-      const data = await postDecision(jsonFile, context);
-      console.info("Simulation Results:", data, data?.result);
-      setResultsOfSimulation(data?.result);
-      return { result: data };
-    }
-    // Reset the result if there is no contextToSimulate (used to reset the trace)
-    return { result: {} };
-  };
-
-  if (!graphJSON) {
-    return (
-      <Spin tip="Loading graph..." size="large" className={styles.spinner}>
-        <div className="content" />
-      </Spin>
-    );
-  }
+  // Simulator custom panel
+  const panels = useMemo(
+    () => [
+      {
+        id: "simulator",
+        title: "Simulator",
+        icon: <PlayCircleOutlined />,
+        renderPanel: () => (
+          <SimulatorPanel
+            contextToSimulate={contextToSimulate}
+            runSimulation={runSimulation}
+            setContextToSimulate={setContextToSimulate}
+          />
+        ),
+      },
+    ],
+    [contextToSimulate, runSimulation, setContextToSimulate]
+  );
 
   return (
     <JdmConfigProvider>
       <DecisionGraph
-        ref={decisionGraphRef}
-        value={graphJSON}
-        disabled
+        value={graphValue}
         defaultOpenMenu={false}
-        onSimulationRun={simulateRun}
+        simulate={simulation}
         configurable
         onReactFlowInit={reactFlowInit}
+        panels={panels}
+        components={additionalComponents}
+        onChange={(updatedGraphValue) => setGraphValue(updatedGraphValue)}
+        disabled={!isEditable}
       />
     </JdmConfigProvider>
   );

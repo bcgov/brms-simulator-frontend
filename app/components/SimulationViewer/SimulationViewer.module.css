@@ -6,3 +6,7 @@
 .contentSection {
   margin: "0 8px";
 }
+
+.spinner {
+  min-height: 500px;
+}
