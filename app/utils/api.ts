@@ -221,9 +221,7 @@ export const getRuleRunSchema = async (ruleResponse: unknown) => {
  */
 export const getScenariosByFilename = async (goRulesJSONFilename: string) => {
   try {
-    const { data } = await axiosAPIInstance.post(
-      `/scenario/by-filename?goRulesJSONFilename=${encodeURIComponent(goRulesJSONFilename)}`
-    );
+    const { data } = await axiosAPIInstance.post("/scenario/by-filename/", { goRulesJSONFilename });
     return data;
   } catch (error) {
     console.error(`Error posting output schema: ${error}`);
