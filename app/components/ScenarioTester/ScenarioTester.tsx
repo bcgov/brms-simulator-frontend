@@ -3,7 +3,7 @@ import { Table, Tag, Button, TableProps, Flex, Upload, message } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { UploadOutlined } from "@ant-design/icons";
 import styles from "./ScenarioTester.module.css";
-import { runDecisionsForScenarios, uploadCSVAndProcess } from "@/app/utils/api";
+import { runDecisionsForScenarios, uploadCSVAndProcess, getCSVForRuleRun } from "@/app/utils/api";
 
 interface ScenarioTesterProps {
   jsonFile: string;
@@ -232,6 +232,16 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
     }
   };
 
+  const handleDownloadScenarios = async () => {
+    try {
+      const csvContent = await getCSVForRuleRun(jsonFile);
+      message.success(`Scenario Testing Template: ${csvContent}`);
+    } catch (error) {
+      message.error("Error downloading scenarios.");
+      console.error("Error:", error);
+    }
+  };
+
   return (
     <div>
       {uploader ? (
@@ -239,7 +249,9 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
           <ol className={styles.instructionsList}>
             <li>
               Download a template CSV file:{" "}
-              <a href={`/api/scenario/evaluation/${encodeURIComponent(jsonFile)}`}>Download Scenarios/Template</a>
+              <Button onClick={handleDownloadScenarios} size="large" type="primary">
+                Generate Scenarios/Template
+              </Button>
             </li>
             <li>Add additional scenarios to the CSV file</li>
             <li>
