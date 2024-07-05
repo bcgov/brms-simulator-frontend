@@ -277,6 +277,38 @@ export const runDecisionsForScenarios = async (goRulesJSONFilename: string) => {
 };
 
 /**
+ * Downloads a CSV file containing scenarios for a rule run.
+ * @param goRulesJSONFilename The filename for the JSON rule.
+ * @returns The processed CSV content as a string.
+ * @throws If an error occurs during file upload or processing.
+ */
+export const getCSVForRuleRun = async (goRulesJSONFilename: string): Promise<string> => {
+  try {
+    const response = await axiosAPIInstance.post(
+      "/scenario/evaluation",
+      { goRulesJSONFilename: goRulesJSONFilename },
+      {
+        responseType: "blob",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    const blob = new Blob([response.data], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${goRulesJSONFilename.replace(/\.json$/, ".csv")}`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    return "CSV downloaded successfully";
+  } catch (error) {
+    console.error(`Error getting CSV for rule run: ${error}`);
+    throw new Error("Error getting CSV for rule run");
+  }
+};
+
+/**
  * Uploads a CSV file containing scenarios and processes the scenarios against the specified rule.
  * @param file The file to be uploaded.
  * @param goRulesJSONFilename The filename for the JSON rule.
