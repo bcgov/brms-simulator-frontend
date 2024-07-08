@@ -22,7 +22,7 @@ export default async function Rule({ params: { ruleId } }: { params: { ruleId: s
         rulemap={rulemap}
         jsonFile={goRulesJSONFilename}
         scenarios={scenarios}
-        isEditable
+        editing
       />
     </>
   );

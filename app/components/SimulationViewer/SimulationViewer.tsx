@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Flex, Button, Spin, Tabs } from "antd";
+import { Flex, Button, Spin, Tabs, message } from "antd";
 import type { TabsProps } from "antd";
 import { Simulation, DecisionGraphType } from "@gorules/jdm-editor";
-import { getDocument, postDecision } from "../../utils/api";
+import { getDocument, postDecision, getRuleRunSchema } from "../../utils/api";
 import { SubmissionData } from "../../types/submission";
 import { RuleMap } from "../../types/rulemap";
 import { Scenario } from "@/app/types/scenario";
@@ -21,7 +21,7 @@ interface SimulationViewerProps {
   jsonFile: string;
   rulemap: RuleMap;
   scenarios: Scenario[];
-  isEditable?: boolean;
+  editing?: boolean;
 }
 
 export default function SimulationViewer({
@@ -29,28 +29,26 @@ export default function SimulationViewer({
   jsonFile,
   rulemap,
   scenarios,
-  isEditable = false,
+  editing = true,
 }: SimulationViewerProps) {
-  const createRuleMap = (array: any[], defaultObj: { rulemap: boolean }) => {
-    return array.reduce((acc, obj) => {
-      acc[obj.property] = null;
-      return acc;
-    }, defaultObj);
+  const createRuleMap = (array: any[]) => {
+    return array.reduce(
+      (acc, obj) => {
+        acc[obj.property] = null;
+        return acc;
+      },
+      { rulemap: true }
+    );
   };
 
-  const ruleMapInputs = createRuleMap(rulemap.inputs, { rulemap: true });
-  const ruleMapOutputs = createRuleMap(rulemap.outputs, { rulemap: true });
-  const ruleMapFinalOutputs = createRuleMap(rulemap.finalOutputs, { rulemap: true });
+  const ruleMapInputs = createRuleMap(rulemap.inputs);
+  const ruleMapResultOutputs = createRuleMap(rulemap.resultOutputs);
 
   const [graphJSON, setGraphJSON] = useState<DecisionGraphType>();
   const [simulation, setSimulation] = useState<Simulation>();
-  const [simulationContext, setSimulationContext] = useState<SubmissionData>();
-  const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>(ruleMapInputs);
-  //const [contextToSimulate, setContextToSimulate] = useState<SubmissionData | null>();
-  const [outputSchema, setOutputSchema] = useState<Record<string, any> | null>(ruleMapOutputs);
+  const [simulationContext, setSimulationContext] = useState<SubmissionData>(ruleMapInputs);
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
-  const simulateButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,8 +64,7 @@ export default function SimulationViewer({
 
   const resetContextAndResults = () => {
     setSimulation(undefined);
-    setOutputSchema(ruleMapOutputs);
-    setResultsOfSimulation(ruleMapFinalOutputs);
+    setResultsOfSimulation(ruleMapResultOutputs);
   };
 
   const runSimulation = async (newContext?: unknown) => {
@@ -78,9 +75,21 @@ export default function SimulationViewer({
     const runContext = newContext || simulationContext;
     if (runContext) {
       console.info("Simulate:", runContext);
-      const data = await postDecision(jsonFile, runContext);
-      console.info("Simulation Results:", data, data?.result);
-      setSimulation({ result: data });
+      try {
+        const data = await postDecision(jsonFile, runContext);
+        console.info("Simulation Results:", data, data?.result);
+        // Check if data.result is an array and throw error as object is required
+        if (Array.isArray(data?.result)) {
+          throw new Error("Please update your rule and ensure that outputs are on one line.");
+        }
+        // Set the simulation
+        setSimulation({ result: data });
+        // Set the results of the simulation
+        setResultsOfSimulation(data?.result);
+      } catch (e: any) {
+        message.error("Error during simulation run: " + e);
+        console.error("Error during simulation run:", e);
+      }
     } else {
       // Reset the result if there is no contextToSimulate (used to reset the trace)
       setSimulation({});
@@ -93,16 +102,6 @@ export default function SimulationViewer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [simulationContext]);
 
-  if (!graphJSON) {
-    return (
-      <Spin tip="Loading graph..." size="large" className={styles.spinner}>
-        <div className="content" />
-      </Spin>
-    );
-  }
-
-  useEffect(() => {}, [resultsOfSimulation]);
-
   const handleTabChange = (key: string) => {
     if (key === "1") {
       handleReset();
@@ -110,39 +109,39 @@ export default function SimulationViewer({
   };
 
   const handleReset = () => {
-    setSelectedSubmissionInputs({});
+    setSimulationContext({});
     setTimeout(() => {
-      setSelectedSubmissionInputs(ruleMapInputs);
+      setSimulationContext(ruleMapInputs);
     }, 0);
     setResetTrigger((prev) => !prev);
   };
 
   const scenarioTab = (
-    <>
-      <Flex gap="small" vertical>
-        <ScenarioViewer
-          scenarios={scenarios}
-          setSelectedSubmissionInputs={setSelectedSubmissionInputs}
-          resultsOfSimulation={resultsOfSimulation}
-          runSimulation={runSimulation}
-          rulemap={rulemap}
-        />
-      </Flex>
-    </>
+    <Flex gap="small" vertical>
+      <ScenarioViewer
+        scenarios={scenarios}
+        setSelectedSubmissionInputs={setSimulationContext}
+        resultsOfSimulation={resultsOfSimulation}
+        runSimulation={runSimulation}
+        rulemap={rulemap}
+        editing={editing}
+      />
+    </Flex>
   );
 
-  const scenarioGenerator = (
+  const scenarioGeneratorTab = (
     <Flex gap="small">
       <ScenarioGenerator
         scenarios={scenarios}
-        setSelectedSubmissionInputs={setSelectedSubmissionInputs}
+        setSelectedSubmissionInputs={setSimulationContext}
         resultsOfSimulation={resultsOfSimulation}
         runSimulation={runSimulation}
-        selectedSubmissionInputs={selectedSubmissionInputs}
+        selectedSubmissionInputs={simulationContext}
         resetTrigger={resetTrigger}
         ruleId={ruleId}
         jsonFile={jsonFile}
         rulemap={rulemap}
+        editing={editing}
       />
       <Button onClick={handleReset} size="large" type="primary">
         Reset ↻
@@ -150,13 +149,13 @@ export default function SimulationViewer({
     </Flex>
   );
 
-  const scenarioTests = (
+  const scenarioTestsTab = (
     <Flex gap="small">
       <ScenarioTester jsonFile={jsonFile} />
     </Flex>
   );
 
-  const csvScenarioTests = (
+  const csvScenarioTestsTab = (
     <Flex gap="small">
       <ScenarioTester jsonFile={jsonFile} uploader />
     </Flex>
@@ -167,39 +166,59 @@ export default function SimulationViewer({
       key: "1",
       label: "Simulate pre-defined test scenarios",
       children: scenarioTab,
+      disabled: false,
     },
     {
       key: "2",
       label: "Simulate inputs manually and create new scenarios",
-      children: scenarioGenerator,
+      children: scenarioGeneratorTab,
+      disabled: false,
     },
     {
       key: "3",
       label: "Scenario Results",
-      children: scenarioTests,
+      children: scenarioTestsTab,
+      disabled: editing ? false : true,
     },
     {
       key: "4",
       label: "CSV Tests",
-      children: csvScenarioTests,
+      children: csvScenarioTestsTab,
+      disabled: editing ? false : true,
     },
   ];
+
+  if (!graphJSON) {
+    return (
+      <Spin tip="Loading graph..." size="large" className={styles.spinner}>
+        <div className="content" />
+      </Spin>
+    );
+  }
+
+  const filteredItems = editing ? items : items?.filter((item) => item.disabled !== true) || [];
 
   return (
     <Flex gap="large" vertical>
       <div className={styles.rulesWrapper}>
         <RulesDecisionGraph
+          jsonFilename={jsonFile}
           graphJSON={graphJSON}
           contextToSimulate={simulationContext}
           setContextToSimulate={setSimulationContext}
           simulation={simulation}
           runSimulation={runSimulation}
-          isEditable={isEditable}
+          isEditable={editing}
         />
       </div>
       <Flex justify="space-between" align="center" className={styles.contentSection}>
         <Flex gap="middle" justify="space-between">
-          <Tabs defaultActiveKey="3" tabBarStyle={{ gap: "10rem" }} items={items} onChange={handleTabChange}></Tabs>
+          <Tabs
+            defaultActiveKey={editing ? "3" : "1"}
+            tabBarStyle={{ gap: "10rem" }}
+            items={filteredItems}
+            onChange={handleTabChange}
+          ></Tabs>
         </Flex>
       </Flex>
     </Flex>

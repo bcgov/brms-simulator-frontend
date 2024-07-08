@@ -1,5 +1,6 @@
+import { Variable } from "./scenario";
 export interface RuleMap {
-  inputs: Array<any>;
-  outputs: Array<any>;
-  finalOutputs: Array<any>;
+  inputs: Variable[];
+  outputs: Variable[];
+  resultOutputs: Variable[];
 }

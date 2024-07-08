@@ -3,12 +3,12 @@ export interface Scenario {
   title: string;
   ruleID: string;
   goRulesJSONFilename: string;
-  variables: any[];
+  variables: Variable[];
   expectedResults: any[];
 }
 
 export interface Variable {
   name: string;
   value: any;
-  type: string;
+  type?: string;
 }

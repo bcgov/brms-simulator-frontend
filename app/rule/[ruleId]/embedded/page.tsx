@@ -12,9 +12,5 @@ export default async function Rule({ params: { ruleId } }: { params: { ruleId: s
     return <h1>Rule not found</h1>;
   }
 
-  return (
-    <>
-      <SimulationViewer ruleId={ruleId} rulemap={rulemap} jsonFile={goRulesJSONFilename} scenarios={scenarios} />
-    </>
-  );
+  return <SimulationViewer ruleId={ruleId} rulemap={rulemap} jsonFile={goRulesJSONFilename} scenarios={scenarios} editing={false} />;
 }

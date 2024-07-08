@@ -187,7 +187,9 @@ export const deleteRuleData = async (ruleId: string) => {
  */
 export const getRuleMapByName = async (goRulesJSONFilename: string): Promise<RuleMap> => {
   try {
-    const { data } = await axiosAPIInstance.get(`/rulemap/${goRulesJSONFilename}`);
+    const { data } = await axiosAPIInstance.post(
+      `/rulemap?goRulesJSONFilename=${encodeURIComponent(goRulesJSONFilename)}`
+    );
     return data;
   } catch (error) {
     console.error(`Error getting rule data: ${error}`);
@@ -219,7 +221,7 @@ export const getRuleRunSchema = async (ruleResponse: unknown) => {
  */
 export const getScenariosByFilename = async (goRulesJSONFilename: string) => {
   try {
-    const { data } = await axiosAPIInstance.get(`/scenario/by-filename/${goRulesJSONFilename}`);
+    const { data } = await axiosAPIInstance.post("/scenario/by-filename/", { goRulesJSONFilename });
     return data;
   } catch (error) {
     console.error(`Error posting output schema: ${error}`);
@@ -266,11 +268,43 @@ export const deleteScenario = async (scenarioId: string) => {
  */
 export const runDecisionsForScenarios = async (goRulesJSONFilename: string) => {
   try {
-    const { data } = await axiosAPIInstance.get(`/scenario/run-decisions/${goRulesJSONFilename}`);
+    const { data } = await axiosAPIInstance.post("/scenario/run-decisions", { goRulesJSONFilename });
     return data;
   } catch (error) {
     console.error(`Error running scenarios: ${error}`);
     throw error;
+  }
+};
+
+/**
+ * Downloads a CSV file containing scenarios for a rule run.
+ * @param goRulesJSONFilename The filename for the JSON rule.
+ * @returns The processed CSV content as a string.
+ * @throws If an error occurs during file upload or processing.
+ */
+export const getCSVForRuleRun = async (goRulesJSONFilename: string): Promise<string> => {
+  try {
+    const response = await axiosAPIInstance.post(
+      "/scenario/evaluation",
+      { goRulesJSONFilename: goRulesJSONFilename },
+      {
+        responseType: "blob",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    const blob = new Blob([response.data], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${goRulesJSONFilename.replace(/\.json$/, ".csv")}`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    return "CSV downloaded successfully";
+  } catch (error) {
+    console.error(`Error getting CSV for rule run: ${error}`);
+    throw new Error("Error getting CSV for rule run");
   }
 };
 
@@ -284,9 +318,10 @@ export const runDecisionsForScenarios = async (goRulesJSONFilename: string) => {
 export const uploadCSVAndProcess = async (file: File, goRulesJSONFilename: string): Promise<string> => {
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("goRulesJSONFilename", goRulesJSONFilename);
 
   try {
-    const response = await axiosAPIInstance.post(`/scenario/evaluation/upload/${goRulesJSONFilename}`, formData, {
+    const response = await axiosAPIInstance.post(`/scenario/evaluation/upload/`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

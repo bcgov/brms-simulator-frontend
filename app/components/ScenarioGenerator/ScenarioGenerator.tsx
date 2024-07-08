@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Flex, Button, Input } from "antd";
 import InputOutputTable from "../InputOutputTable";
-import styles from "./ScenarioGenerator.module.css";
 import { Scenario } from "@/app/types/scenario";
 import { SubmissionData } from "@/app/types/submission";
 import { createScenario } from "@/app/utils/api";
@@ -18,6 +17,7 @@ interface ScenarioGeneratorProps {
   ruleId: string;
   jsonFile: string;
   rulemap: RuleMap;
+  editing?: boolean;
 }
 
 export default function ScenarioGenerator({
@@ -30,6 +30,7 @@ export default function ScenarioGenerator({
   ruleId,
   jsonFile,
   rulemap,
+  editing = true,
 }: ScenarioGeneratorProps) {
   const [simulationRun, setSimulationRun] = useState(false);
   const [newScenarioName, setNewScenarioName] = useState("");
@@ -84,10 +85,10 @@ export default function ScenarioGenerator({
   }, []);
 
   return (
-    <Flex className={styles.ScenarioGenerator}>
+    <Flex>
       <Flex gap="middle">
         {selectedSubmissionInputs && (
-          <Flex vertical gap={"small"} align="end" className={styles.inputSection}>
+          <Flex vertical gap={"small"} align="end">
             <ScenarioFormatter
               title="Inputs"
               rawData={selectedSubmissionInputs}
@@ -102,7 +103,7 @@ export default function ScenarioGenerator({
                 Simulate ▶
               </Button>
               <Flex gap={"small"} align="end">
-                {simulationRun && (
+                {simulationRun && editing && (
                   <>
                     <Input
                       value={newScenarioName}
@@ -122,7 +123,7 @@ export default function ScenarioGenerator({
           {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} rulemap={rulemap} />}
         </Flex>
         <Flex gap={"small"} vertical>
-          {scenarioExpectedOutput && (
+          {scenarioExpectedOutput && editing && (
             <InputOutputTable
               setRawData={(data) => {
                 setScenarioExpectedOutput(data);
