@@ -77,36 +77,6 @@ export const getDocument = async (jsonFilePath: string): Promise<DecisionGraphTy
 };
 
 /**
- * Retrieves submissions from the CHEFS API.
- * @returns The submissions data.
- * @throws If an error occurs while fetching the submissions.
- */
-export const getSubmissionsFromCHEFS = async (formId: string) => {
-  try {
-    const { data } = await axiosAPIInstance.get(`/submissions/list/${formId}`);
-    return data;
-  } catch (error) {
-    console.error(`Error fetching submissions: ${error}`);
-    throw error;
-  }
-};
-
-/**
- * Retrieves submissions from the CHEFS API.
- * @returns The submissions data.
- * @throws If an error occurs while fetching the submissions.
- */
-export const getSubmissionFromCHEFSById = async (formId: string, id: string) => {
-  try {
-    const { data } = await axiosAPIInstance.get(`/submissions/${formId}/${id}`);
-    return data;
-  } catch (error) {
-    console.error(`Error fetching submissions: ${error}`);
-    throw error;
-  }
-};
-
-/**
  * Posts a decision to the API for evaluation.
  * @param jsonFile The JSON file to use for the decision.
  * @param decisionGraph The decision graph to evaluate.

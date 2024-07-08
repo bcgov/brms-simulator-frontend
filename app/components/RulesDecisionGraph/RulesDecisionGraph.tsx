@@ -12,7 +12,6 @@ import {
 } from "@gorules/jdm-editor";
 import { ApartmentOutlined, PlayCircleOutlined } from "@ant-design/icons";
 import { Scenario, Variable } from "@/app/types/scenario";
-import { SubmissionData } from "../../types/submission";
 import LinkRuleComponent from "./LinkRuleComponent";
 import SimulatorPanel from "./SimulatorPanel";
 import { getScenariosByFilename } from "../../utils/api";
@@ -20,7 +19,7 @@ import { getScenariosByFilename } from "../../utils/api";
 interface RulesViewerProps {
   jsonFilename: string;
   graphJSON: DecisionGraphType;
-  contextToSimulate?: SubmissionData | null;
+  contextToSimulate?: Record<string, any> | null;
   setContextToSimulate: (results: Record<string, any>) => void;
   simulation?: Simulation;
   runSimulation: (results: unknown) => void;

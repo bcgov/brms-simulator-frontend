@@ -4,8 +4,7 @@ import dynamic from "next/dynamic";
 import { Flex, Button, Spin, Tabs, message } from "antd";
 import type { TabsProps } from "antd";
 import { Simulation, DecisionGraphType } from "@gorules/jdm-editor";
-import { getDocument, postDecision, getRuleRunSchema } from "../../utils/api";
-import { SubmissionData } from "../../types/submission";
+import { getDocument, postDecision } from "../../utils/api";
 import { RuleMap } from "../../types/rulemap";
 import { Scenario } from "@/app/types/scenario";
 import styles from "./SimulationViewer.module.css";
@@ -46,7 +45,7 @@ export default function SimulationViewer({
 
   const [graphJSON, setGraphJSON] = useState<DecisionGraphType>();
   const [simulation, setSimulation] = useState<Simulation>();
-  const [simulationContext, setSimulationContext] = useState<SubmissionData>(ruleMapInputs);
+  const [simulationContext, setSimulationContext] = useState<Record<string, any>>(ruleMapInputs);
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
 
@@ -97,7 +96,7 @@ export default function SimulationViewer({
   };
 
   useEffect(() => {
-    // reset context/results when a new submission is selected
+    // reset simulation/results when context changes
     resetContextAndResults();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [simulationContext]);
@@ -120,7 +119,7 @@ export default function SimulationViewer({
     <Flex gap="small" vertical>
       <ScenarioViewer
         scenarios={scenarios}
-        setSelectedSubmissionInputs={setSimulationContext}
+        setSimulationContext={setSimulationContext}
         resultsOfSimulation={resultsOfSimulation}
         runSimulation={runSimulation}
         rulemap={rulemap}
@@ -133,10 +132,10 @@ export default function SimulationViewer({
     <Flex gap="small">
       <ScenarioGenerator
         scenarios={scenarios}
-        setSelectedSubmissionInputs={setSimulationContext}
+        simulationContext={simulationContext}
+        setSimulationContext={setSimulationContext}
         resultsOfSimulation={resultsOfSimulation}
         runSimulation={runSimulation}
-        selectedSubmissionInputs={simulationContext}
         resetTrigger={resetTrigger}
         ruleId={ruleId}
         jsonFile={jsonFile}
