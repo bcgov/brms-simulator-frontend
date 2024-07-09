@@ -40,6 +40,10 @@ export default function RulesDecisionGraph({
   const [reactFlowRef, setReactFlowRef] = useState<ReactFlowInstance>();
 
   useEffect(() => {
+    setGraphValue(graphJSON);
+  }, [graphJSON]);
+
+  useEffect(() => {
     // Ensure graph is in view
     const fitGraphToView = () => {
       if (reactFlowRef) {
