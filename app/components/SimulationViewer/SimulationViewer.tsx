@@ -18,8 +18,8 @@ const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr:
 interface SimulationViewerProps {
   ruleId: string;
   jsonFile: string;
-  rulemap: RuleMap;
-  scenarios: Scenario[];
+  rulemap?: RuleMap;
+  scenarios?: Scenario[];
   editing?: boolean;
 }
 
@@ -40,8 +40,8 @@ export default function SimulationViewer({
     );
   };
 
-  const ruleMapInputs = createRuleMap(rulemap.inputs);
-  const ruleMapResultOutputs = createRuleMap(rulemap.resultOutputs);
+  const ruleMapInputs = createRuleMap(rulemap?.inputs || []);
+  const ruleMapResultOutputs = createRuleMap(rulemap?.resultOutputs || []);
 
   const [graphJSON, setGraphJSON] = useState<DecisionGraphType>();
   const [simulation, setSimulation] = useState<Simulation>();
@@ -115,7 +115,7 @@ export default function SimulationViewer({
     setResetTrigger((prev) => !prev);
   };
 
-  const scenarioTab = (
+  const scenarioTab = scenarios && rulemap && (
     <Flex gap="small" vertical>
       <ScenarioViewer
         scenarios={scenarios}
@@ -128,7 +128,7 @@ export default function SimulationViewer({
     </Flex>
   );
 
-  const scenarioGeneratorTab = (
+  const scenarioGeneratorTab = scenarios && rulemap && (
     <Flex gap="small">
       <ScenarioGenerator
         scenarios={scenarios}
@@ -210,16 +210,18 @@ export default function SimulationViewer({
           isEditable={editing}
         />
       </div>
-      <Flex justify="space-between" align="center" className={styles.contentSection}>
-        <Flex gap="middle" justify="space-between">
-          <Tabs
-            defaultActiveKey={editing ? "3" : "1"}
-            tabBarStyle={{ gap: "10rem" }}
-            items={filteredItems}
-            onChange={handleTabChange}
-          ></Tabs>
+      {scenarios && rulemap && (
+        <Flex justify="space-between" align="center" className={styles.contentSection}>
+          <Flex gap="middle" justify="space-between">
+            <Tabs
+              defaultActiveKey={editing ? "3" : "1"}
+              tabBarStyle={{ gap: "10rem" }}
+              items={filteredItems}
+              onChange={handleTabChange}
+            ></Tabs>
+          </Flex>
         </Flex>
-      </Flex>
+      )}
     </Flex>
   );
 }
