@@ -42,23 +42,22 @@ export default function RulesDecisionGraph({
 
   useEffect(() => {
     setGraphValue(graphJSON);
-    fitGraphToView();
   }, [graphJSON]);
 
   useEffect(() => {
-    fitGraphToView();
-  }, [reactFlowRef]);
-
-  // Ensure graph is in view
-  const fitGraphToView = () => {
-    if (reactFlowRef) {
-      reactFlowRef.fitView();
-      // Set timeout to fix issue with trying to fit view because fully loaded
-      setTimeout(() => {
+    // Ensure graph is in view
+    const fitGraphToView = () => {
+      if (reactFlowRef) {
         reactFlowRef.fitView();
-      }, 100);
-    }
-  };
+        // Set timeout to fix issue with trying to fit view because fully loaded
+        setTimeout(() => {
+          reactFlowRef.fitView();
+        }, 100);
+      }
+    };
+    // Fit to view
+    fitGraphToView();
+  }, [graphValue, reactFlowRef]);
 
   // Can set additional react flow options here if we need to change how graph looks when it's loaded in
   const reactFlowInit = (reactFlow: ReactFlowInstance) => {
