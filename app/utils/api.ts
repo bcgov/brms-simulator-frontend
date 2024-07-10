@@ -1,4 +1,4 @@
-import { DecisionGraphType } from "@gorules/jdm-editor/dist/components/decision-graph/context/dg-store.context";
+import { DecisionGraphType } from "@gorules/jdm-editor";
 import axios from "axios";
 import { RuleInfo } from "../types/ruleInfo";
 import { RuleMap } from "../types/rulemap";
