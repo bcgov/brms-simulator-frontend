@@ -1,10 +1,9 @@
 import React from "react";
 import JSON5 from "json5";
 import { GraphSimulator } from "@gorules/jdm-editor";
-import { SubmissionData } from "@/app/types/submission";
 
 interface SimulatorPanelProps {
-  contextToSimulate?: SubmissionData | null;
+  contextToSimulate?: Record<string, any> | null;
   setContextToSimulate: (results: Record<string, any>) => void;
   runSimulation: (results: unknown) => void;
 }
