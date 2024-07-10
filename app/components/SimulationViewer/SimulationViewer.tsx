@@ -1,30 +1,58 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
-import { Flex, Button } from "antd";
-import { ExportOutlined } from "@ant-design/icons";
+import { Flex, Button, Tabs } from "antd";
+import type { TabsProps } from "antd";
 import { SubmissionData } from "../../types/submission";
-import SubmissionSelector from "../SubmissionSelector";
-import InputOutputTable from "../InputOutputTable";
+import { RuleMap } from "../../types/rulemap";
+import { Scenario } from "@/app/types/scenario";
 import styles from "./SimulationViewer.module.css";
+import ScenarioViewer from "../ScenarioViewer/ScenarioViewer";
+import ScenarioGenerator from "../ScenarioGenerator/ScenarioGenerator";
+import ScenarioTester from "../ScenarioTester/ScenarioTester";
 
 // Need to disable SSR when loading this component so it works properly
 const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr: false });
 
 interface SimulationViewerProps {
+  ruleId: string;
   jsonFile: string;
-  chefsFormId: string;
+  rulemap: RuleMap;
+  scenarios: Scenario[];
+  editing?: boolean;
 }
 
-export default function SimulationViewer({ jsonFile, chefsFormId }: SimulationViewerProps) {
-  const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>();
+export default function SimulationViewer({
+  ruleId,
+  jsonFile,
+  rulemap,
+  scenarios,
+  editing = true,
+}: SimulationViewerProps) {
+  const createRuleMap = (array: any[]) => {
+    return array.reduce(
+      (acc, obj) => {
+        acc[obj.property] = null;
+        return acc;
+      },
+      { rulemap: true }
+    );
+  };
+
+  const ruleMapInputs = createRuleMap(rulemap.inputs);
+  const ruleMapOutputs = createRuleMap(rulemap.outputs);
+  const ruleMapResultOutputs = createRuleMap(rulemap.resultOutputs);
+
+  const [selectedSubmissionInputs, setSelectedSubmissionInputs] = useState<SubmissionData>(ruleMapInputs);
   const [contextToSimulate, setContextToSimulate] = useState<SubmissionData | null>();
+  const [outputSchema, setOutputSchema] = useState<Record<string, any> | null>(ruleMapOutputs);
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
+  const [resetTrigger, setResetTrigger] = useState<boolean>(false);
 
   const resetContextAndResults = () => {
     setContextToSimulate(null);
-    setResultsOfSimulation(null);
+    setOutputSchema(ruleMapOutputs);
+    setResultsOfSimulation(ruleMapResultOutputs);
   };
 
   const runSimulation = () => {
@@ -35,7 +63,98 @@ export default function SimulationViewer({ jsonFile, chefsFormId }: SimulationVi
   useEffect(() => {
     // reset context/results when a new submission is selected
     resetContextAndResults();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSubmissionInputs]);
+
+  useEffect(() => {}, [resultsOfSimulation]);
+
+  const handleTabChange = (key: string) => {
+    if (key === "1") {
+      handleReset();
+    }
+  };
+
+  const handleReset = () => {
+    setSelectedSubmissionInputs({});
+    setTimeout(() => {
+      setSelectedSubmissionInputs(ruleMapInputs);
+    }, 0);
+    setResetTrigger((prev) => !prev);
+  };
+
+  const scenarioTab = (
+    <Flex gap="small" vertical>
+      <ScenarioViewer
+        scenarios={scenarios}
+        setSelectedSubmissionInputs={setSelectedSubmissionInputs}
+        resultsOfSimulation={resultsOfSimulation}
+        runSimulation={runSimulation}
+        rulemap={rulemap}
+        editing={editing}
+      />
+    </Flex>
+  );
+
+  const scenarioGeneratorTab = (
+    <Flex gap="small">
+      <ScenarioGenerator
+        scenarios={scenarios}
+        setSelectedSubmissionInputs={setSelectedSubmissionInputs}
+        resultsOfSimulation={resultsOfSimulation}
+        runSimulation={runSimulation}
+        selectedSubmissionInputs={selectedSubmissionInputs}
+        resetTrigger={resetTrigger}
+        ruleId={ruleId}
+        jsonFile={jsonFile}
+        rulemap={rulemap}
+        editing={editing}
+      />
+      <Button onClick={handleReset} size="large" type="primary">
+        Reset ↻
+      </Button>
+    </Flex>
+  );
+
+  const scenarioTestsTab = (
+    <Flex gap="small">
+      <ScenarioTester jsonFile={jsonFile} />
+    </Flex>
+  );
+
+  const csvScenarioTestsTab = (
+    <Flex gap="small">
+      <ScenarioTester jsonFile={jsonFile} uploader />
+    </Flex>
+  );
+
+  const items: TabsProps["items"] = [
+    {
+      key: "1",
+      label: "Simulate pre-defined test scenarios",
+      children: scenarioTab,
+      disabled: false,
+    },
+    {
+      key: "2",
+      label: "Simulate inputs manually and create new scenarios",
+      children: scenarioGeneratorTab,
+      disabled: false,
+    },
+    {
+      key: "3",
+      label: "Scenario Results",
+      children: scenarioTestsTab,
+      disabled: editing ? false : true,
+    },
+    {
+      key: "4",
+      label: "CSV Tests",
+      children: csvScenarioTestsTab,
+      disabled: editing ? false : true,
+    },
+  ];
+
+  const filteredItems = editing ? items : items?.filter((item) => item.disabled !== true) || [];
 
   return (
     <Flex gap="large" vertical>
@@ -44,26 +163,18 @@ export default function SimulationViewer({ jsonFile, chefsFormId }: SimulationVi
           jsonFile={jsonFile}
           contextToSimulate={contextToSimulate}
           setResultsOfSimulation={setResultsOfSimulation}
+          setOutputsOfSimulation={setOutputSchema}
         />
       </div>
       <Flex justify="space-between" align="center" className={styles.contentSection}>
-        <Flex gap="middle">
-          <SubmissionSelector chefsFormId={chefsFormId} setSelectedSubmissionInputs={setSelectedSubmissionInputs} />
-          {selectedSubmissionInputs && (
-            <Button size="large" type="primary" onClick={runSimulation}>
-              Simulate ▶
-            </Button>
-          )}
+        <Flex gap="middle" justify="space-between">
+          <Tabs
+            defaultActiveKey={editing ? "3" : "1"}
+            tabBarStyle={{ gap: "10rem" }}
+            items={filteredItems}
+            onChange={handleTabChange}
+          ></Tabs>
         </Flex>
-        <Link href={`https://submit.digital.gov.bc.ca/app/form/submit?f=${chefsFormId}`} target="_blank">
-          <Button>
-            Submission form <ExportOutlined />
-          </Button>
-        </Link>
-      </Flex>
-      <Flex gap="middle" wrap="wrap" className={styles.contentSection}>
-        {selectedSubmissionInputs && <InputOutputTable title="Inputs" rawData={selectedSubmissionInputs} />}
-        {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} />}
       </Flex>
     </Flex>
   );

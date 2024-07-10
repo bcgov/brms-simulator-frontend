@@ -1,0 +1,75 @@
+.scenarioViewer {
+  display: flex;
+  gap: 1rem;
+}
+
+.scenarioList, .selectedScenarioDetails, .resultsColumn {
+  flex: 1 1 auto; /* Initializes with each column taking up equal space */
+  box-sizing: border-box;
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.scenarioList {
+  min-width: 300px; 
+  max-width: 300px; 
+  .selected {
+    background-color: rgba(209, 230, 255, 0.5);
+    border-radius: 5px;
+  }
+}
+
+.scenarioList ol {
+  list-style-type: none; 
+  counter-reset: item; 
+  padding: 0; 
+}
+
+.scenarioList li {
+  cursor: pointer; 
+  counter-increment: item; 
+  padding-block: 1rem; 
+  padding-inline: 0.75rem; 
+  margin-block: 0.5rem;
+}
+
+.scenarioList li:before {
+  content: counter(item) ""; 
+  color: white; 
+  background-color: black; 
+  margin-right: 10px; 
+  border-radius: 50%;
+  width:30px;
+  height: 20px;
+  padding-block: 5px;
+  padding-inline: 10px;
+}
+
+.selectedScenarioDetails {
+  min-width: 450px; 
+  max-width: 450px; 
+  border: 1px solid #ccc; 
+}
+
+.selectedScenarioDetails button {
+  width: 10rem;
+  align-self: end;
+}
+
+.resultsColumn {
+  flex: 1 1 300px; 
+  min-width: 300px; 
+  max-width: 300px; 
+  display: none; 
+  white-space: pre-wrap;
+  border: 1px solid #6fb1fe;
+  background-color: rgba(209, 230, 255, 0.5);
+  border-radius: 5px; 
+}
+
+@media (min-width: 768px) {
+  .resultsColumn {
+    display: block;
+
+  }
+}
