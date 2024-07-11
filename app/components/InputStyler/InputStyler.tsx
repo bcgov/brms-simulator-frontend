@@ -26,7 +26,21 @@ export const parseSchemaTemplate = (template: string): ParsedSchema | null => {
 
   const objectTemplate: TemplateObject = {};
   properties.forEach((prop) => {
-    objectTemplate[prop] = undefined; // Initialize with empty string or any default value
+    const [propertyName, propertyType] = prop.split(":");
+    switch (propertyType.toLowerCase()) {
+      case "string":
+        objectTemplate[propertyName] = "";
+        break;
+      case "boolean":
+        objectTemplate[propertyName] = false;
+        break;
+      case "number":
+        objectTemplate[propertyName] = 0;
+        break;
+      default:
+        objectTemplate[propertyName] = undefined;
+        break;
+    }
   });
 
   return { arrayName, objectTemplate };
