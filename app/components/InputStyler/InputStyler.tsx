@@ -9,11 +9,16 @@ interface ParsedSchema {
   objectTemplate: TemplateObject;
 }
 
-export const parseSchemaTemplate = (template: string): ParsedSchema => {
+interface rawDataProps {
+  [key: string]: any;
+  rulemap?: boolean;
+}
+
+export const parseSchemaTemplate = (template: string): ParsedSchema | null => {
   if (!template) return null;
   const match = template.match(/(\w+)\[\{(.*)\}\]/);
   if (!match) {
-    return template;
+    return null;
   }
 
   const arrayName = match[1];
@@ -27,7 +32,7 @@ export const parseSchemaTemplate = (template: string): ParsedSchema => {
   return { arrayName, objectTemplate };
 };
 
-const generateArrayFromSchema = (template: string, initialSize: number = 1): TemplateObject[] => {
+const generateArrayFromSchema = (template: string, initialSize: number = 1): TemplateObject[] | null => {
   if (!template || typeof template !== "string") return null;
   const { objectTemplate } = parseSchemaTemplate(template) ?? {};
   if (!objectTemplate) return null;
@@ -45,7 +50,7 @@ export default function InputStyler(
   property: string,
   editable: boolean,
   scenarios: Scenario[] = [],
-  rawData: object = {},
+  rawData: rawDataProps | null | undefined,
   setRawData: any
 ) {
   const getAutoCompleteOptions = (property: string) => {
@@ -96,15 +101,17 @@ export default function InputStyler(
   }
 
   const handleArrayItemChange = (arrayName: string, index: number, key: string, newValue: any) => {
-    const updatedData = { ...rawData };
-    if (!updatedData[arrayName]) {
-      updatedData[arrayName] = [];
+    const updatedData: rawDataProps = { ...rawData };
+    if (updatedData) {
+      if (!updatedData[arrayName]) {
+        updatedData[arrayName] = [];
+      }
+      if (!updatedData[arrayName][index]) {
+        updatedData[arrayName][index] = {};
+      }
+      updatedData[arrayName][index][key] = newValue;
+      setRawData(updatedData);
     }
-    if (!updatedData[arrayName][index]) {
-      updatedData[arrayName][index] = {};
-    }
-    updatedData[arrayName][index][key] = newValue;
-    setRawData(updatedData);
   };
 
   const parsedValue = generateArrayFromSchema(property);
@@ -112,7 +119,7 @@ export default function InputStyler(
   const parsedPropertyName = parsedSchema?.arrayName || property;
 
   // Utility function to get value from a nested object using a path
-  const getValueFromPath = (property, path) => {
+  const getValueFromPath = (property: string, path: { [key: string]: any }) => {
     if (path.hasOwnProperty(property)) {
       return path[property];
     } else {
@@ -121,22 +128,25 @@ export default function InputStyler(
   };
 
   // Utility function to set value at a path in a nested object
-  const setValueAtPath = (obj, path, value) => {
+  const setValueAtPath = (obj: any, path: (string | number)[], value: any): any => {
     if (path.length === 0) return value;
     const [first, ...rest] = path;
+    const newObj = typeof first === "number" ? [] : {};
     return {
       ...obj,
-      [first]: rest.length ? setValueAtPath(obj[first] || {}, rest, value) : value,
+      [first]: rest.length ? setValueAtPath(obj[first] || newObj, rest, value) : value,
     };
   };
 
-  // Reusable function to add a copy of an object in an array
+  // Utility function to add a copy of an object in an array
   const addCopyInArray = (arrayPath: string, parsedValue: any) => {
-    const currentArray = getValueFromPath(arrayPath, rawData) || [];
-    currentArray.push(generateArrayFromSchema(property)[0]);
+    const currentArray = rawData ? getValueFromPath(arrayPath, rawData) || [] : [];
+    const newItem = generateArrayFromSchema(property)?.[0] ?? parsedValue; // Adjusting for potential null or undefined
+    if (newItem !== null && newItem !== undefined) {
+      currentArray.push(newItem);
+    }
     const newData = { ...rawData, [arrayPath]: currentArray };
     setRawData(newData);
-    console.log(newData, "this is the parsed value");
   };
 
   if (editable) {
@@ -145,24 +155,26 @@ export default function InputStyler(
       return (
         <div>
           <Button onClick={() => addCopyInArray(parsedPropertyName, parsedValue[0])}>Add {customName}</Button>
-          {(rawData[parsedPropertyName] || []).map((item, index) => (
-            <div key={index}>
-              <h4>
-                {customName} {index + 1}
-              </h4>
-              {Object.entries(item).map(([key, val]) => (
-                <div key={key}>
-                  <label className="labelsmall">
-                    {key}:
-                    <Input
-                      value={val as string}
-                      onChange={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)}
-                    />
-                  </label>
-                </div>
-              ))}
-            </div>
-          ))}
+          {(rawData?.[parsedPropertyName] || []).map(
+            (item: { [s: string]: unknown } | ArrayLike<unknown>, index: number) => (
+              <div key={index}>
+                <h4>
+                  {customName} {index ? index + 1 : "1"}
+                </h4>
+                {Object.entries(item).map(([key, val]) => (
+                  <div key={key}>
+                    <label className="labelsmall">
+                      {key}:
+                      <Input
+                        value={val as string}
+                        onChange={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)}
+                      />
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
         </div>
       );
     }
@@ -220,6 +232,35 @@ export default function InputStyler(
       );
     }
   } else {
+    if (value !== null && Array.isArray(value)) {
+      const customName = (parsedPropertyName.charAt(0).toUpperCase() + parsedPropertyName.slice(1)).slice(0, -1);
+      return (
+        <div>
+          {(rawData?.[parsedPropertyName] || []).map(
+            (item: { [s: string]: unknown } | ArrayLike<unknown>, index: number) => (
+              <div key={index}>
+                <h4>
+                  {customName} {index + 1}
+                </h4>
+                {Object.entries(item).map(([key, val]) => (
+                  <div key={key}>
+                    <label className="labelsmall">
+                      {key}
+
+                      {InputStyler(val, key, false, scenarios, rawData, setRawData)}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+        </div>
+      );
+    }
+    if (typeof value === "object" && value !== null && !Array.isArray(property) && property !== null) {
+      // return <div>{Object.keys(value).length}</div>;
+      return <div>hello testing</div>;
+    }
     if (type === "boolean" || typeof value === "boolean") {
       return (
         <Radio.Group onChange={() => null} value={value}>
