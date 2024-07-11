@@ -21,28 +21,33 @@
 
 .scenarioList ol {
   list-style-type: none; 
-  counter-reset: item; 
   padding: 0; 
 }
+  
 
 .scenarioList li {
   cursor: pointer; 
-  counter-increment: item; 
-  padding-block: 1rem; 
-  padding-inline: 0.75rem; 
-  margin-block: 0.5rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
-.scenarioList li:before {
-  content: counter(item) ""; 
+.listItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.listItemNumber {
   color: white; 
   background-color: black; 
   margin-right: 10px; 
   border-radius: 50%;
   width:30px;
-  height: 20px;
-  padding-block: 5px;
-  padding-inline: 10px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .selectedScenarioDetails {
@@ -54,7 +59,7 @@
 .selectedScenarioDetails button {
   width: 10rem;
   align-self: end;
-}
+}  
 
 .resultsColumn {
   flex: 1 1 300px; 
