@@ -1,7 +1,46 @@
-import { Tag, Input, Radio, AutoComplete, InputNumber, Flex } from "antd";
+import { Tag, Input, Radio, AutoComplete, InputNumber, Flex, Button } from "antd";
 import { Scenario } from "@/app/types/scenario";
+interface TemplateObject {
+  [key: string]: any;
+}
 
-export default function inputStyler(
+interface ParsedSchema {
+  arrayName: string;
+  objectTemplate: TemplateObject;
+}
+
+export const parseSchemaTemplate = (template: string): ParsedSchema => {
+  if (!template) return null;
+  const match = template.match(/(\w+)\[\{(.*)\}\]/);
+  if (!match) {
+    return template;
+  }
+
+  const arrayName = match[1];
+  const properties = match[2].split(",").map((prop) => prop.trim());
+
+  const objectTemplate: TemplateObject = {};
+  properties.forEach((prop) => {
+    objectTemplate[prop] = ""; // Initialize with empty string or any default value
+  });
+
+  return { arrayName, objectTemplate };
+};
+
+const generateArrayFromSchema = (template: string, initialSize: number = 1): TemplateObject[] => {
+  if (!template || typeof template !== "string") return null;
+  const { objectTemplate } = parseSchemaTemplate(template) ?? {};
+  if (!objectTemplate) return null;
+
+  const array: TemplateObject[] = [];
+  for (let i = 0; i < initialSize; i++) {
+    array.push({ ...objectTemplate });
+  }
+
+  return array;
+};
+
+export default function InputStyler(
   value: any,
   property: string,
   editable: boolean,
@@ -56,7 +95,80 @@ export default function inputStyler(
     type = typeof valuesArray[0].value;
   }
 
+  const handleArrayItemChange = (arrayName: string, index: number, key: string, newValue: any) => {
+    const updatedData = { ...rawData };
+    if (!updatedData[arrayName]) {
+      updatedData[arrayName] = [];
+    }
+    if (!updatedData[arrayName][index]) {
+      updatedData[arrayName][index] = {};
+    }
+    updatedData[arrayName][index][key] = newValue;
+    setRawData(updatedData);
+  };
+
+  const parsedValue = generateArrayFromSchema(property);
+  const parsedSchema = parseSchemaTemplate(property);
+  const parsedPropertyName = parsedSchema?.arrayName || property;
+
+  // Utility function to get value from a nested object using a path
+  const getValueFromPath = (property, path) => {
+    if (path.hasOwnProperty(property)) {
+      return path[property];
+    } else {
+      return null;
+    }
+  };
+
+  // Utility function to set value at a path in a nested object
+  const setValueAtPath = (obj, path, value) => {
+    if (path.length === 0) return value;
+    const [first, ...rest] = path;
+    return {
+      ...obj,
+      [first]: rest.length ? setValueAtPath(obj[first] || {}, rest, value) : value,
+    };
+  };
+
+  // Reusable function to add a copy of an object in an array
+  const addCopyInArray = (arrayPath: string, parsedValue: any) => {
+    const currentArray = getValueFromPath(arrayPath, rawData) || [];
+    currentArray.push(generateArrayFromSchema(property)[0]);
+    const newData = { ...rawData, [arrayPath]: currentArray };
+    setRawData(newData);
+    console.log(newData, "this is the parsed value");
+  };
+
   if (editable) {
+    if (Array.isArray(parsedValue)) {
+      const customName = (parsedPropertyName.charAt(0).toUpperCase() + parsedPropertyName.slice(1)).slice(0, -1);
+      return (
+        <div>
+          <Button onClick={() => addCopyInArray(parsedPropertyName, parsedValue[0])}>Add {customName}</Button>
+          {(rawData[parsedPropertyName] || []).map((item, index) => (
+            <div key={index}>
+              <h4>
+                {customName} {index + 1}
+              </h4>
+              {Object.entries(item).map(([key, val]) => (
+                <div key={key}>
+                  <label className="labelsmall">
+                    {key}:
+                    <Input
+                      value={val as string}
+                      onChange={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)}
+                    />
+                  </label>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (typeof value === "object" && value !== null && !Array.isArray(property) && property !== null) {
+      return <div>{Object.keys(value).length}</div>;
+    }
     if (type === "boolean" || typeof value === "boolean") {
       return (
         <Flex gap={"small"} align="center" vertical>

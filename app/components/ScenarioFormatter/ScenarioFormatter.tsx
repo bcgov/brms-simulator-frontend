@@ -3,7 +3,7 @@ import { Table, Button } from "antd";
 import { Scenario } from "@/app/types/scenario";
 import styles from "./ScenarioFormatter.module.css";
 import { RuleMap } from "@/app/types/rulemap";
-import inputStyler from "../InputStyler/InputStyler";
+import InputStyler, { parseSchemaTemplate } from "../InputStyler/InputStyler";
 
 const COLUMNS = [
   {
@@ -53,8 +53,11 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
         .filter(([property]) => !PROPERTIES_TO_IGNORE.includes(property))
         .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
         .map(([property, value], index) => ({
-          property: propertyRuleMap?.find((item) => item.property === property)?.name || property,
-          value: inputStyler(value, property, editable, scenarios, rawData, setRawData),
+          property:
+            propertyRuleMap?.find((item) => item.property === property)?.name ||
+            parseSchemaTemplate(property)?.arrayName ||
+            property,
+          value: InputStyler(value, property, editable, scenarios, rawData, setRawData),
           key: index,
         }));
       // Check if data.result is an array
