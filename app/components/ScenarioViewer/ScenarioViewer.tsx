@@ -121,6 +121,7 @@ export default function ScenarioViewer({
               pageSize={itemsPerPage}
               total={scenariosDisplay.length}
               onChange={handlePageChange}
+              hideOnSinglePage
             />
             {editing && <Button onClick={() => setManageScenarios(!manageScenarios)}>Manage Scenarios</Button>}
           </>

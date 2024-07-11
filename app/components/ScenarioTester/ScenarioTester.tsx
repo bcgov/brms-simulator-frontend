@@ -308,7 +308,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
           </Flex>
           <Flex gap="small" vertical>
             <Table
-              pagination={{ hideOnSinglePage: true }}
+              pagination={{ hideOnSinglePage: true, size: "small", pageSize: 10 }}
               bordered
               dataSource={scenarioResults.formattedData}
               columns={scenarioResults.columns}
