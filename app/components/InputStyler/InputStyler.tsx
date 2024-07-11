@@ -26,7 +26,7 @@ export const parseSchemaTemplate = (template: string): ParsedSchema | null => {
 
   const objectTemplate: TemplateObject = {};
   properties.forEach((prop) => {
-    objectTemplate[prop] = ""; // Initialize with empty string or any default value
+    objectTemplate[prop] = undefined; // Initialize with empty string or any default value
   });
 
   return { arrayName, objectTemplate };
@@ -100,7 +100,9 @@ export default function InputStyler(
     type = typeof valuesArray[0].value;
   }
 
-  const handleArrayItemChange = (arrayName: string, index: number, key: string, newValue: any) => {
+  const handleArrayInputItemChange = (arrayName: string, index: number, key: string, newValue: any) => {
+    const queryValue = newValue;
+
     const updatedData: rawDataProps = { ...rawData };
     if (updatedData) {
       if (!updatedData[arrayName]) {
@@ -109,7 +111,32 @@ export default function InputStyler(
       if (!updatedData[arrayName][index]) {
         updatedData[arrayName][index] = {};
       }
-      updatedData[arrayName][index][key] = newValue;
+      updatedData[arrayName][index][key] = queryValue;
+      setRawData(updatedData);
+    }
+  };
+
+  const handleArrayItemChange = (arrayName: string, index: number, key: string, newValue: any) => {
+    let queryValue: any = newValue;
+    if (typeof newValue === "string") {
+      if (newValue.toLowerCase() === "true") {
+        queryValue = true;
+      } else if (newValue.toLowerCase() === "false") {
+        queryValue = false;
+      } else if (!isNaN(Number(newValue))) {
+        queryValue = Number(newValue);
+      }
+    }
+
+    const updatedData: rawDataProps = { ...rawData };
+    if (updatedData) {
+      if (!updatedData[arrayName]) {
+        updatedData[arrayName] = [];
+      }
+      if (!updatedData[arrayName][index]) {
+        updatedData[arrayName][index] = {};
+      }
+      updatedData[arrayName][index][key] = queryValue;
       setRawData(updatedData);
     }
   };
@@ -163,12 +190,40 @@ export default function InputStyler(
                 </h4>
                 {Object.entries(item).map(([key, val]) => (
                   <div key={key}>
+                    <p>{typeof val + " this is val " + val}</p>
                     <label className="labelsmall">
                       {key}:
-                      <Input
+                      {typeof val === "boolean" ? (
+                        <Radio.Group
+                          onChange={(e) => handleArrayInputItemChange(parsedPropertyName, index, key, e.target.value)}
+                          value={val}
+                        >
+                          <Radio value={true}>Yes</Radio>
+                          <Radio value={false}>No</Radio>
+                        </Radio.Group>
+                      ) : typeof val === "number" ? (
+                        <InputNumber
+                          value={val}
+                          onBlur={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)}
+                          onChange={(newVal) => handleArrayInputItemChange(parsedPropertyName, index, key, newVal)}
+                        />
+                      ) : typeof val === "string" ? (
+                        <AutoComplete
+                          options={getAutoCompleteOptions(key)}
+                          value={val}
+                          onBlur={(e) =>
+                            handleArrayItemChange(parsedPropertyName, index, key, (e.target as HTMLInputElement).value)
+                          }
+                          style={{ width: 200 }}
+                          onChange={(newVal) => handleArrayInputItemChange(parsedPropertyName, index, key, newVal)}
+                        />
+                      ) : (
+                        <Input onBlur={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)} />
+                      )}
+                      {/* <Input
                         value={val as string}
                         onChange={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)}
-                      />
+                      /> */}
                     </label>
                   </div>
                 ))}
@@ -256,10 +311,6 @@ export default function InputStyler(
           )}
         </div>
       );
-    }
-    if (typeof value === "object" && value !== null && !Array.isArray(property) && property !== null) {
-      // return <div>{Object.keys(value).length}</div>;
-      return <div>hello testing</div>;
     }
     if (type === "boolean" || typeof value === "boolean") {
       return (
