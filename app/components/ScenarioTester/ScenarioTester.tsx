@@ -44,7 +44,10 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
     // Handle numbers with "amount" in the property name
     let displayValue = value;
     if (typeof value === "number" && property.toLowerCase().includes("amount")) {
-      displayValue = `$${value}`;
+      displayValue = `$${value.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
     } else if (typeof value === "number") {
       displayValue = <Tag color="blue">{value}</Tag>;
     }
