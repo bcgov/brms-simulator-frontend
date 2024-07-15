@@ -102,9 +102,7 @@ export default function SimulationViewer({
   }, [simulationContext]);
 
   const handleTabChange = (key: string) => {
-    if (key === "1") {
-      handleReset();
-    }
+    handleReset();
   };
 
   const handleReset = () => {
@@ -177,13 +175,13 @@ export default function SimulationViewer({
       key: "3",
       label: "Scenario Results",
       children: scenarioTestsTab,
-      disabled: editing ? false : true,
+      disabled: !editing,
     },
     {
       key: "4",
       label: "CSV Tests",
       children: csvScenarioTestsTab,
-      disabled: editing ? false : true,
+      disabled: !editing,
     },
   ];
 
