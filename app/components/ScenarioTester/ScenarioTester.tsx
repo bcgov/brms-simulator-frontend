@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Table, Tag, Button, TableProps, Flex, Upload, message } from "antd";
-import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CloseCircleOutlined, RightCircleOutlined, DownCircleOutlined } from "@ant-design/icons";
 import { UploadOutlined } from "@ant-design/icons";
 import styles from "./ScenarioTester.module.css";
 import { runDecisionsForScenarios, uploadCSVAndProcess, getCSVForRuleRun } from "@/app/utils/api";
@@ -131,12 +131,6 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
     const expectedColumns = generateColumns(expectedKeys, "expected_result");
 
     const columns: TableProps<DataType>["columns"] = [
-      {
-        title: "Status",
-        dataIndex: "resultMatch",
-        key: "resultMatch",
-        fixed: "left",
-      },
       {
         title: "Name",
         dataIndex: "name",
@@ -315,10 +309,30 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
               expandable={{
                 expandedRowRender: (record: any) => expandedRowRender(record),
                 rowExpandable: (record: any) => rowExpandable(record),
-                columnTitle: "View Expected Results",
+                columnTitle: "Status",
+                columnWidth: "100px",
+                expandIcon: ({ expanded, onExpand, record }) =>
+                  rowExpandable(record) === false ? (
+                    <Tag color="success" icon={<CheckCircleOutlined />}></Tag>
+                  ) : (
+                    <>
+                      <Button
+                        onClick={(e) => onExpand(record, e)}
+                        aria-label="view expected results"
+                        size="small"
+                        type="text"
+                      >
+                        <Tag color="error" icon={<CloseCircleOutlined />}>
+                          {" "}
+                          {expanded ? <DownCircleOutlined /> : <RightCircleOutlined />}
+                        </Tag>
+                      </Button>
+                    </>
+                  ),
               }}
               className={styles.scenarioTable}
               size="middle"
+              scroll={{ x: 800, y: 600 }}
             />
           </Flex>
         </div>
