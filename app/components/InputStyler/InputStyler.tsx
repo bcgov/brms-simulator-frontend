@@ -204,7 +204,6 @@ export default function InputStyler(
                 </h4>
                 {Object.entries(item).map(([key, val]) => (
                   <div key={key}>
-                    <p>{typeof val + " this is val " + val}</p>
                     <label className="labelsmall">
                       {key}:
                       {typeof val === "boolean" ? (
@@ -234,10 +233,6 @@ export default function InputStyler(
                       ) : (
                         <Input onBlur={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)} />
                       )}
-                      {/* <Input
-                        value={val as string}
-                        onChange={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)}
-                      /> */}
                     </label>
                   </div>
                 ))}
