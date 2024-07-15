@@ -12,7 +12,7 @@ import { RuleMap } from "@/app/types/rulemap";
 interface ScenarioViewerProps {
   scenarios: Scenario[];
   resultsOfSimulation: Record<string, any> | null | undefined;
-  setSelectedSubmissionInputs: (data: any) => void;
+  setSimulationContext: (data: any) => void;
   runSimulation: () => void;
   rulemap: RuleMap;
   editing?: boolean;
@@ -21,7 +21,7 @@ interface ScenarioViewerProps {
 export default function ScenarioViewer({
   scenarios,
   resultsOfSimulation,
-  setSelectedSubmissionInputs,
+  setSimulationContext,
   runSimulation,
   rulemap,
   editing = true,
@@ -36,11 +36,11 @@ export default function ScenarioViewer({
 
   const handleSelectScenario = (scenario: Scenario) => {
     setSelectedScenario(scenario);
-    const submissionInputs = scenario.variables.reduce((acc, variable) => {
+    const scenarioInputs = scenario.variables.reduce((acc, variable) => {
       acc[variable.name] = variable.value;
       return acc;
     }, {} as Record<string, any>);
-    setSelectedSubmissionInputs(submissionInputs);
+    setSimulationContext(scenarioInputs);
   };
 
   const handleRunScenario = () => {

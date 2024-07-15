@@ -1,4 +1,4 @@
-import { DecisionGraphType } from "@gorules/jdm-editor/dist/components/decision-graph/context/dg-store.context";
+import { DecisionGraphType } from "@gorules/jdm-editor";
 import axios from "axios";
 import { RuleInfo } from "../types/ruleInfo";
 import { RuleMap } from "../types/rulemap";
@@ -72,36 +72,6 @@ export const getDocument = async (jsonFilePath: string): Promise<DecisionGraphTy
     return data;
   } catch (error) {
     console.error(`Error getting the gorules document: ${error}`);
-    throw error;
-  }
-};
-
-/**
- * Retrieves submissions from the CHEFS API.
- * @returns The submissions data.
- * @throws If an error occurs while fetching the submissions.
- */
-export const getSubmissionsFromCHEFS = async (formId: string) => {
-  try {
-    const { data } = await axiosAPIInstance.get(`/submissions/list/${formId}`);
-    return data;
-  } catch (error) {
-    console.error(`Error fetching submissions: ${error}`);
-    throw error;
-  }
-};
-
-/**
- * Retrieves submissions from the CHEFS API.
- * @returns The submissions data.
- * @throws If an error occurs while fetching the submissions.
- */
-export const getSubmissionFromCHEFSById = async (formId: string, id: string) => {
-  try {
-    const { data } = await axiosAPIInstance.get(`/submissions/${formId}/${id}`);
-    return data;
-  } catch (error) {
-    console.error(`Error fetching submissions: ${error}`);
     throw error;
   }
 };

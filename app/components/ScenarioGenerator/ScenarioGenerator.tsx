@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Flex, Button, Input } from "antd";
 import InputOutputTable from "../InputOutputTable";
 import { Scenario } from "@/app/types/scenario";
-import { SubmissionData } from "@/app/types/submission";
 import { createScenario } from "@/app/utils/api";
 import ScenarioFormatter from "../ScenarioFormatter";
 import { RuleMap } from "@/app/types/rulemap";
@@ -10,9 +9,9 @@ import { RuleMap } from "@/app/types/rulemap";
 interface ScenarioGeneratorProps {
   scenarios: Scenario[];
   resultsOfSimulation: Record<string, any> | null | undefined;
-  setSelectedSubmissionInputs: (data: any) => void;
+  simulationContext: Record<string, any>;
+  setSimulationContext: (data: any) => void;
   runSimulation: () => void;
-  selectedSubmissionInputs: SubmissionData;
   resetTrigger: boolean;
   ruleId: string;
   jsonFile: string;
@@ -23,9 +22,9 @@ interface ScenarioGeneratorProps {
 export default function ScenarioGenerator({
   scenarios,
   resultsOfSimulation,
-  setSelectedSubmissionInputs,
+  simulationContext,
+  setSimulationContext,
   runSimulation,
-  selectedSubmissionInputs,
   resetTrigger,
   ruleId,
   jsonFile,
@@ -37,9 +36,9 @@ export default function ScenarioGenerator({
   const [scenarioExpectedOutput, setScenarioExpectedOutput] = useState({});
 
   const handleSaveScenario = async () => {
-    if (!simulationRun || !selectedSubmissionInputs || !newScenarioName) return;
+    if (!simulationRun || !simulationContext || !newScenarioName) return;
 
-    const variables = Object.entries(selectedSubmissionInputs)
+    const variables = Object.entries(simulationContext)
       .filter(([name, value]) => name !== "rulemap" && value !== null && value !== undefined)
       .map(([name, value]) => ({ name, value }));
 
@@ -66,7 +65,7 @@ export default function ScenarioGenerator({
   };
 
   const runScenarioSimulation = () => {
-    if (!selectedSubmissionInputs) return;
+    if (!simulationContext) return;
     runSimulation();
     setSimulationRun(true);
   };
@@ -87,14 +86,12 @@ export default function ScenarioGenerator({
   return (
     <Flex>
       <Flex gap="middle">
-        {selectedSubmissionInputs && (
+        {simulationContext && (
           <Flex vertical gap={"small"} align="end">
             <ScenarioFormatter
               title="Inputs"
-              rawData={selectedSubmissionInputs}
-              setRawData={(data) => {
-                setSelectedSubmissionInputs(data);
-              }}
+              rawData={simulationContext}
+              setRawData={(data) => setSimulationContext(data)}
               scenarios={scenarios}
               rulemap={rulemap}
             />
