@@ -14,6 +14,7 @@ import { ApartmentOutlined, PlayCircleOutlined } from "@ant-design/icons";
 import { Scenario, Variable } from "@/app/types/scenario";
 import LinkRuleComponent from "./LinkRuleComponent";
 import SimulatorPanel from "./SimulatorPanel";
+import { downloadFileBlob } from "@/app/utils/utils";
 import { getScenariosByFilename } from "../../utils/api";
 
 interface RulesViewerProps {
@@ -61,19 +62,7 @@ export default function RulesDecisionGraph({
   };
 
   const downloadJSON = (jsonData: any, filename: string) => {
-    const jsonString = JSON.stringify(jsonData, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-
-    // Clean up and remove the link
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    downloadFileBlob(JSON.stringify(jsonData, null, 2), "application/json", filename);
   };
 
   const handleScenarioInsertion = async () => {
@@ -125,7 +114,7 @@ export default function RulesDecisionGraph({
       document.removeEventListener("click", clickHandler);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ruleContent]);
 
   // This is to add the decision node - note that this may be added to the DecisionGraph library
   const additionalComponents: NodeSpecification[] = useMemo(
