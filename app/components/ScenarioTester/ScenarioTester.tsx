@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { Table, Tag, Button, TableProps, Flex, Upload, message } from "antd";
+import { Table, Tag, Button, TableProps, Flex, Upload, message, List } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined, RightCircleOutlined, DownCircleOutlined } from "@ant-design/icons";
 import { UploadOutlined } from "@ant-design/icons";
 import styles from "./ScenarioTester.module.css";
 import { runDecisionsForScenarios, uploadCSVAndProcess, getCSVForRuleRun } from "@/app/utils/api";
-
+import UseResponsiveSize from "./ScreenSizeHandler";
 interface ScenarioTesterProps {
   jsonFile: string;
   uploader?: boolean;
@@ -15,6 +15,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
   const [file, setFile] = useState<File | null>(null);
   const [uploadedFile, setUploadedFile] = useState(false);
   const hasError = useRef(false);
+  const { isMobile, isTablet } = UseResponsiveSize();
 
   type DataType = {
     key: string;
@@ -137,46 +138,55 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
         key: "name",
         render: (text) => <a>{text}</a>,
         fixed: "left",
+        width: "30%",
       },
       {
         title: "Inputs",
         children: inputColumns,
+        responsive: ["lg", "xl", "xxl"],
       },
       {
         title: "Results",
         children: outputColumns,
+        responsive: ["lg", "xl", "xxl"],
       },
     ];
 
     return { formattedData, columns };
   };
 
-  const expandedRowRender = (record: { name: string }) => {
-    const expandedData = Object.entries(record || {})
-      .map(([property, value], index) => ({
-        key: index.toString(),
-        property,
-        value,
-      }))
-      .filter((entry) => entry.property.includes("expected_result"));
-    const expandedDataColumns = expandedData.map((entry) => ({
-      title: entry.property.replace("expected_result_", ""),
+  const expandedRowRender = (record: { name: string }, displayExpanded: boolean) => {
+    const expandedData = Object.entries(record || {}).map(([property, value], index) => ({
+      key: index.toString(),
+      property,
+      value,
+    }));
+    const filteredExpected = displayExpanded
+      ? expandedData
+      : expandedData.filter((entry) => entry.property.includes("expected_result"));
+
+    const expandedDataColumns = filteredExpected.map((entry) => ({
+      title: displayExpanded ? entry.property : entry.property.replace("expected_result_", ""),
       dataIndex: entry.property,
       key: entry.property,
-      render: (value: any) => {
-        return applyConditionalStyling(value, entry.property);
-      },
+      value: applyConditionalStyling(entry.value, entry.property),
     }));
 
     return (
       <div className={styles.expectedResultsExpanded}>
-        <Flex gap="small">
-          <Table
-            title={() => `Expected results for scenario: ${record?.name}`}
-            columns={expandedDataColumns}
-            dataSource={[record]}
-            pagination={false}
-            bordered
+        <Flex gap="small" vertical>
+          {!displayExpanded ? <span>Expected results for scenario: {record?.name}</span> : null}
+          <List
+            dataSource={expandedDataColumns}
+            renderItem={(item) => (
+              <>
+                {item.title === "key" ? null : (
+                  <List.Item>
+                    <List.Item.Meta title={item.title} description={item.value} />
+                  </List.Item>
+                )}
+              </>
+            )}
           />
         </Flex>
       </div>
@@ -184,6 +194,9 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
   };
 
   const rowExpandable = (record: { resultMatch: { props: { className: string } } }) => {
+    if (isMobile || isTablet) {
+      return true;
+    }
     const resultStatus = record.resultMatch.props.className === "result-mismatch" ? true : false;
     return resultStatus;
   };
@@ -307,32 +320,38 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
               dataSource={scenarioResults.formattedData}
               columns={scenarioResults.columns}
               expandable={{
-                expandedRowRender: (record: any) => expandedRowRender(record),
+                expandedRowRender: (record: any) => expandedRowRender(record, isMobile || isTablet),
                 rowExpandable: (record: any) => rowExpandable(record),
-                columnTitle: "Status",
-                columnWidth: "100px",
+                columnTitle: isMobile || isTablet ? "Expand Record" : "Status",
+                columnWidth: "10%",
                 expandIcon: ({ expanded, onExpand, record }) =>
-                  rowExpandable(record) === false ? (
-                    <Tag color="success" icon={<CheckCircleOutlined />}></Tag>
-                  ) : (
-                    <>
-                      <Button
-                        onClick={(e) => onExpand(record, e)}
-                        aria-label="view expected results"
-                        size="small"
-                        type="text"
-                      >
-                        <Tag color="error" icon={<CloseCircleOutlined />}>
-                          {" "}
+                  record.resultMatch.props.className !== "result-mismatch" ? (
+                    rowExpandable(record) ? (
+                      <Button onClick={(e) => onExpand(record, e)} aria-label="view record" size="small" type="text">
+                        <Tag color="success" icon={<CheckCircleOutlined />}>
                           {expanded ? <DownCircleOutlined /> : <RightCircleOutlined />}
                         </Tag>
                       </Button>
-                    </>
+                    ) : (
+                      <Tag color="success" icon={<CheckCircleOutlined />} />
+                    )
+                  ) : (
+                    <Button
+                      onClick={(e) => onExpand(record, e)}
+                      aria-label="view expected results"
+                      size="small"
+                      type="text"
+                    >
+                      <Tag color="error" icon={<CloseCircleOutlined />}>
+                        {expanded ? <DownCircleOutlined /> : <RightCircleOutlined />}
+                      </Tag>
+                    </Button>
                   ),
               }}
               className={styles.scenarioTable}
-              size="middle"
-              scroll={{ x: 800, y: 600 }}
+              size="small"
+              scroll={{ x: isMobile || isTablet ? 400 : 800, y: 600 }}
+              virtual
             />
           </Flex>
         </div>

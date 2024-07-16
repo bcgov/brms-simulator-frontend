@@ -127,7 +127,7 @@ export default function SimulationViewer({
   );
 
   const scenarioGeneratorTab = scenarios && rulemap && (
-    <Flex gap="small">
+    <Flex gap="small " className={styles.scenarioGeneratorTab}>
       <ScenarioGenerator
         scenarios={scenarios}
         simulationContext={simulationContext}
@@ -161,13 +161,13 @@ export default function SimulationViewer({
   const items: TabsProps["items"] = [
     {
       key: "1",
-      label: "Simulate pre-defined test scenarios",
+      label: "Simulate scenarios",
       children: scenarioTab,
       disabled: false,
     },
     {
       key: "2",
-      label: "Simulate inputs manually and create new scenarios",
+      label: "Simulate manual inputs",
       children: scenarioGeneratorTab,
       disabled: false,
     },
@@ -212,6 +212,7 @@ export default function SimulationViewer({
         <Flex justify="space-between" align="center" className={styles.contentSection}>
           <Flex gap="middle" justify="space-between">
             <Tabs
+              className={styles.tabs}
               defaultActiveKey={editing ? "3" : "1"}
               tabBarStyle={{ gap: "10rem" }}
               items={filteredItems}
