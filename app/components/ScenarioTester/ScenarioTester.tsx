@@ -2,15 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import { Table, Tag, Button, TableProps, Flex, Upload, message } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { UploadOutlined } from "@ant-design/icons";
+import { DecisionGraphType } from "@gorules/jdm-editor";
 import styles from "./ScenarioTester.module.css";
 import { runDecisionsForScenarios, uploadCSVAndProcess, getCSVForRuleRun } from "@/app/utils/api";
 
 interface ScenarioTesterProps {
   jsonFile: string;
+  ruleContent?: DecisionGraphType;
   uploader?: boolean;
 }
 
-export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterProps) {
+export default function ScenarioTester({ jsonFile, ruleContent, uploader }: ScenarioTesterProps) {
   const [scenarioResults, setScenarioResults] = useState<any | null>({});
   const [file, setFile] = useState<File | null>(null);
   const [uploadedFile, setUploadedFile] = useState(false);
@@ -193,7 +195,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
 
   const updateScenarioResults = async (goRulesJSONFilename: string) => {
     try {
-      const results = await runDecisionsForScenarios(goRulesJSONFilename);
+      const results = await runDecisionsForScenarios(goRulesJSONFilename, ruleContent);
       // Loop through object and check if data.result is an array
       for (const key in results) {
         if (Array.isArray(results[key].result)) {
@@ -224,7 +226,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
       return;
     }
     try {
-      const csvContent = await uploadCSVAndProcess(file, jsonFile);
+      const csvContent = await uploadCSVAndProcess(file, jsonFile, ruleContent);
       message.success(`Scenarios Test: ${csvContent}`);
     } catch (error) {
       message.error("Error processing scenarios.");
@@ -234,7 +236,7 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
 
   const handleDownloadScenarios = async () => {
     try {
-      const csvContent = await getCSVForRuleRun(jsonFile);
+      const csvContent = await getCSVForRuleRun(jsonFile, ruleContent);
       message.success(`Scenario Testing Template: ${csvContent}`);
     } catch (error) {
       message.error("Error downloading scenarios.");

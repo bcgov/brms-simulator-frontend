@@ -2,6 +2,7 @@ import { DecisionGraphType } from "@gorules/jdm-editor";
 import axios from "axios";
 import { RuleInfo } from "../types/ruleInfo";
 import { RuleMap } from "../types/rulemap";
+import { downloadFileBlob } from "./utils";
 
 const axiosAPIInstance = axios.create({
   // For server side calls, need full URL, otherwise can just use /api
@@ -59,7 +60,7 @@ export const getAllRuleDocuments = async (): Promise<string[]> => {
 
 /**
  * Retrieves a document from the API based on the provided document ID.
- * @param docId The ID of the document to retrieve.
+ * @param jsonFilePath The jsonFilePath of the document to retrieve.
  * @returns The content of the document.
  * @throws If an error occurs while retrieving the document.
  */
@@ -78,21 +79,18 @@ export const getDocument = async (jsonFilePath: string): Promise<DecisionGraphTy
 
 /**
  * Posts a decision to the API for evaluation.
- * @param jsonFile The JSON file to use for the decision.
- * @param decisionGraph The decision graph to evaluate.
+ * @param ruleContent The rule decision graph to evaluate.
  * @param context The context for the decision evaluation.
  * @returns The result of the decision evaluation.
  * @throws If an error occurs while simulating the decision.
  */
-export const postDecision = async (jsonFile: string, context: unknown) => {
+export const postDecision = async (ruleContent: DecisionGraphType, context: unknown) => {
   try {
-    const { data } = await axiosAPIInstance.post(
-      `/decisions/evaluateByFile/?ruleFileName=${encodeURIComponent(jsonFile)}`,
-      {
-        context,
-        trace: true,
-      }
-    );
+    const { data } = await axiosAPIInstance.post(`/decisions/evaluate`, {
+      ruleContent,
+      context,
+      trace: true,
+    });
     return data;
   } catch (error) {
     console.error(`Error simulating decision: ${error}`);
@@ -150,16 +148,15 @@ export const deleteRuleData = async (ruleId: string) => {
 };
 
 /**
- * Retrieves a rule map from the API based on the provided json filename.
+ * Retrieves a rule map from the API
  * @param goRulesJSONFilename The ID of the rule data to retrieve.
+ * @param ruleContent The rule decision graph to evaluate.
  * @returns The rule map.
  * @throws If an error occurs while retrieving the rule data.
  */
-export const getRuleMapByName = async (goRulesJSONFilename: string): Promise<RuleMap> => {
+export const getRuleMap = async (goRulesJSONFilename: string, ruleContent?: DecisionGraphType): Promise<RuleMap> => {
   try {
-    const { data } = await axiosAPIInstance.post(
-      `/rulemap?goRulesJSONFilename=${encodeURIComponent(goRulesJSONFilename)}`
-    );
+    const { data } = await axiosAPIInstance.post("/rulemap", { goRulesJSONFilename, ruleContent });
     return data;
   } catch (error) {
     console.error(`Error getting rule data: ${error}`);
@@ -230,15 +227,17 @@ export const deleteScenario = async (scenarioId: string) => {
     throw error;
   }
 };
+
 /**
  * Runs all scenarios against a rule and exports the results as a CSV.
  * @param goRulesJSONFilename The filename of the rule to evaluate scenarios against.
+ * @param ruleContent The rule decision graph to evaluate.
  * @returns The CSV data containing the results of the scenario evaluations.
  * @throws If an error occurs while running the scenarios or generating the CSV.
  */
-export const runDecisionsForScenarios = async (goRulesJSONFilename: string) => {
+export const runDecisionsForScenarios = async (goRulesJSONFilename: string, ruleContent?: DecisionGraphType) => {
   try {
-    const { data } = await axiosAPIInstance.post("/scenario/run-decisions", { goRulesJSONFilename });
+    const { data } = await axiosAPIInstance.post("/scenario/run-decisions", { goRulesJSONFilename, ruleContent });
     return data;
   } catch (error) {
     console.error(`Error running scenarios: ${error}`);
@@ -249,27 +248,26 @@ export const runDecisionsForScenarios = async (goRulesJSONFilename: string) => {
 /**
  * Downloads a CSV file containing scenarios for a rule run.
  * @param goRulesJSONFilename The filename for the JSON rule.
+ * @param ruleContent The rule decision graph to evaluate.
  * @returns The processed CSV content as a string.
  * @throws If an error occurs during file upload or processing.
  */
-export const getCSVForRuleRun = async (goRulesJSONFilename: string): Promise<string> => {
+export const getCSVForRuleRun = async (
+  goRulesJSONFilename: string,
+  ruleContent?: DecisionGraphType
+): Promise<string> => {
   try {
     const response = await axiosAPIInstance.post(
       "/scenario/evaluation",
-      { goRulesJSONFilename: goRulesJSONFilename },
+      { goRulesJSONFilename, ruleContent },
       {
         responseType: "blob",
         headers: { "Content-Type": "application/json" },
       }
     );
 
-    const blob = new Blob([response.data], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${goRulesJSONFilename.replace(/\.json$/, ".csv")}`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    const filename = `${goRulesJSONFilename.replace(/\.json$/, ".csv")}`;
+    downloadFileBlob(response.data, "text/csv", filename);
 
     return "CSV downloaded successfully";
   } catch (error) {
@@ -282,33 +280,37 @@ export const getCSVForRuleRun = async (goRulesJSONFilename: string): Promise<str
  * Uploads a CSV file containing scenarios and processes the scenarios against the specified rule.
  * @param file The file to be uploaded.
  * @param goRulesJSONFilename The filename for the JSON rule.
+ * @param ruleContent The rule decision graph to evaluate.
  * @returns The processed CSV content as a string.
  * @throws If an error occurs during file upload or processing.
  */
-export const uploadCSVAndProcess = async (file: File, goRulesJSONFilename: string): Promise<string> => {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("goRulesJSONFilename", goRulesJSONFilename);
-
+export const uploadCSVAndProcess = async (
+  file: File,
+  goRulesJSONFilename: string,
+  ruleContent?: DecisionGraphType
+): Promise<string> => {
   try {
-    const response = await axiosAPIInstance.post(`/scenario/evaluation/upload/`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
+    const response = await axiosAPIInstance.post(
+      `/scenario/evaluation/upload/`,
+      {
+        file,
+        goRulesJSONFilename,
+        ruleContent,
       },
-      responseType: "blob",
-    });
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        responseType: "blob",
+      }
+    );
 
-    const blob = new Blob([response.data], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
     const timestamp = new Date().toISOString().replace(/:/g, "-").replace(/\.\d+/, "");
-    a.download = `${goRulesJSONFilename.replace(".json", "")}_testing_${file.name.replace(
+    const filename = `${goRulesJSONFilename.replace(".json", "")}_testing_${file.name.replace(
       ".csv",
       ""
     )}_${timestamp}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    downloadFileBlob(response.data, "text/csv", filename);
 
     return "File processed successfully";
   } catch (error) {

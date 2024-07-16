@@ -18,7 +18,8 @@ import { getScenariosByFilename } from "../../utils/api";
 
 interface RulesViewerProps {
   jsonFilename: string;
-  graphJSON: DecisionGraphType;
+  ruleContent: DecisionGraphType;
+  setRuleContent: (updateGraph: DecisionGraphType) => void;
   contextToSimulate?: Record<string, any> | null;
   setContextToSimulate: (results: Record<string, any>) => void;
   simulation?: Simulation;
@@ -28,20 +29,16 @@ interface RulesViewerProps {
 
 export default function RulesDecisionGraph({
   jsonFilename,
-  graphJSON,
+  ruleContent,
+  setRuleContent,
   contextToSimulate,
   setContextToSimulate,
   simulation,
   runSimulation,
   isEditable = true,
 }: RulesViewerProps) {
-  const [graphValue, setGraphValue] = useState<any>(graphJSON);
   const decisionGraphRef: any = useRef<DecisionGraphRef>();
   const [reactFlowRef, setReactFlowRef] = useState<ReactFlowInstance>();
-
-  useEffect(() => {
-    setGraphValue(graphJSON);
-  }, [graphJSON]);
 
   useEffect(() => {
     // Ensure graph is in view
@@ -56,7 +53,7 @@ export default function RulesDecisionGraph({
     };
     // Fit to view
     fitGraphToView();
-  }, [graphValue, reactFlowRef]);
+  }, [ruleContent, reactFlowRef]);
 
   // Can set additional react flow options here if we need to change how graph looks when it's loaded in
   const reactFlowInit = (reactFlow: ReactFlowInstance) => {
@@ -96,7 +93,7 @@ export default function RulesDecisionGraph({
         })),
       };
       const updatedJSON = {
-        ...graphValue,
+        ...ruleContent,
         ...scenarioObject,
       };
       return downloadJSON(updatedJSON, jsonFilename);
@@ -170,14 +167,14 @@ export default function RulesDecisionGraph({
     <JdmConfigProvider>
       <DecisionGraph
         ref={decisionGraphRef}
-        value={graphValue}
+        value={ruleContent}
         defaultOpenMenu={false}
         simulate={simulation}
         configurable
         onReactFlowInit={reactFlowInit}
         panels={panels}
         components={additionalComponents}
-        onChange={(updatedGraphValue) => setGraphValue(updatedGraphValue)}
+        onChange={(updatedGraphValue) => setRuleContent(updatedGraphValue)}
         disabled={!isEditable}
       />
     </JdmConfigProvider>
