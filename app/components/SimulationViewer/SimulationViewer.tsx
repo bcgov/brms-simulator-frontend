@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { Flex, Button, Spin, Tabs, message } from "antd";
 import type { TabsProps } from "antd";
 import { Simulation, DecisionGraphType } from "@gorules/jdm-editor";
-import { getDocument, postDecision } from "../../utils/api";
+import { getDocument, postDecision, getRuleMap } from "../../utils/api";
 import { RuleMap } from "../../types/rulemap";
 import { Scenario } from "@/app/types/scenario";
 import styles from "./SimulationViewer.module.css";
@@ -23,29 +23,25 @@ interface SimulationViewerProps {
   editing?: boolean;
 }
 
-export default function SimulationViewer({
-  ruleId,
-  jsonFile,
-  rulemap,
-  scenarios,
-  editing = true,
-}: SimulationViewerProps) {
-  const createRuleMap = (array: any[]) => {
+export default function SimulationViewer({ ruleId, jsonFile, scenarios, editing = true }: SimulationViewerProps) {
+  const createRuleMap = (array: any[] = [], preExistingContext?: Record<string, any>) => {
     return array.reduce(
       (acc, obj) => {
-        acc[obj.property] = null;
+        if (preExistingContext?.hasOwnProperty(obj.property)) {
+          acc[obj.property] = preExistingContext[obj.property];
+        } else {
+          acc[obj.property] = null;
+        }
         return acc;
       },
       { rulemap: true }
     );
   };
 
-  const ruleMapInputs = createRuleMap(rulemap?.inputs || []);
-  const ruleMapResultOutputs = createRuleMap(rulemap?.resultOutputs || []);
-
-  const [graphJSON, setGraphJSON] = useState<DecisionGraphType>();
+  const [ruleContent, setRuleContent] = useState<DecisionGraphType>();
+  const [rulemap, setRulemap] = useState<RuleMap>();
   const [simulation, setSimulation] = useState<Simulation>();
-  const [simulationContext, setSimulationContext] = useState<Record<string, any>>(ruleMapInputs);
+  const [simulationContext, setSimulationContext] = useState<Record<string, any>>();
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
 
@@ -53,7 +49,7 @@ export default function SimulationViewer({
     const fetchData = async () => {
       try {
         const data = await getDocument(jsonFile);
-        setGraphJSON(data);
+        setRuleContent(data);
       } catch (error) {
         console.error("Error fetching JSON:", error);
       }
@@ -61,13 +57,28 @@ export default function SimulationViewer({
     fetchData();
   }, [jsonFile]);
 
+  useEffect(() => {
+    const updateRuleMap = async () => {
+      const updatedRulemap: RuleMap = await getRuleMap(jsonFile, ruleContent);
+      setRulemap(updatedRulemap);
+      const ruleMapInputs = createRuleMap(updatedRulemap?.inputs, simulationContext);
+      setSimulationContext(ruleMapInputs);
+    };
+    if (ruleContent) {
+      updateRuleMap();
+    }
+  }, [ruleContent]);
+
   const resetContextAndResults = () => {
     setSimulation(undefined);
+    const ruleMapResultOutputs = createRuleMap(rulemap?.resultOutputs);
     setResultsOfSimulation(ruleMapResultOutputs);
   };
 
   const runSimulation = async (newContext?: unknown) => {
-    // TODO: Update to get graph data so backend can run on that instead of file
+    if (!ruleContent) {
+      throw new Error("No graph json for simulation");
+    }
     if (newContext) {
       setSimulationContext(newContext);
     }
@@ -75,7 +86,7 @@ export default function SimulationViewer({
     if (runContext) {
       console.info("Simulate:", runContext);
       try {
-        const data = await postDecision(jsonFile, runContext);
+        const data = await postDecision(ruleContent, runContext);
         console.info("Simulation Results:", data, data?.result);
         // Check if data.result is an array and throw error as object is required
         if (Array.isArray(data?.result)) {
@@ -110,6 +121,7 @@ export default function SimulationViewer({
   const handleReset = () => {
     setSimulationContext({});
     setTimeout(() => {
+      const ruleMapInputs = createRuleMap(rulemap?.inputs);
       setSimulationContext(ruleMapInputs);
     }, 0);
     setResetTrigger((prev) => !prev);
@@ -150,13 +162,13 @@ export default function SimulationViewer({
 
   const scenarioTestsTab = (
     <Flex gap="small">
-      <ScenarioTester jsonFile={jsonFile} />
+      <ScenarioTester jsonFile={jsonFile} ruleContent={ruleContent} />
     </Flex>
   );
 
   const csvScenarioTestsTab = (
     <Flex gap="small">
-      <ScenarioTester jsonFile={jsonFile} uploader />
+      <ScenarioTester jsonFile={jsonFile} ruleContent={ruleContent} uploader />
     </Flex>
   );
 
@@ -187,7 +199,7 @@ export default function SimulationViewer({
     },
   ];
 
-  if (!graphJSON) {
+  if (!ruleContent) {
     return (
       <Spin tip="Loading graph..." size="large" className={styles.spinner}>
         <div className="content" />
@@ -202,7 +214,8 @@ export default function SimulationViewer({
       <div className={styles.rulesWrapper}>
         <RulesDecisionGraph
           jsonFilename={jsonFile}
-          graphJSON={graphJSON}
+          ruleContent={ruleContent}
+          setRuleContent={setRuleContent}
           contextToSimulate={simulationContext}
           setContextToSimulate={setSimulationContext}
           simulation={simulation}
