@@ -8,12 +8,16 @@ import { updateRuleData } from "@/app/utils/api";
 import styles from "./RuleHeader.module.css";
 
 export default function RuleHeader({ ruleInfo }: { ruleInfo: RuleInfo }) {
-  const { title, goRulesJSONFilename } = ruleInfo;
-
-  const [savedTitle, setSavedTitle] = useState(title || goRulesJSONFilename);
+  const [savedTitle, setSavedTitle] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [currTitle, setCurrTitle] = useState(savedTitle);
+  const [currTitle, setCurrTitle] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const { title, goRulesJSONFilename } = ruleInfo;
+    setSavedTitle(title || goRulesJSONFilename);
+    setCurrTitle(title || goRulesJSONFilename);
+  }, [ruleInfo]);
 
   useEffect(() => {
     if (isEditingTitle) {
@@ -39,7 +43,7 @@ export default function RuleHeader({ ruleInfo }: { ruleInfo: RuleInfo }) {
       setSavedTitle(currTitle);
     } catch (e) {
       // If updating fails, revert to previous title name
-      setCurrTitle(title || goRulesJSONFilename);
+      setCurrTitle(savedTitle);
     }
   };
 
