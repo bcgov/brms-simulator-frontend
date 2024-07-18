@@ -54,7 +54,7 @@ export default function RulesDecisionGraph({
     };
     // Fit to view
     fitGraphToView();
-  }, [ruleContent, reactFlowRef]);
+  }, [jsonFilename, reactFlowRef]);
 
   // Can set additional react flow options here if we need to change how graph looks when it's loaded in
   const reactFlowInit = (reactFlow: ReactFlowInstance) => {

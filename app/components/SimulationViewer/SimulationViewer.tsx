@@ -20,10 +20,17 @@ interface SimulationViewerProps {
   jsonFile: string;
   rulemap?: RuleMap;
   scenarios?: Scenario[];
+  isNewRule?: boolean;
   editing?: boolean;
 }
 
-export default function SimulationViewer({ ruleId, jsonFile, scenarios, editing = true }: SimulationViewerProps) {
+export default function SimulationViewer({
+  ruleId,
+  jsonFile,
+  scenarios,
+  isNewRule = false,
+  editing = true,
+}: SimulationViewerProps) {
   const createRuleMap = (array: any[] = [], preExistingContext?: Record<string, any>) => {
     return array.reduce(
       (acc, obj) => {
@@ -54,17 +61,26 @@ export default function SimulationViewer({ ruleId, jsonFile, scenarios, editing 
         console.error("Error fetching JSON:", error);
       }
     };
-    fetchData();
+    if (isNewRule) {
+      setRuleContent({ nodes: [], edges: [] });
+    } else {
+      fetchData();
+    }
   }, [jsonFile]);
 
   useEffect(() => {
+    const canBeSchemaMapped = () => {
+      if (!ruleContent?.nodes) return false;
+      // Must contain an outputNode in order for schema mapping to work
+      return ruleContent.nodes.some((node) => node.type === "outputNode");
+    };
     const updateRuleMap = async () => {
       const updatedRulemap: RuleMap = await getRuleMap(jsonFile, ruleContent);
       setRulemap(updatedRulemap);
       const ruleMapInputs = createRuleMap(updatedRulemap?.inputs, simulationContext);
       setSimulationContext(ruleMapInputs);
     };
-    if (ruleContent) {
+    if (canBeSchemaMapped()) {
       updateRuleMap();
     }
   }, [ruleContent]);
