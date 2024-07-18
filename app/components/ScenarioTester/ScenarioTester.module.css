@@ -1,102 +1,15 @@
-.instructionsList {
-  list-style: none;
-  padding: 20px;
-  margin: 20px 0;
-  background-color: #f4f4f9;
-  border-radius: 8px;
-  border: 1px solid #eaeaea;
-}
-
-.instructionsList li {
-  margin-bottom: 15px;
-  padding: 10px;
-  background: #fff;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-size: 16px;
-  line-height: 1.5;
-  position: relative;
-}
-
-.instructionsList li::before {
-  content: counter(li);
-  counter-increment: li;
-  position: absolute;
-  left: -30px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: #007bff;
-  color: white;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.instructionsList a {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.instructionsList a:hover {
-  text-decoration: underline;
-}
-
-.instructionsList {
-  counter-reset: li;
-}
-.downloadLink {
-  font-size: 16px;
-  color: #007bff;
-  text-decoration: none;
-  padding-right: 10px;
-}
-
-.upload {
-  margin-right: 10px;
-}
-
-.runButton {
-  margin-left: 10px;
-}
-
 .scenarioContainer {
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;
   max-width: 100%;
-  overflow: auto;
 }
 
 .scenarioTable {
   max-width: 100%;
-  overflow: auto;
 }
 
 .expectedResultsExpanded {
   margin-top: 20px;
   margin-bottom: 20px;
 }
-/* 
-@media (max-width: 1100px) {
-  .scenarioTable {
-    max-width: 1100px;
-    overflow: auto;
-  }
-}
-
-@media (max-width: 768px) {
-  .scenarioTable {
-    max-width: 768px;
-    overflow: auto;
-  }
-}
-
-@media (max-width: 480px) {
-  .scenarioTable {
-    max-width: 480px;
-    overflow: auto;
-  }
-} */

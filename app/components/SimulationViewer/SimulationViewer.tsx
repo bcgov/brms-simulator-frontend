@@ -11,6 +11,7 @@ import styles from "./SimulationViewer.module.css";
 import ScenarioViewer from "../ScenarioViewer/ScenarioViewer";
 import ScenarioGenerator from "../ScenarioGenerator/ScenarioGenerator";
 import ScenarioTester from "../ScenarioTester/ScenarioTester";
+import ScenarioCSV from "../ScenarioCSV/ScenarioCSV";
 
 // Need to disable SSR when loading this component so it works properly
 const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr: false });
@@ -182,7 +183,7 @@ export default function SimulationViewer({
 
   const csvScenarioTestsTab = (
     <Flex gap="small">
-      <ScenarioTester jsonFile={jsonFile} ruleContent={ruleContent} uploader />
+      <ScenarioCSV jsonFile={jsonFile} ruleContent={ruleContent} />
     </Flex>
   );
 
@@ -243,7 +244,6 @@ export default function SimulationViewer({
             <Tabs
               className={styles.tabs}
               defaultActiveKey={editing ? "3" : "1"}
-              tabBarStyle={{ gap: "10rem" }}
               items={filteredItems}
               onChange={handleTabChange}
             ></Tabs>

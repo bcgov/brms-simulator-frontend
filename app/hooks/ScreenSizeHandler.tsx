@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-export default function UseResponsiveSize() {
+export default function useResponsiveSize() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
   const [isTablet, setIsTablet] = useState(window.innerWidth > 480 && window.innerWidth <= 992);
 
