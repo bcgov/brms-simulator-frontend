@@ -3,14 +3,14 @@ import { Flex, Button, Input } from "antd";
 import InputOutputTable from "../InputOutputTable";
 import { Scenario } from "@/app/types/scenario";
 import { createScenario } from "@/app/utils/api";
-import ScenarioFormatter from "../ScenarioFormatter";
 import { RuleMap } from "@/app/types/rulemap";
+import ScenarioFormatter from "../ScenarioFormatter";
 import styles from "./ScenarioGenerator.module.css";
 
 interface ScenarioGeneratorProps {
   scenarios: Scenario[];
   resultsOfSimulation: Record<string, any> | null | undefined;
-  simulationContext: Record<string, any>;
+  simulationContext?: Record<string, any>;
   setSimulationContext: (data: any) => void;
   runSimulation: () => void;
   resetTrigger: boolean;

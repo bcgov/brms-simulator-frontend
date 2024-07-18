@@ -14,11 +14,13 @@ import { ApartmentOutlined, PlayCircleOutlined } from "@ant-design/icons";
 import { Scenario, Variable } from "@/app/types/scenario";
 import LinkRuleComponent from "./LinkRuleComponent";
 import SimulatorPanel from "./SimulatorPanel";
+import { downloadFileBlob } from "@/app/utils/utils";
 import { getScenariosByFilename } from "../../utils/api";
 
 interface RulesViewerProps {
   jsonFilename: string;
-  graphJSON: DecisionGraphType;
+  ruleContent: DecisionGraphType;
+  setRuleContent: (updateGraph: DecisionGraphType) => void;
   contextToSimulate?: Record<string, any> | null;
   setContextToSimulate: (results: Record<string, any>) => void;
   simulation?: Simulation;
@@ -28,20 +30,16 @@ interface RulesViewerProps {
 
 export default function RulesDecisionGraph({
   jsonFilename,
-  graphJSON,
+  ruleContent,
+  setRuleContent,
   contextToSimulate,
   setContextToSimulate,
   simulation,
   runSimulation,
   isEditable = true,
 }: RulesViewerProps) {
-  const [graphValue, setGraphValue] = useState<any>(graphJSON);
   const decisionGraphRef: any = useRef<DecisionGraphRef>();
   const [reactFlowRef, setReactFlowRef] = useState<ReactFlowInstance>();
-
-  useEffect(() => {
-    setGraphValue(graphJSON);
-  }, [graphJSON]);
 
   useEffect(() => {
     // Ensure graph is in view
@@ -56,7 +54,7 @@ export default function RulesDecisionGraph({
     };
     // Fit to view
     fitGraphToView();
-  }, [graphValue, reactFlowRef]);
+  }, [ruleContent, reactFlowRef]);
 
   // Can set additional react flow options here if we need to change how graph looks when it's loaded in
   const reactFlowInit = (reactFlow: ReactFlowInstance) => {
@@ -64,19 +62,7 @@ export default function RulesDecisionGraph({
   };
 
   const downloadJSON = (jsonData: any, filename: string) => {
-    const jsonString = JSON.stringify(jsonData, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-
-    // Clean up and remove the link
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    downloadFileBlob(JSON.stringify(jsonData, null, 2), "application/json", filename);
   };
 
   const handleScenarioInsertion = async () => {
@@ -96,7 +82,7 @@ export default function RulesDecisionGraph({
         })),
       };
       const updatedJSON = {
-        ...graphValue,
+        ...ruleContent,
         ...scenarioObject,
       };
       return downloadJSON(updatedJSON, jsonFilename);
@@ -128,7 +114,7 @@ export default function RulesDecisionGraph({
       document.removeEventListener("click", clickHandler);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ruleContent]);
 
   // This is to add the decision node - note that this may be added to the DecisionGraph library
   const additionalComponents: NodeSpecification[] = useMemo(
@@ -170,14 +156,14 @@ export default function RulesDecisionGraph({
     <JdmConfigProvider>
       <DecisionGraph
         ref={decisionGraphRef}
-        value={graphValue}
+        value={ruleContent}
         defaultOpenMenu={false}
         simulate={simulation}
         configurable
         onReactFlowInit={reactFlowInit}
         panels={panels}
         components={additionalComponents}
-        onChange={(updatedGraphValue) => setGraphValue(updatedGraphValue)}
+        onChange={(updatedGraphValue) => setRuleContent(updatedGraphValue)}
         disabled={!isEditable}
       />
     </JdmConfigProvider>
