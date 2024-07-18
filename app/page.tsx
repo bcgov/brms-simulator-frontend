@@ -51,9 +51,14 @@ export default function Home() {
     <>
       <Flex justify="space-between" align="center">
         <h1>BRMS Rule Simulator</h1>
-        <Link href="/admin">
-          <Button>Admin</Button>
-        </Link>
+        <Flex gap="small">
+          <Link href="/rule/new">
+            <Button type="primary">New rule +</Button>
+          </Link>
+          <Link href="/admin">
+            <Button danger>Admin</Button>
+          </Link>
+        </Flex>
       </Flex>
       {isLoading ? (
         <Spin tip="Loading rules...">
