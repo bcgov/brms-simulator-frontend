@@ -5,6 +5,7 @@ import { Scenario } from "@/app/types/scenario";
 import { createScenario } from "@/app/utils/api";
 import { RuleMap } from "@/app/types/rulemap";
 import ScenarioFormatter from "../ScenarioFormatter";
+import styles from "./ScenarioGenerator.module.css";
 
 interface ScenarioGeneratorProps {
   scenarios: Scenario[];
@@ -85,7 +86,7 @@ export default function ScenarioGenerator({
 
   return (
     <Flex>
-      <Flex gap="middle">
+      <Flex gap="middle" className={styles.scenarioGenerator}>
         {simulationContext && (
           <Flex vertical gap={"small"} align="end">
             <ScenarioFormatter

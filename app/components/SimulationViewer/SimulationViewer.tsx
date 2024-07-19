@@ -11,6 +11,7 @@ import styles from "./SimulationViewer.module.css";
 import ScenarioViewer from "../ScenarioViewer/ScenarioViewer";
 import ScenarioGenerator from "../ScenarioGenerator/ScenarioGenerator";
 import ScenarioTester from "../ScenarioTester/ScenarioTester";
+import ScenarioCSV from "../ScenarioCSV/ScenarioCSV";
 
 // Need to disable SSR when loading this component so it works properly
 const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr: false });
@@ -129,9 +130,7 @@ export default function SimulationViewer({
   }, [simulationContext]);
 
   const handleTabChange = (key: string) => {
-    if (key === "1") {
-      handleReset();
-    }
+    handleReset();
   };
 
   const handleReset = () => {
@@ -157,7 +156,7 @@ export default function SimulationViewer({
   );
 
   const scenarioGeneratorTab = scenarios && rulemap && (
-    <Flex gap="small">
+    <Flex gap="small " className={styles.scenarioGeneratorTab}>
       <ScenarioGenerator
         scenarios={scenarios}
         simulationContext={simulationContext}
@@ -184,20 +183,20 @@ export default function SimulationViewer({
 
   const csvScenarioTestsTab = (
     <Flex gap="small">
-      <ScenarioTester jsonFile={jsonFile} ruleContent={ruleContent} uploader />
+      <ScenarioCSV jsonFile={jsonFile} ruleContent={ruleContent} />
     </Flex>
   );
 
   const items: TabsProps["items"] = [
     {
       key: "1",
-      label: "Simulate pre-defined test scenarios",
+      label: "Simulate scenarios",
       children: scenarioTab,
       disabled: false,
     },
     {
       key: "2",
-      label: "Simulate inputs manually and create new scenarios",
+      label: "Simulate manual inputs",
       children: scenarioGeneratorTab,
       disabled: false,
     },
@@ -205,13 +204,13 @@ export default function SimulationViewer({
       key: "3",
       label: "Scenario Results",
       children: scenarioTestsTab,
-      disabled: editing ? false : true,
+      disabled: !editing,
     },
     {
       key: "4",
       label: "CSV Tests",
       children: csvScenarioTestsTab,
-      disabled: editing ? false : true,
+      disabled: !editing,
     },
   ];
 
@@ -243,8 +242,8 @@ export default function SimulationViewer({
         <Flex justify="space-between" align="center" className={styles.contentSection}>
           <Flex gap="middle" justify="space-between">
             <Tabs
+              className={styles.tabs}
               defaultActiveKey={editing ? "3" : "1"}
-              tabBarStyle={{ gap: "10rem" }}
               items={filteredItems}
               onChange={handleTabChange}
             ></Tabs>
