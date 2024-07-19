@@ -1,62 +1,23 @@
-import { Tag, Input, Radio, AutoComplete, InputNumber, Flex, Button } from "antd";
+import { Tag, Input, Radio, AutoComplete, InputNumber, Flex } from "antd";
+import ArrayFormatter, { parseSchemaTemplate, generateArrayFromSchema } from "./ArrayFormatter";
 import { Scenario } from "@/app/types/scenario";
-interface TemplateObject {
-  [key: string]: any;
-}
 
-interface ParsedSchema {
-  arrayName: string;
-  objectTemplate: TemplateObject;
-}
-
-interface rawDataProps {
+export interface rawDataProps {
   [key: string]: any;
   rulemap?: boolean;
 }
 
-export const parseSchemaTemplate = (template: string): ParsedSchema | null => {
-  if (!template) return null;
-  const match = template.match(/(\w+)\[\{(.*)\}\]/);
-  if (!match) {
-    return null;
-  }
+export const getAutoCompleteOptions = (property: string, scenarios: Scenario[] = []) => {
+  if (!scenarios) return [];
+  const optionsSet = new Set<string>();
 
-  const arrayName = match[1];
-  const properties = match[2].split(",").map((prop) => prop.trim());
-
-  const objectTemplate: TemplateObject = {};
-  properties.forEach((prop) => {
-    const [propertyName, propertyType] = prop.split(":");
-    switch (propertyType.toLowerCase()) {
-      case "string":
-        objectTemplate[propertyName] = "";
-        break;
-      case "boolean":
-        objectTemplate[propertyName] = false;
-        break;
-      case "number":
-        objectTemplate[propertyName] = 0;
-        break;
-      default:
-        objectTemplate[propertyName] = undefined;
-        break;
-    }
+  scenarios.forEach((scenario) => {
+    scenario.variables
+      .filter((variable) => variable.name === property)
+      .forEach((variable) => optionsSet.add(variable.value));
   });
 
-  return { arrayName, objectTemplate };
-};
-
-const generateArrayFromSchema = (template: string, initialSize: number = 1): TemplateObject[] | null => {
-  if (!template || typeof template !== "string") return null;
-  const { objectTemplate } = parseSchemaTemplate(template) ?? {};
-  if (!objectTemplate) return null;
-
-  const array: TemplateObject[] = [];
-  for (let i = 0; i < initialSize; i++) {
-    array.push({ ...objectTemplate });
-  }
-
-  return array;
+  return Array.from(optionsSet).map((value) => ({ value, type: typeof value }));
 };
 
 export default function InputStyler(
@@ -67,19 +28,6 @@ export default function InputStyler(
   rawData: rawDataProps | null | undefined,
   setRawData: any
 ) {
-  const getAutoCompleteOptions = (property: string) => {
-    if (!scenarios) return [];
-    const optionsSet = new Set<string>();
-
-    scenarios.forEach((scenario) => {
-      scenario.variables
-        .filter((variable) => variable.name === property)
-        .forEach((variable) => optionsSet.add(variable.value));
-    });
-
-    return Array.from(optionsSet).map((value) => ({ value, type: typeof value }));
-  };
-
   const handleValueChange = (value: any, property: string) => {
     let queryValue: any = value;
     if (typeof value === "string") {
@@ -108,139 +56,19 @@ export default function InputStyler(
     }
   };
 
-  const valuesArray = getAutoCompleteOptions(property);
+  const valuesArray = getAutoCompleteOptions(property, scenarios);
   let type = typeof value;
   if (valuesArray.length > 0) {
     type = typeof valuesArray[0].value;
   }
 
-  const handleArrayInputItemChange = (arrayName: string, index: number, key: string, newValue: any) => {
-    const queryValue = newValue;
-
-    const updatedData: rawDataProps = { ...rawData };
-    if (updatedData) {
-      if (!updatedData[arrayName]) {
-        updatedData[arrayName] = [];
-      }
-      if (!updatedData[arrayName][index]) {
-        updatedData[arrayName][index] = {};
-      }
-      updatedData[arrayName][index][key] = queryValue;
-      setRawData(updatedData);
-    }
-  };
-
-  const handleArrayItemChange = (arrayName: string, index: number, key: string, newValue: any) => {
-    let queryValue: any = newValue;
-    if (typeof newValue === "string") {
-      if (newValue.toLowerCase() === "true") {
-        queryValue = true;
-      } else if (newValue.toLowerCase() === "false") {
-        queryValue = false;
-      } else if (!isNaN(Number(newValue))) {
-        queryValue = Number(newValue);
-      }
-    }
-
-    const updatedData: rawDataProps = { ...rawData };
-    if (updatedData) {
-      if (!updatedData[arrayName]) {
-        updatedData[arrayName] = [];
-      }
-      if (!updatedData[arrayName][index]) {
-        updatedData[arrayName][index] = {};
-      }
-      updatedData[arrayName][index][key] = queryValue;
-      setRawData(updatedData);
-    }
-  };
-
   const parsedValue = generateArrayFromSchema(property);
   const parsedSchema = parseSchemaTemplate(property);
   const parsedPropertyName = parsedSchema?.arrayName || property;
 
-  // Utility function to get value from a nested object using a path
-  const getValueFromPath = (property: string, path: { [key: string]: any }) => {
-    if (path.hasOwnProperty(property)) {
-      return path[property];
-    } else {
-      return null;
-    }
-  };
-
-  // Utility function to set value at a path in a nested object
-  const setValueAtPath = (obj: any, path: (string | number)[], value: any): any => {
-    if (path.length === 0) return value;
-    const [first, ...rest] = path;
-    const newObj = typeof first === "number" ? [] : {};
-    return {
-      ...obj,
-      [first]: rest.length ? setValueAtPath(obj[first] || newObj, rest, value) : value,
-    };
-  };
-
-  // Utility function to add a copy of an object in an array
-  const addCopyInArray = (arrayPath: string, parsedValue: any) => {
-    const currentArray = rawData ? getValueFromPath(arrayPath, rawData) || [] : [];
-    const newItem = generateArrayFromSchema(property)?.[0] ?? parsedValue; // Adjusting for potential null or undefined
-    if (newItem !== null && newItem !== undefined) {
-      currentArray.push(newItem);
-    }
-    const newData = { ...rawData, [arrayPath]: currentArray };
-    setRawData(newData);
-  };
-
   if (editable) {
     if (Array.isArray(parsedValue)) {
-      const customName = (parsedPropertyName.charAt(0).toUpperCase() + parsedPropertyName.slice(1)).slice(0, -1);
-      return (
-        <div>
-          <Button onClick={() => addCopyInArray(parsedPropertyName, parsedValue[0])}>Add {customName}</Button>
-          {(rawData?.[parsedPropertyName] || []).map(
-            (item: { [s: string]: unknown } | ArrayLike<unknown>, index: number) => (
-              <div key={index}>
-                <h4>
-                  {customName} {index ? index + 1 : "1"}
-                </h4>
-                {Object.entries(item).map(([key, val]) => (
-                  <div key={key}>
-                    <label className="labelsmall">
-                      {key}:
-                      {typeof val === "boolean" ? (
-                        <Radio.Group
-                          onChange={(e) => handleArrayInputItemChange(parsedPropertyName, index, key, e.target.value)}
-                          value={val}
-                        >
-                          <Radio value={true}>Yes</Radio>
-                          <Radio value={false}>No</Radio>
-                        </Radio.Group>
-                      ) : typeof val === "number" ? (
-                        <InputNumber
-                          value={val}
-                          onBlur={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)}
-                          onChange={(newVal) => handleArrayInputItemChange(parsedPropertyName, index, key, newVal)}
-                        />
-                      ) : typeof val === "string" ? (
-                        <AutoComplete
-                          options={getAutoCompleteOptions(key)}
-                          value={val}
-                          onBlur={(e) =>
-                            handleArrayItemChange(parsedPropertyName, index, key, (e.target as HTMLInputElement).value)
-                          }
-                          style={{ width: 200 }}
-                          onChange={(newVal) => handleArrayInputItemChange(parsedPropertyName, index, key, newVal)}
-                        />
-                      ) : (
-                        <Input onBlur={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)} />
-                      )}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            )
-          )}
-        </div>
-      );
+      return ArrayFormatter(value, property, editable, scenarios, rawData, setRawData);
     }
     if (typeof value === "object" && value !== null && !Array.isArray(property) && property !== null) {
       return <div>{Object.keys(value).length}</div>;
