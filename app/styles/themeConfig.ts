@@ -9,6 +9,9 @@ const theme: ThemeConfig = {
     Select: {
       optionFontSize: 16,
     },
+    List: {
+      itemPaddingSM: "4px 0px",
+    },
   },
 };
 

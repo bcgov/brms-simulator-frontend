@@ -147,7 +147,7 @@ const createPR = async (branchName: string, prTitle: string, reviewDescription: 
     const prUrl = `${GITHUB_REPO_URL}/pulls`;
     const prResponse = await axiosGithubInstance.post(prUrl, {
       title: prTitle,
-      description: reviewDescription,
+      body: reviewDescription,
       head: branchName,
       base: GITHUB_BASE_BRANCH,
     });

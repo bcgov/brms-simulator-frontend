@@ -1,16 +1,27 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Flex } from "antd";
-import { HomeOutlined, EditOutlined, CheckOutlined } from "@ant-design/icons";
+import { useRouter, usePathname } from "next/navigation";
+import { Button, Flex, Tag } from "antd";
+import { HomeOutlined, EyeOutlined, EditOutlined, CheckOutlined } from "@ant-design/icons";
 import { RuleInfo } from "@/app/types/ruleInfo";
+import { RULE_VERSION } from "@/app/constants/ruleVersion";
 import { updateRuleData } from "@/app/utils/api";
 import styles from "./RuleHeader.module.css";
 
-export default function RuleHeader({ ruleInfo }: { ruleInfo: RuleInfo }) {
+export default function RuleHeader({
+  ruleInfo,
+  version = RULE_VERSION.published,
+}: {
+  ruleInfo: RuleInfo;
+  version?: string;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [savedTitle, setSavedTitle] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [currTitle, setCurrTitle] = useState("");
+  const [currTitle, setCurrTitle] = useState<string>();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -37,38 +48,86 @@ export default function RuleHeader({ ruleInfo }: { ruleInfo: RuleInfo }) {
 
   const doneEditingTitle = async () => {
     setIsEditingTitle(false);
-    const updatedRuleInfo = { ...ruleInfo, title: currTitle };
     try {
-      await updateRuleData(ruleInfo._id, updatedRuleInfo);
-      setSavedTitle(currTitle);
+      await updateRuleData(ruleInfo._id, { title: currTitle });
+      setSavedTitle(currTitle || "");
     } catch (e) {
       // If updating fails, revert to previous title name
       setCurrTitle(savedTitle);
     }
   };
 
+  const switchVersion = (versionToSwitchTo: string) => {
+    router.push(`${pathname}?version=${versionToSwitchTo}`);
+  };
+
+  const formatVersionText = (text: string) => {
+    const words = text.split(/(?=[A-Z])/);
+    return words.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+  };
+
+  let versionColor = "green";
+  if (version === RULE_VERSION.draft) {
+    versionColor = "red";
+  } else if (version === RULE_VERSION.inReview) {
+    versionColor = "orange";
+  }
+
+  if (currTitle === undefined) return null;
+
   return (
-    <Flex gap="middle" align="center">
-      <Link href="/">
-        <HomeOutlined />
-      </Link>
-      <h1 onClick={startEditingTitle} style={{ width: isEditingTitle ? "100%" : "auto" }}>
-        {isEditingTitle ? (
-          <input
-            className={styles.titleInput}
-            ref={inputRef}
-            onBlur={doneEditingTitle}
-            value={currTitle}
-            onChange={updateTitle}
-            aria-label="Edit title"
-          />
-        ) : (
-          currTitle
-        )}
-      </h1>
-      <button className={styles.editButton} onClick={isEditingTitle ? doneEditingTitle : startEditingTitle}>
-        {isEditingTitle ? <CheckOutlined /> : <EditOutlined />}
-      </button>
-    </Flex>
+    <div className={styles.headerContainer} style={{ background: versionColor }}>
+      <Flex justify="space-between" className={styles.headerWrapper}>
+        <Flex gap="middle" align="center" flex={isEditingTitle ? "1" : "none"}>
+          <Link href="/" className={styles.homeButton}>
+            <HomeOutlined />
+          </Link>
+          <Flex flex={1} vertical>
+            <h1
+              onClick={startEditingTitle}
+              className={styles.titleHeader}
+              style={{ width: isEditingTitle ? "100%" : "auto" }}
+            >
+              {isEditingTitle ? (
+                <input
+                  className={styles.titleInput}
+                  ref={inputRef}
+                  onBlur={doneEditingTitle}
+                  value={currTitle}
+                  onChange={updateTitle}
+                  aria-label="Edit title"
+                />
+              ) : (
+                currTitle
+              )}
+            </h1>
+            <p className={styles.titleFilePath}>{ruleInfo.goRulesJSONFilename}</p>
+          </Flex>
+          {isEditingTitle && (
+            <button className={styles.editButton} onClick={isEditingTitle ? doneEditingTitle : startEditingTitle}>
+              <CheckOutlined />
+            </button>
+          )}
+          <Tag color={versionColor}>{formatVersionText(version)}</Tag>
+        </Flex>
+        <Flex gap="small" align="end">
+          {version !== RULE_VERSION.published && (
+            <Button onClick={() => switchVersion("published")} icon={<EyeOutlined />} type="dashed">
+              Published
+            </Button>
+          )}
+          {version !== RULE_VERSION.draft && (
+            <Button onClick={() => switchVersion("draft")} icon={<EditOutlined />} type="dashed">
+              Draft
+            </Button>
+          )}
+          {ruleInfo.reviewBranch && version !== RULE_VERSION.inReview && (
+            <Button onClick={() => switchVersion("inReview")} icon={<EyeOutlined />} type="dashed">
+              In Review
+            </Button>
+          )}
+        </Flex>
+      </Flex>
+    </div>
   );
 }
