@@ -10,3 +10,30 @@
 .inputSection button {
   width: 10rem;
 }
+
+.spinner {
+  min-height: 500px;
+
+}
+
+.tabs {
+  width: 100%;
+}
+
+.scenarioGeneratorTab {
+  gap: 1rem;
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 768px) {
+  .scenarioGeneratorTab {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .tabs {
+    width: 350px;
+  }
+}

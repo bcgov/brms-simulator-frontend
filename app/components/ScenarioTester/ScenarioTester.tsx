@@ -1,20 +1,20 @@
 import { useState, useEffect, useRef } from "react";
-import { Table, Tag, Button, TableProps, Flex, Upload, message } from "antd";
-import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
-import { UploadOutlined } from "@ant-design/icons";
+import { Table, Tag, Button, TableProps, Flex, message, List } from "antd";
+import { CheckCircleOutlined, CloseCircleOutlined, RightCircleOutlined, DownCircleOutlined } from "@ant-design/icons";
+import { DecisionGraphType } from "@gorules/jdm-editor";
 import styles from "./ScenarioTester.module.css";
-import { runDecisionsForScenarios, uploadCSVAndProcess, getCSVForRuleRun } from "@/app/utils/api";
-
+import { runDecisionsForScenarios } from "@/app/utils/api";
+import useResponsiveSize from "../../hooks/ScreenSizeHandler";
 interface ScenarioTesterProps {
   jsonFile: string;
+  ruleContent?: DecisionGraphType;
   uploader?: boolean;
 }
 
-export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterProps) {
+export default function ScenarioTester({ jsonFile, ruleContent }: ScenarioTesterProps) {
   const [scenarioResults, setScenarioResults] = useState<any | null>({});
-  const [file, setFile] = useState<File | null>(null);
-  const [uploadedFile, setUploadedFile] = useState(false);
   const hasError = useRef(false);
+  const { isMobile, isTablet } = useResponsiveSize();
 
   type DataType = {
     key: string;
@@ -44,7 +44,10 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
     // Handle numbers with "amount" in the property name
     let displayValue = value;
     if (typeof value === "number" && property.toLowerCase().includes("amount")) {
-      displayValue = `$${value}`;
+      displayValue = `$${value.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
     } else if (typeof value === "number") {
       displayValue = <Tag color="blue">{value}</Tag>;
     }
@@ -129,57 +132,60 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
 
     const columns: TableProps<DataType>["columns"] = [
       {
-        title: "Status",
-        dataIndex: "resultMatch",
-        key: "resultMatch",
-        fixed: "left",
-      },
-      {
         title: "Name",
         dataIndex: "name",
         key: "name",
         render: (text) => <a>{text}</a>,
         fixed: "left",
+        width: "10%",
       },
       {
         title: "Inputs",
         children: inputColumns,
+        responsive: ["lg", "xl", "xxl"],
       },
       {
         title: "Results",
         children: outputColumns,
+        responsive: ["lg", "xl", "xxl"],
       },
     ];
 
     return { formattedData, columns };
   };
 
-  const expandedRowRender = (record: { name: string }) => {
-    const expandedData = Object.entries(record || {})
-      .map(([property, value], index) => ({
-        key: index.toString(),
-        property,
-        value,
-      }))
-      .filter((entry) => entry.property.includes("expected_result"));
-    const expandedDataColumns = expandedData.map((entry) => ({
-      title: entry.property.replace("expected_result_", ""),
+  const expandedRowRender = (record: { name: string }, displayExpanded: boolean) => {
+    const expandedData = Object.entries(record || {}).map(([property, value], index) => ({
+      key: index.toString(),
+      property,
+      value,
+    }));
+    const filteredExpected = displayExpanded
+      ? expandedData
+      : expandedData.filter((entry) => entry.property.includes("expected_result"));
+
+    const expandedDataColumns = filteredExpected.map((entry) => ({
+      title: displayExpanded ? entry.property : entry.property.replace("expected_result_", ""),
       dataIndex: entry.property,
       key: entry.property,
-      render: (value: any) => {
-        return applyConditionalStyling(value, entry.property);
-      },
+      value: applyConditionalStyling(entry.value, entry.property),
     }));
 
     return (
       <div className={styles.expectedResultsExpanded}>
-        <Flex gap="small">
-          <Table
-            title={() => `Expected results for scenario: ${record?.name}`}
-            columns={expandedDataColumns}
-            dataSource={[record]}
-            pagination={false}
-            bordered
+        <Flex gap="small" vertical>
+          {!displayExpanded ? <span>Expected results for scenario: {record?.name}</span> : null}
+          <List
+            dataSource={expandedDataColumns}
+            renderItem={(item) => (
+              <>
+                {item.title === "key" ? null : (
+                  <List.Item>
+                    <List.Item.Meta title={item.title} description={item.value} />
+                  </List.Item>
+                )}
+              </>
+            )}
           />
         </Flex>
       </div>
@@ -187,13 +193,16 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
   };
 
   const rowExpandable = (record: { resultMatch: { props: { className: string } } }) => {
+    if (isMobile || isTablet) {
+      return true;
+    }
     const resultStatus = record.resultMatch.props.className === "result-mismatch" ? true : false;
     return resultStatus;
   };
 
   const updateScenarioResults = async (goRulesJSONFilename: string) => {
     try {
-      const results = await runDecisionsForScenarios(goRulesJSONFilename);
+      const results = await runDecisionsForScenarios(goRulesJSONFilename, ruleContent);
       // Loop through object and check if data.result is an array
       for (const key in results) {
         if (Array.isArray(results[key].result)) {
@@ -218,108 +227,56 @@ export default function ScenarioTester({ jsonFile, uploader }: ScenarioTesterPro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jsonFile]);
 
-  const handleRunUploadScenarios = async () => {
-    if (!file) {
-      message.error("No file uploaded.");
-      return;
-    }
-    try {
-      const csvContent = await uploadCSVAndProcess(file, jsonFile);
-      message.success(`Scenarios Test: ${csvContent}`);
-    } catch (error) {
-      message.error("Error processing scenarios.");
-      console.error("Error:", error);
-    }
-  };
-
-  const handleDownloadScenarios = async () => {
-    try {
-      const csvContent = await getCSVForRuleRun(jsonFile);
-      message.success(`Scenario Testing Template: ${csvContent}`);
-    } catch (error) {
-      message.error("Error downloading scenarios.");
-      console.error("Error:", error);
-    }
-  };
-
   return (
     <div>
-      {uploader ? (
-        <Flex gap={"small"}>
-          <ol className={styles.instructionsList}>
-            <li>
-              Download a template CSV file:{" "}
-              <Button onClick={handleDownloadScenarios} size="large" type="primary">
-                Generate Scenarios/Template
-              </Button>
-            </li>
-            <li>Add additional scenarios to the CSV file</li>
-            <li>
-              Upload your edited CSV file with scenarios:{" "}
-              <label className="labelsmall">
-                <Upload
-                  accept=".csv"
-                  multiple={false}
-                  maxCount={1}
-                  customRequest={({ file, onSuccess }) => {
-                    setFile(file as File);
-                    message.success(`${(file as File).name} file uploaded successfully.`);
-                    onSuccess && onSuccess("ok");
-                    setUploadedFile(true);
-                  }}
-                  onRemove={() => {
-                    setFile(null);
-                    setUploadedFile(false);
-                  }}
-                  showUploadList={true}
-                  className={styles.upload}
-                >
-                  <Button size="large" type="primary" icon={<UploadOutlined />}>
-                    Upload Scenarios
-                  </Button>
-                </Upload>
-                {!file ? `Select file for upload.` : `File Selected.`}
-              </label>
-            </li>
-            <li>
-              Run the scenarios against the GO Rules JSON file:{" "}
-              <Button
-                disabled={!uploadedFile}
-                size="large"
-                type="primary"
-                onClick={handleRunUploadScenarios}
-                className="styles.runButton"
-              >
-                Run Upload Scenarios
-              </Button>
-            </li>
-            <li>Receive a csv file with the results! 🎉</li>
-          </ol>
+      <div className={styles.scenarioContainer}>
+        <Flex gap={"small"} justify="space-between">
+          <Button onClick={() => updateScenarioResults(jsonFile)} size="large" type="primary">
+            Run Scenarios
+          </Button>
         </Flex>
-      ) : (
-        <div className={styles.scenarioContainer}>
-          <Flex gap={"small"} justify="space-between">
-            <Button onClick={() => updateScenarioResults(jsonFile)} size="large" type="primary">
-              Run Scenarios
-            </Button>
-          </Flex>
-          <Flex gap="small" vertical>
-            <Table
-              pagination={{ hideOnSinglePage: true }}
-              bordered
-              dataSource={scenarioResults.formattedData}
-              columns={scenarioResults.columns}
-              expandable={{
-                expandedRowRender: (record: any) => expandedRowRender(record),
-                rowExpandable: (record: any) => rowExpandable(record),
-                columnTitle: "View Expected Results",
-              }}
-              className={styles.scenarioTable}
-              size="middle"
-            />
-          </Flex>
-        </div>
-      )}
+        <Flex gap="small" vertical>
+          <Table
+            pagination={{ hideOnSinglePage: true, size: "small", pageSize: 10 }}
+            bordered
+            dataSource={scenarioResults.formattedData}
+            columns={scenarioResults.columns}
+            expandable={{
+              expandedRowRender: (record: any) => expandedRowRender(record, isMobile || isTablet),
+              rowExpandable: (record: any) => rowExpandable(record),
+              columnTitle: isMobile || isTablet ? "Expand Record" : "Status",
+              columnWidth: "10%",
+              expandIcon: ({ expanded, onExpand, record }) =>
+                record.resultMatch.props.className !== "result-mismatch" ? (
+                  rowExpandable(record) ? (
+                    <Button onClick={(e) => onExpand(record, e)} aria-label="view record" size="small" type="text">
+                      <Tag color="success" icon={<CheckCircleOutlined />}>
+                        {expanded ? <DownCircleOutlined /> : <RightCircleOutlined />}
+                      </Tag>
+                    </Button>
+                  ) : (
+                    <Tag color="success" icon={<CheckCircleOutlined />} />
+                  )
+                ) : (
+                  <Button
+                    onClick={(e) => onExpand(record, e)}
+                    aria-label="view expected results"
+                    size="small"
+                    type="text"
+                  >
+                    <Tag color="error" icon={<CloseCircleOutlined />}>
+                      {expanded ? <DownCircleOutlined /> : <RightCircleOutlined />}
+                    </Tag>
+                  </Button>
+                ),
+            }}
+            className={styles.scenarioTable}
+            size="small"
+            scroll={{ x: isMobile || isTablet ? 400 : 800, y: 600 }}
+            virtual
+          />
+        </Flex>
+      </div>
     </div>
   );
 }

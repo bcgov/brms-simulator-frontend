@@ -107,10 +107,10 @@ export default function Admin() {
       title: "GoRules JSON Filename",
       dataIndex: "goRulesJSONFilename",
       render: renderInputField("goRulesJSONFilename"),
-      width: "260px",
     },
     {
       dataIndex: "delete",
+      width: "60px",
       render: (value: string, _: RuleInfo, index: number) => (
         <Button danger onClick={() => deleteRule(index)}>
           Delete
@@ -119,6 +119,7 @@ export default function Admin() {
     },
     {
       dataIndex: "view",
+      width: "60px",
       render: (_: string, { _id }: RuleInfo) => (
         <Link href={`/rule/${_id}`}>
           <Button>View</Button>
@@ -135,7 +136,7 @@ export default function Admin() {
         </Link>
         <h1>Admin</h1>
         {!isLoading && (
-          <Button type="primary" size="large" onClick={saveAllRuleUpdates}>
+          <Button type="primary" danger onClick={saveAllRuleUpdates}>
             Save Changes
           </Button>
         )}

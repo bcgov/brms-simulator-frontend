@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Flex, Button, Popconfirm, message } from "antd";
+import { Flex, Button, Popconfirm, message, Pagination } from "antd";
 import type { PopconfirmProps } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import InputOutputTable from "../InputOutputTable";
@@ -12,7 +12,7 @@ import { RuleMap } from "@/app/types/rulemap";
 interface ScenarioViewerProps {
   scenarios: Scenario[];
   resultsOfSimulation: Record<string, any> | null | undefined;
-  setSelectedSubmissionInputs: (data: any) => void;
+  setSimulationContext: (data: any) => void;
   runSimulation: () => void;
   rulemap: RuleMap;
   editing?: boolean;
@@ -21,7 +21,7 @@ interface ScenarioViewerProps {
 export default function ScenarioViewer({
   scenarios,
   resultsOfSimulation,
-  setSelectedSubmissionInputs,
+  setSimulationContext,
   runSimulation,
   rulemap,
   editing = true,
@@ -36,11 +36,11 @@ export default function ScenarioViewer({
 
   const handleSelectScenario = (scenario: Scenario) => {
     setSelectedScenario(scenario);
-    const submissionInputs = scenario.variables.reduce((acc, variable) => {
+    const scenarioInputs = scenario.variables.reduce((acc, variable) => {
       acc[variable.name] = variable.value;
       return acc;
     }, {} as Record<string, any>);
-    setSelectedSubmissionInputs(submissionInputs);
+    setSimulationContext(scenarioInputs);
   };
 
   const handleRunScenario = () => {
@@ -63,41 +63,66 @@ export default function ScenarioViewer({
     console.log(e);
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const handlePageChange = (page: React.SetStateAction<number>) => {
+    setCurrentPage(page);
+  };
+
+  // Calculate the scenarios to display based on the current page
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedScenarios = scenariosDisplay?.slice(startIndex, endIndex);
+
   return (
     <Flex className={styles.scenarioViewer}>
-      <Flex className={styles.scenarioList} vertical>
+      <Flex className={styles.scenarioList} vertical gap={"large"}>
         {scenariosDisplay && scenariosDisplay.length > 0 ? (
           <>
             <ol>
-              {scenariosDisplay.map((scenario, index) => (
-                <li
-                  key={index}
-                  onClick={() => handleSelectScenario(scenario)}
-                  className={selectedScenario === scenario ? styles.selected : ""}
-                >
-                  {scenario.title} {"  "}
-                  {manageScenarios && (
-                    <>
-                      <Popconfirm
-                        title="Are you sure you want to delete this scenario?"
-                        onConfirm={() => handleDeleteScenario(scenario)}
-                        onCancel={cancel}
-                        okText="Yes, delete scenario"
-                        cancelText="No"
-                      >
-                        <Button
-                          shape="circle"
-                          icon={<DeleteOutlined />}
-                          disabled={!manageScenarios}
-                          size="small"
-                          danger
-                        ></Button>
-                      </Popconfirm>
-                    </>
-                  )}
-                </li>
+              {paginatedScenarios?.map((scenario, index) => (
+                <Flex key={startIndex + index} className={styles.scenarioList} vertical gap={"large"}>
+                  <li
+                    key={startIndex + index}
+                    onClick={() => handleSelectScenario(scenario)}
+                    className={selectedScenario === scenario ? styles.selected : ""}
+                  >
+                    <Flex key={startIndex + index} gap={"small"} align="center" justify="space-between">
+                      <span className={styles.listItem}>
+                        <span className={styles.listItemNumber}>{startIndex + index + 1}.</span> {scenario.title} {"  "}
+                      </span>
+                      {manageScenarios && (
+                        <>
+                          <Popconfirm
+                            title="Are you sure you want to delete this scenario?"
+                            onConfirm={() => handleDeleteScenario(scenario)}
+                            onCancel={cancel}
+                            okText="Yes, delete scenario"
+                            cancelText="No"
+                          >
+                            <Button
+                              shape="circle"
+                              icon={<DeleteOutlined />}
+                              disabled={!manageScenarios}
+                              size="small"
+                              danger
+                            ></Button>
+                          </Popconfirm>
+                        </>
+                      )}
+                    </Flex>
+                  </li>
+                </Flex>
               ))}
             </ol>
+            <Pagination
+              current={currentPage}
+              pageSize={itemsPerPage}
+              total={scenariosDisplay.length}
+              onChange={handlePageChange}
+              hideOnSinglePage
+            />
             {editing && <Button onClick={() => setManageScenarios(!manageScenarios)}>Manage Scenarios</Button>}
           </>
         ) : (

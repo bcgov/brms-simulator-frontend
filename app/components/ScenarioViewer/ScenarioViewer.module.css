@@ -11,44 +11,48 @@
 }
 
 .scenarioList {
-  min-width: 300px; 
-  max-width: 300px; 
-  .selected {
-    background-color: rgba(209, 230, 255, 0.5);
-    border-radius: 5px;
-  }
+  min-width: 300px;
+  max-width: 300px;
+}
+.scenarioList .selected {
+  background-color: rgba(209, 230, 255, 0.5);
+  border-radius: 5px;
 }
 
 .scenarioList ol {
-  list-style-type: none; 
-  counter-reset: item; 
-  padding: 0; 
+  list-style-type: none;
+  padding: 0;
 }
 
 .scenarioList li {
-  cursor: pointer; 
-  counter-increment: item; 
-  padding-block: 1rem; 
-  padding-inline: 0.75rem; 
-  margin-block: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
-.scenarioList li:before {
-  content: counter(item) ""; 
-  color: white; 
-  background-color: black; 
-  margin-right: 10px; 
+.listItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.listItemNumber {
+  color: white;
+  background-color: black;
+  margin-right: 10px;
   border-radius: 50%;
-  width:30px;
-  height: 20px;
-  padding-block: 5px;
-  padding-inline: 10px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .selectedScenarioDetails {
-  min-width: 450px; 
-  max-width: 450px; 
-  border: 1px solid #ccc; 
+  min-width: 450px;
+  max-width: 450px;
+  border: 1px solid #ccc;
 }
 
 .selectedScenarioDetails button {
@@ -57,19 +61,64 @@
 }
 
 .resultsColumn {
-  flex: 1 1 300px; 
-  min-width: 300px; 
-  max-width: 300px; 
-  display: none; 
+  flex: 1 1 300px;
+  min-width: 300px;
+  display: none;
   white-space: pre-wrap;
   border: 1px solid #6fb1fe;
   background-color: rgba(209, 230, 255, 0.5);
-  border-radius: 5px; 
+  border-radius: 5px;
 }
 
 @media (min-width: 768px) {
   .resultsColumn {
     display: block;
+    width: fit-content;
+  }
+}
 
+@media (max-width: 1100px) {
+  .scenarioViewer {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .scenarioViewer {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .scenarioList, .selectedScenarioDetails, .resultsColumn {
+    width: 100%;
+  }
+
+  .resultsColumn {
+    max-width: 450px;
+  }
+}
+
+@media (max-width: 480px) {
+  .scenarioViewer {
+    gap: 0.5rem;
+  }
+
+  .scenarioList, .selectedScenarioDetails, .resultsColumn {
+    padding: 0.5rem;
+  }
+
+  .scenarioList {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .selectedScenarioDetails {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .resultsColumn {
+    min-width: 100%;
+    max-width: 100%;
   }
 }
