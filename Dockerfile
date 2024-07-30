@@ -2,8 +2,8 @@
 FROM registry.access.redhat.com/ubi9/nodejs-20:latest
 
 # Set the environment variables
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ARG NEXT_PUBLIC_SERVER_URL
+ENV NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL}
 
 # Set the working directory
 WORKDIR /opt/app-root/src
