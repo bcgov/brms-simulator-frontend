@@ -1,9 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Modal, Button, Form, Input } from "antd";
+import { Modal, Button, Form, Input, message } from "antd";
 import { RuleInfo } from "@/app/types/ruleInfo";
+import { DEFAULT_RULE_CONTENT } from "@/app/constants/defaultRuleContent";
 import RuleHeader from "@/app/components/RuleHeader";
 import SimulationViewer from "../../components/SimulationViewer";
+import { RULE_VERSION } from "@/app/constants/ruleVersion";
+import { postRuleData } from "@/app/utils/api";
 
 export default function NewRule() {
   const [openNewRuleModal, setOpenNewRuleModal] = useState(false);
@@ -17,8 +20,17 @@ export default function NewRule() {
     setOpenNewRuleModal(!ruleInfo.goRulesJSONFilename);
   }, [ruleInfo]);
 
-  const createNewRule = (newRuleInfo: Partial<RuleInfo>) => {
-    setRuleInfo({ ...ruleInfo, ...newRuleInfo });
+  const createNewRule = async (newRuleInfo: Partial<RuleInfo>) => {
+    try {
+      setRuleInfo({ ...ruleInfo, ...newRuleInfo });
+      const updatedRuleInfo = await postRuleData({ ...newRuleInfo, ruleDraft: { content: DEFAULT_RULE_CONTENT } });
+      message.success("New draft created");
+      setRuleInfo(updatedRuleInfo);
+      window.location.href = `/rule/${updatedRuleInfo._id}?version=draft`;
+    } catch (e) {
+      console.error("Error updating rule", e);
+      message.error("Unable to create new draft");
+    }
   };
 
   return (
@@ -43,8 +55,10 @@ export default function NewRule() {
           </Form.Item>
         </Form>
       </Modal>
-      <RuleHeader ruleInfo={ruleInfo} />
-      <SimulationViewer ruleId={ruleInfo._id} jsonFile={ruleInfo.goRulesJSONFilename} editing isNewRule />
+      <RuleHeader ruleInfo={ruleInfo} version={RULE_VERSION.draft} />
+      {ruleInfo.goRulesJSONFilename && (
+        <SimulationViewer ruleInfo={ruleInfo} initialRuleContent={DEFAULT_RULE_CONTENT} editing />
+      )}
     </>
   );
 }

@@ -4,34 +4,35 @@ import dynamic from "next/dynamic";
 import { Flex, Button, Spin, Tabs, message } from "antd";
 import type { TabsProps } from "antd";
 import { Simulation, DecisionGraphType } from "@gorules/jdm-editor";
-import { getDocument, postDecision, getRuleMap } from "../../utils/api";
-import { RuleMap } from "../../types/rulemap";
+import { postDecision, getRuleMap } from "../../utils/api";
+import { RuleInfo } from "@/app/types/ruleInfo";
+import { RuleMap } from "@/app/types/rulemap";
 import { Scenario } from "@/app/types/scenario";
-import styles from "./SimulationViewer.module.css";
+import { DEFAULT_RULE_CONTENT } from "@/app/constants/defaultRuleContent";
 import ScenarioViewer from "../ScenarioViewer/ScenarioViewer";
 import ScenarioGenerator from "../ScenarioGenerator/ScenarioGenerator";
 import ScenarioTester from "../ScenarioTester/ScenarioTester";
+import SavePublish from "../SavePublish";
 import ScenarioCSV from "../ScenarioCSV/ScenarioCSV";
+import styles from "./SimulationViewer.module.css";
 
 // Need to disable SSR when loading this component so it works properly
 const RulesDecisionGraph = dynamic(() => import("../RulesDecisionGraph"), { ssr: false });
 
 interface SimulationViewerProps {
-  ruleId: string;
-  jsonFile: string;
-  rulemap?: RuleMap;
+  ruleInfo: RuleInfo;
   scenarios?: Scenario[];
-  isNewRule?: boolean;
+  initialRuleContent?: DecisionGraphType;
   editing?: boolean;
 }
 
 export default function SimulationViewer({
-  ruleId,
-  jsonFile,
+  ruleInfo,
   scenarios,
-  isNewRule = false,
+  initialRuleContent = DEFAULT_RULE_CONTENT,
   editing = true,
 }: SimulationViewerProps) {
+  const { _id: ruleId, goRulesJSONFilename: jsonFile } = ruleInfo;
   const createRuleMap = (array: any[] = [], preExistingContext?: Record<string, any>) => {
     return array.reduce(
       (acc, obj) => {
@@ -54,20 +55,8 @@ export default function SimulationViewer({
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await getDocument(jsonFile);
-        setRuleContent(data);
-      } catch (error) {
-        console.error("Error fetching JSON:", error);
-      }
-    };
-    if (isNewRule) {
-      setRuleContent({ nodes: [], edges: [] });
-    } else {
-      fetchData();
-    }
-  }, [jsonFile]);
+    setRuleContent(initialRuleContent);
+  }, [initialRuleContent]);
 
   useEffect(() => {
     const canBeSchemaMapped = () => {
@@ -155,7 +144,7 @@ export default function SimulationViewer({
     </Flex>
   );
 
-  const scenarioGeneratorTab = scenarios && rulemap && (
+  const scenarioGeneratorTab = scenarios && rulemap && ruleId && (
     <Flex gap="small " className={styles.scenarioGeneratorTab}>
       <ScenarioGenerator
         scenarios={scenarios}
@@ -227,6 +216,7 @@ export default function SimulationViewer({
   return (
     <Flex gap="large" vertical>
       <div className={styles.rulesWrapper}>
+        {editing && <SavePublish ruleInfo={ruleInfo} ruleContent={ruleContent} />}
         <RulesDecisionGraph
           jsonFilename={jsonFile}
           ruleContent={ruleContent}

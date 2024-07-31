@@ -1,12 +1,12 @@
 import { DecisionGraphType } from "@gorules/jdm-editor";
 import axios from "axios";
-import { RuleInfo } from "../types/ruleInfo";
+import { RuleDraft, RuleInfo } from "../types/ruleInfo";
 import { RuleMap } from "../types/rulemap";
 import { downloadFileBlob } from "./utils";
 
 const axiosAPIInstance = axios.create({
   // For server side calls, need full URL, otherwise can just use /api
-  baseURL: typeof window === "undefined" ? process.env.NEXT_PUBLIC_API_URL : "/api",
+  baseURL: typeof window === "undefined" ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api` : "/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -21,6 +21,22 @@ const axiosAPIInstance = axios.create({
 export const getRuleDataById = async (ruleId: string): Promise<RuleInfo> => {
   try {
     const { data } = await axiosAPIInstance.get(`/ruleData/${ruleId}`);
+    return data;
+  } catch (error) {
+    console.error(`Error getting rule data: ${error}`);
+    throw error;
+  }
+};
+
+/**
+ * Retrieves the draft of a rule if it exists
+ * @param ruleId The ID of the rule data to retrieve.
+ * @returns The draft json
+ * @throws If an error occurs while retrieving the rule draft
+ */
+export const getRuleDraft = async (ruleId: string): Promise<RuleDraft> => {
+  try {
+    const { data } = await axiosAPIInstance.get(`/ruleData/draft/${ruleId}?_=${new Date().getTime()}`);
     return data;
   } catch (error) {
     console.error(`Error getting rule data: ${error}`);

@@ -5,7 +5,7 @@ import { Table, Input, Button, Flex } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { HomeOutlined } from "@ant-design/icons";
 import { RuleInfo } from "../types/ruleInfo";
-import { getAllRuleData, getAllRuleDocuments, postRuleData, updateRuleData, deleteRuleData } from "../utils/api";
+import { getAllRuleData, postRuleData, updateRuleData, deleteRuleData } from "../utils/api";
 
 enum ACTION_STATUS {
   NEW = "new",
@@ -32,6 +32,9 @@ export default function Admin() {
 
   const updateRule = (e: React.ChangeEvent<HTMLInputElement>, index: number, property: keyof RuleInfo) => {
     const newRules = [...rules];
+    if (property === "ruleDraft") {
+      throw new Error("Can't update the draft this way");
+    }
     newRules[index][property] = e.target.value;
     setRules(newRules);
   };

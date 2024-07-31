@@ -76,7 +76,7 @@ export default function LinkRuleComponent({ specification, id, isSelected, name 
               />
               <Button onClick={closeRuleDrawer}>Done</Button>
             </Flex>
-            {goRulesJSONFilename && <SimulationViewer ruleId={id} jsonFile={goRulesJSONFilename} editing={false} />}
+            {goRulesJSONFilename && <SimulationViewer ruleInfo={{ _id: id, goRulesJSONFilename }} editing={false} />}
           </>
         ) : (
           <Spin tip="Loading rules..." size="large" className={styles.spinner}>

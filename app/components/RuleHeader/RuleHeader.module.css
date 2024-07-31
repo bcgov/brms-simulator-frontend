@@ -1,7 +1,35 @@
+.headerContainer {
+  position: relative;
+  margin-bottom: 8px;
+  border-radius: 12px 12px 0 0;
+}
+
+.headerWrapper {
+  background: linear-gradient(0deg, #FFFFFF, #FFFFFFe4);
+  padding: 16px 8px 8px 8px;
+}
+
+.homeButton {
+  color: #666;
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 4px 8px;
+  background: white;
+}
+
+.titleHeader {
+  margin: 0;
+}
+
 .titleInput {
   font-size: inherit;
   width: 100%;
   padding: 0;
+}
+
+.titleFilePath {
+  margin: 4px 0;
+  color: #aaa;
 }
 
 .editButton {
@@ -10,4 +38,5 @@
   cursor: pointer;
   padding: 0;
   font-size: 18px;
+  color: #4b4b4b;
 }
