@@ -58,7 +58,7 @@ export default function RuleHeader({
   };
 
   const switchVersion = (versionToSwitchTo: string) => {
-    router.push(`${pathname}?version=${versionToSwitchTo}`);
+    router.push(`${pathname}?version=${versionToSwitchTo}&_=${new Date().getTime()}`);
   };
 
   const formatVersionText = (text: string) => {
