@@ -14,3 +14,14 @@ export const downloadFileBlob = (dataBlob: any, type: string, filename: string) 
   a.click();
   window.URL.revokeObjectURL(url);
 };
+
+/**
+ * Gets the last section of a filepath (aka the filename). Shortens if desired.
+ * @param filepath
+ * @param maxLength
+ */
+export const getShortFilenameOnly = (filepath: string, maxLength: number | null = 25): string => {
+  const filepathSections = filepath.split("/");
+  const filename = filepathSections[filepathSections.length - 1];
+  return maxLength && filename.length > maxLength ? `${filename.substring(0, maxLength - 3)}...` : filename;
+};

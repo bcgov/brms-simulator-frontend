@@ -8,7 +8,11 @@ const nextConfig = {
       return [
         {
           source: "/api/:path*",
-          destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
+          destination: `${process.env.NEXT_PUBLIC_SERVER_URL}/api/:path*`,
+        },
+        {
+          source: "/auth/:path*",
+          destination: `${process.env.NEXT_PUBLIC_SERVER_URL}/auth/:path*`,
         },
       ];
     } else {
