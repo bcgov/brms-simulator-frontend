@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Flex, Button, Popconfirm, message, Pagination } from "antd";
 import type { PopconfirmProps } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
-import InputOutputTable from "../InputOutputTable";
+import InputOutputTable from "@/app/components/InputOutputTable";
 import styles from "./ScenarioViewer.module.css";
 import { Scenario } from "@/app/types/scenario";
 import { deleteScenario } from "@/app/utils/api";

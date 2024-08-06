@@ -5,7 +5,7 @@ import { EditOutlined } from "@ant-design/icons";
 import { GraphNode, useDecisionGraphActions, useDecisionGraphState } from "@gorules/jdm-editor";
 import type { DecisionGraphType, GraphNodeProps } from "@gorules/jdm-editor";
 import { getAllRuleData, getDocument } from "@/app/utils/api";
-import SimulationViewer from "../SimulationViewer";
+import RuleManager from "../../RuleManager";
 import styles from "./LinkRuleComponent.module.css";
 
 interface LinkRuleComponent extends GraphNodeProps {
@@ -92,7 +92,7 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
               <Button onClick={closeRuleDrawer}>Done</Button>
             </Flex>
             {goRulesJSONFilename && (
-              <SimulationViewer
+              <RuleManager
                 ruleInfo={{ _id: id, goRulesJSONFilename }}
                 initialRuleContent={selectedRuleContent}
                 editing={false}

@@ -1,6 +1,6 @@
 import { getScenariosByFilename } from "@/app/utils/api";
 import RuleHeader from "@/app/components/RuleHeader";
-import SimulationViewer from "@/app/components/SimulationViewer";
+import RuleManager from "@/app/components/RuleManager";
 import { Scenario } from "@/app/types/scenario";
 import getRuleDataForVersion from "@/app/hooks/getRuleDataForVersion";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
@@ -34,7 +34,7 @@ export default async function Rule({
   return (
     <GithubAuthProvider authInfo={{ githubAuthToken, githubAuthUsername }}>
       <RuleHeader ruleInfo={ruleInfo} version={version} />
-      <SimulationViewer
+      <RuleManager
         ruleInfo={ruleInfo}
         initialRuleContent={ruleContent}
         scenarios={scenarios}

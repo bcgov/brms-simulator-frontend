@@ -4,7 +4,7 @@ import { Modal, Button, Form, Input, message } from "antd";
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { DEFAULT_RULE_CONTENT } from "@/app/constants/defaultRuleContent";
 import RuleHeader from "@/app/components/RuleHeader";
-import SimulationViewer from "../../components/SimulationViewer";
+import RuleManager from "../../components/RuleManager";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
 import { postRuleData } from "@/app/utils/api";
 
@@ -72,7 +72,7 @@ export default function NewRule() {
       </Modal>
       <RuleHeader ruleInfo={ruleInfo} version={RULE_VERSION.draft} />
       {ruleInfo.goRulesJSONFilename && (
-        <SimulationViewer ruleInfo={ruleInfo} initialRuleContent={DEFAULT_RULE_CONTENT} editing />
+        <RuleManager ruleInfo={ruleInfo} initialRuleContent={DEFAULT_RULE_CONTENT} editing />
       )}
     </>
   );

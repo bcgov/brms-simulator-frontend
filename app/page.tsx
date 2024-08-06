@@ -27,7 +27,7 @@ export default function Home() {
       key: _id,
       titleLink: (
         <b>
-          <Link href={`/rule/${_id}`}>{title || goRulesJSONFilename}</Link>
+          <a href={`/rule/${_id}`}>{title || goRulesJSONFilename}</a>
         </b>
       ),
       downloadRule: (
@@ -50,7 +50,7 @@ export default function Home() {
   return (
     <>
       <Flex justify="space-between" align="center">
-        <h1>BRMS Rule Simulator</h1>
+        <h1>SDPR Business Rules Management</h1>
         <Flex gap="small">
           <Link href="/rule/new">
             <Button type="primary">New rule +</Button>
