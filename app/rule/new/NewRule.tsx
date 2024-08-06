@@ -44,7 +44,22 @@ export default function NewRule() {
           <Form.Item
             label="File path/name"
             name="goRulesJSONFilename"
-            rules={[{ required: true, message: "Please input your JSON file path!" }]}
+            rules={[
+              {
+                required: true,
+                message: "File path/name is required",
+              },
+              {
+                message:
+                  "File path/name can include letters, numbers, dashes (-), underscores (_), and dots (.). Leading slashes (/) are not allowed.",
+                pattern: /^(?!\/)[a-zA-Z0-9_\-\\.\/]+$/,
+              },
+              {
+                message: "File path/name must end in .json",
+                pattern: /\.json$/,
+                validateTrigger: "onBlur",
+              },
+            ]}
           >
             <Input />
           </Form.Item>

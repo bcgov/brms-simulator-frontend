@@ -124,9 +124,16 @@ export default function RulesDecisionGraph({
         displayName: "Rule",
         shortDescription: "Linked rule to execute",
         icon: <ApartmentOutlined />,
+        color: "#faad14",
         generateNode: () => ({ name: "Linked Rule" }),
         renderNode: ({ specification, id, selected, data }) => (
-          <LinkRuleComponent specification={specification} id={id} isSelected={selected} name={data?.name} />
+          <LinkRuleComponent
+            specification={specification}
+            id={id}
+            isSelected={selected}
+            name={data?.name}
+            isEditable={false}
+          />
         ),
       },
     ],

@@ -78,7 +78,7 @@ export default function RuleHeader({
   return (
     <div className={styles.headerContainer} style={{ background: versionColor }}>
       <Flex justify="space-between" className={styles.headerWrapper}>
-        <Flex gap="middle" align="center" flex={isEditingTitle ? "1" : "none"}>
+        <Flex gap="middle" align="center" flex={isEditingTitle ? "1" : "none"} className={styles.headerContent}>
           <Link href="/" className={styles.homeButton}>
             <HomeOutlined />
           </Link>

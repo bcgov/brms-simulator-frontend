@@ -30,7 +30,7 @@ export const isGithubAuthTokenValid = async (oauthToken: string): Promise<boolea
 };
 
 export const generateBranchName = (filePath: string) => {
-  return `${githubAuthUsername}/${getShortFilenameOnly(filePath).replace(" ", "-")}`;
+  return `${githubAuthUsername}/${getShortFilenameOnly(filePath, 15, false).replace(" ", "-")}`;
 };
 
 export const generateCommitMessage = (isNewFile: boolean, filePath: string) => {

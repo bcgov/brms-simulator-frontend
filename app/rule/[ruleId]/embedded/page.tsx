@@ -15,6 +15,12 @@ export default async function Rule({ params: { ruleId } }: { params: { ruleId: s
   const scenarios: Scenario[] = await getScenariosByFilename(ruleInfo.goRulesJSONFilename);
 
   return (
-    <SimulationViewer ruleInfo={ruleInfo} initialRuleContent={ruleContent} scenarios={scenarios} editing={false} />
+    <SimulationViewer
+      ruleInfo={ruleInfo}
+      initialRuleContent={ruleContent}
+      scenarios={scenarios}
+      editing={false}
+      showAllScenarioTabs={false}
+    />
   );
 }

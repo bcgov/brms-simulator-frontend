@@ -24,6 +24,7 @@ interface SimulationViewerProps {
   scenarios?: Scenario[];
   initialRuleContent?: DecisionGraphType;
   editing?: boolean;
+  showAllScenarioTabs?: boolean;
 }
 
 export default function SimulationViewer({
@@ -31,6 +32,7 @@ export default function SimulationViewer({
   scenarios,
   initialRuleContent = DEFAULT_RULE_CONTENT,
   editing = true,
+  showAllScenarioTabs = true,
 }: SimulationViewerProps) {
   const { _id: ruleId, goRulesJSONFilename: jsonFile } = ruleInfo;
   const createRuleMap = (array: any[] = [], preExistingContext?: Record<string, any>) => {
@@ -193,13 +195,13 @@ export default function SimulationViewer({
       key: "3",
       label: "Scenario Results",
       children: scenarioTestsTab,
-      disabled: !editing,
+      disabled: !showAllScenarioTabs,
     },
     {
       key: "4",
       label: "CSV Tests",
       children: csvScenarioTestsTab,
-      disabled: !editing,
+      disabled: !showAllScenarioTabs,
     },
   ];
 
@@ -211,7 +213,7 @@ export default function SimulationViewer({
     );
   }
 
-  const filteredItems = editing ? items : items?.filter((item) => item.disabled !== true) || [];
+  const filteredItems = showAllScenarioTabs ? items : items?.filter((item) => item.disabled !== true) || [];
 
   return (
     <Flex gap="large" vertical>
@@ -233,7 +235,7 @@ export default function SimulationViewer({
           <Flex gap="middle" justify="space-between">
             <Tabs
               className={styles.tabs}
-              defaultActiveKey={editing ? "3" : "1"}
+              defaultActiveKey={showAllScenarioTabs ? "3" : "1"}
               items={filteredItems}
               onChange={handleTabChange}
             ></Tabs>

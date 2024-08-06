@@ -19,6 +19,8 @@
 
 .titleHeader {
   margin: 0;
+  word-wrap: break-word;
+  max-width: calc(100vw - 32px);
 }
 
 .titleInput {
@@ -39,4 +41,24 @@
   padding: 0;
   font-size: 18px;
   color: #4b4b4b;
+}
+
+
+
+@media (max-width: 767px) {
+  .headerWrapper {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .headerContent {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  .titleHeader {
+    font-size: 24px;
+  }
+  .titleFilePath {
+    font-size: 14px;
+  }
 }
