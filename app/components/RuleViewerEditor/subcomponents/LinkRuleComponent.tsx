@@ -3,18 +3,27 @@ import { Button, Drawer, Flex, Select, Spin } from "antd";
 import { DefaultOptionType } from "antd/es/cascader";
 import { EditOutlined } from "@ant-design/icons";
 import { GraphNode, useDecisionGraphActions, useDecisionGraphState } from "@gorules/jdm-editor";
-import type { GraphNodeProps } from "@gorules/jdm-editor";
-import { getAllRuleData } from "@/app/utils/api";
-import SimulationViewer from "../SimulationViewer";
+import type { DecisionGraphType, GraphNodeProps } from "@gorules/jdm-editor";
+import { getAllRuleData, getDocument } from "@/app/utils/api";
+import RuleManager from "../../RuleManager";
 import styles from "./LinkRuleComponent.module.css";
 
-export default function LinkRuleComponent({ specification, id, isSelected, name }: GraphNodeProps) {
+interface LinkRuleComponent extends GraphNodeProps {
+  isEditable: boolean;
+}
+
+export default function LinkRuleComponent({ specification, id, isSelected, name, isEditable }: LinkRuleComponent) {
   const { updateNode } = useDecisionGraphActions();
   const node = useDecisionGraphState((state) => (state.decisionGraph?.nodes || []).find((n) => n.id === id));
   const goRulesJSONFilename = node?.content?.key;
 
   const [openRuleDrawer, setOpenRuleDrawer] = useState(false);
   const [ruleOptions, setRuleOptions] = useState<DefaultOptionType[]>([]);
+  const [selectedRuleContent, setSelectedRuleContent] = useState<DecisionGraphType>();
+
+  const updateRuleContent = async (updatedJsonFilename: string) => {
+    setSelectedRuleContent(await getDocument(updatedJsonFilename));
+  };
 
   useEffect(() => {
     const getRuleOptions = async () => {
@@ -31,6 +40,10 @@ export default function LinkRuleComponent({ specification, id, isSelected, name 
     }
   }, [openRuleDrawer]);
 
+  useEffect(() => {
+    updateRuleContent(goRulesJSONFilename);
+  }, []);
+
   const showRuleDrawer = () => {
     setOpenRuleDrawer(true);
   };
@@ -39,12 +52,13 @@ export default function LinkRuleComponent({ specification, id, isSelected, name 
     setOpenRuleDrawer(false);
   };
 
-  const onChangeSelection = (jsonFilename: string) => {
+  const onChangeSelection = (updatedJsonFilename: string) => {
     // Update the graph with the jsonFilename. We use "key" to keep in line with how goRules handing linking rules
     updateNode(id, (draft) => {
-      draft.content = { key: jsonFilename };
+      draft.content = { key: updatedJsonFilename };
       return draft;
     });
+    updateRuleContent(updatedJsonFilename);
   };
 
   const getShortFilenameOnly = (filepath: string, maxLength: number = 25) => {
@@ -64,6 +78,7 @@ export default function LinkRuleComponent({ specification, id, isSelected, name 
           <>
             <Flex gap="small">
               <Select
+                disabled={!isEditable}
                 showSearch
                 placeholder="Select rule"
                 filterOption={(input, option) =>
@@ -76,7 +91,14 @@ export default function LinkRuleComponent({ specification, id, isSelected, name 
               />
               <Button onClick={closeRuleDrawer}>Done</Button>
             </Flex>
-            {goRulesJSONFilename && <SimulationViewer ruleInfo={{ _id: id, goRulesJSONFilename }} editing={false} />}
+            {goRulesJSONFilename && (
+              <RuleManager
+                ruleInfo={{ _id: id, goRulesJSONFilename }}
+                initialRuleContent={selectedRuleContent}
+                editing={false}
+                showAllScenarioTabs={false}
+              />
+            )}
           </>
         ) : (
           <Spin tip="Loading rules..." size="large" className={styles.spinner}>

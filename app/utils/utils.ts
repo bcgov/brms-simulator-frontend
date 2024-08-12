@@ -19,9 +19,17 @@ export const downloadFileBlob = (dataBlob: any, type: string, filename: string) 
  * Gets the last section of a filepath (aka the filename). Shortens if desired.
  * @param filepath
  * @param maxLength
+ * @param showTrailingDots
  */
-export const getShortFilenameOnly = (filepath: string, maxLength: number | null = 25): string => {
+export const getShortFilenameOnly = (
+  filepath: string,
+  maxLength: number | null = 25,
+  showTrailingDots = true
+): string => {
   const filepathSections = filepath.split("/");
   const filename = filepathSections[filepathSections.length - 1];
-  return maxLength && filename.length > maxLength ? `${filename.substring(0, maxLength - 3)}...` : filename;
+  if (maxLength && filename.length > maxLength) {
+    return `${filename.substring(0, maxLength - 3)}${showTrailingDots ? "..." : ""}`;
+  }
+  return filename;
 };

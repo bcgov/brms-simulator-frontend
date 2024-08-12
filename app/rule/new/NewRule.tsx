@@ -4,7 +4,7 @@ import { Modal, Button, Form, Input, message } from "antd";
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { DEFAULT_RULE_CONTENT } from "@/app/constants/defaultRuleContent";
 import RuleHeader from "@/app/components/RuleHeader";
-import SimulationViewer from "../../components/SimulationViewer";
+import RuleManager from "../../components/RuleManager";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
 import { postRuleData } from "@/app/utils/api";
 
@@ -44,7 +44,22 @@ export default function NewRule() {
           <Form.Item
             label="File path/name"
             name="goRulesJSONFilename"
-            rules={[{ required: true, message: "Please input your JSON file path!" }]}
+            rules={[
+              {
+                required: true,
+                message: "File path/name is required",
+              },
+              {
+                message:
+                  "File path/name can include letters, numbers, dashes (-), underscores (_), and dots (.). Leading slashes (/) are not allowed.",
+                pattern: /^(?!\/)[a-zA-Z0-9_\-\\.\/]+$/,
+              },
+              {
+                message: "File path/name must end in .json",
+                pattern: /\.json$/,
+                validateTrigger: "onBlur",
+              },
+            ]}
           >
             <Input />
           </Form.Item>
@@ -57,7 +72,7 @@ export default function NewRule() {
       </Modal>
       <RuleHeader ruleInfo={ruleInfo} version={RULE_VERSION.draft} />
       {ruleInfo.goRulesJSONFilename && (
-        <SimulationViewer ruleInfo={ruleInfo} initialRuleContent={DEFAULT_RULE_CONTENT} editing />
+        <RuleManager ruleInfo={ruleInfo} initialRuleContent={DEFAULT_RULE_CONTENT} editing />
       )}
     </>
   );

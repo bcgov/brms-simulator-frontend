@@ -1,19 +1,5 @@
-.rulesWrapper {
-  min-height: 500px;
-  border: 1px solid #d9d9d9;
-}
-
 .contentSection {
   margin: "0 8px";
-}
-
-.inputSection button {
-  width: 10rem;
-}
-
-.spinner {
-  min-height: 500px;
-
 }
 
 .tabs {

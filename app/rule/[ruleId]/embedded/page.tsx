@@ -1,5 +1,5 @@
 import getRuleDataForVersion from "@/app/hooks/getRuleDataForVersion";
-import SimulationViewer from "../../../components/SimulationViewer";
+import RuleManager from "../../../components/RuleManager";
 import { getScenariosByFilename } from "../../../utils/api";
 import { Scenario } from "@/app/types/scenario";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
@@ -15,6 +15,12 @@ export default async function Rule({ params: { ruleId } }: { params: { ruleId: s
   const scenarios: Scenario[] = await getScenariosByFilename(ruleInfo.goRulesJSONFilename);
 
   return (
-    <SimulationViewer ruleInfo={ruleInfo} initialRuleContent={ruleContent} scenarios={scenarios} editing={false} />
+    <RuleManager
+      ruleInfo={ruleInfo}
+      initialRuleContent={ruleContent}
+      scenarios={scenarios}
+      editing={false}
+      showAllScenarioTabs={false}
+    />
   );
 }
