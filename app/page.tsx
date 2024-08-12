@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button, Flex, Spin, Table } from "antd";
 import type { Breakpoint } from "antd";
-import { EyeOutlined, EditOutlined, DownSquareOutlined } from "@ant-design/icons";
+import { EyeOutlined, EditOutlined, CheckCircleOutlined, DownSquareOutlined } from "@ant-design/icons";
 import { RuleInfo } from "./types/ruleInfo";
 import { getAllRuleData } from "./utils/api";
 import styles from "./styles/home.module.css";
@@ -25,7 +25,7 @@ export default function Home() {
     getRules();
   }, []);
 
-  const mappedRules = rules.map(({ _id, title, goRulesJSONFilename, isPublished }) => {
+  const mappedRules = rules.map(({ _id, title, goRulesJSONFilename, reviewBranch, isPublished }) => {
     const ruleLink = `/rule/${_id}`;
     const draftLink = `${ruleLink}?version=draft`;
     return {
@@ -37,32 +37,52 @@ export default function Home() {
           </a>
         </b>
       ),
-      draft: (
-        <Button href={draftLink} icon={<EditOutlined />} type="dashed" size="small" danger className={styles.draftBtn}>
-          Draft
-        </Button>
-      ),
-      inReview: (
-        <Button
-          href={`${ruleLink}?version=inReview`}
-          icon={<EyeOutlined />}
-          type="dashed"
-          size="small"
-          className={styles.inReviewBtn}
-        >
-          In Review
-        </Button>
-      ),
-      embeddedLink: (
-        <Button
-          href={`${ruleLink}/embedded`}
-          icon={<DownSquareOutlined />}
-          type="dashed"
-          size="small"
-          className={styles.embeddedBtn}
-        >
-          Embeddable
-        </Button>
+      versions: (
+        <Flex gap="small" justify="end">
+          <Button
+            href={draftLink}
+            icon={<EditOutlined />}
+            type="dashed"
+            size="small"
+            danger
+            className={styles.draftBtn}
+          >
+            Draft
+          </Button>
+          {reviewBranch && (
+            <Button
+              href={`${ruleLink}?version=inReview`}
+              icon={<EyeOutlined />}
+              type="dashed"
+              size="small"
+              className={styles.inReviewBtn}
+            >
+              In Review
+            </Button>
+          )}
+          {isPublished && (
+            <>
+              <Button
+                href={ruleLink}
+                icon={<CheckCircleOutlined />}
+                type="dashed"
+                size="small"
+                className={styles.publishedBtn}
+              >
+                Published
+              </Button>
+              <Button
+                href={`${ruleLink}/embedded`}
+                icon={<DownSquareOutlined />}
+                type="dashed"
+                size="small"
+                className={styles.embeddedBtn}
+              >
+                Embeddable
+              </Button>
+            </>
+          )}
+        </Flex>
       ),
     };
   });
@@ -71,9 +91,7 @@ export default function Home() {
     {
       dataIndex: "titleLink",
     },
-    { dataIndex: "draft", width: "60px", responsive: ["md" as Breakpoint] },
-    { dataIndex: "inReview", width: "60px", responsive: ["md" as Breakpoint] },
-    { dataIndex: "embeddedLink", width: "60px", responsive: ["md" as Breakpoint] },
+    { dataIndex: "versions", responsive: ["md" as Breakpoint] },
   ];
 
   return (

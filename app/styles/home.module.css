@@ -23,10 +23,14 @@
   color: orange !important;
   border-color: orange !important;
 }
+.publishedBtn {
+  color: #389e0d !important;
+  border-color: #389e0d !important;
+}
 .embeddedBtn {
   color: #666 !important;
   border-color: #666 !important;
 }
-.draftBtn:hover, .inReviewBtn:hover, .embeddedBtn:hover {
+.draftBtn:hover, .inReviewBtn:hover, .publishedBtn:hover, .embeddedBtn:hover {
   border: 1px solid;
 }
