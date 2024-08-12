@@ -7,6 +7,7 @@ import { postDecision, getRuleMap } from "../../utils/api";
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { RuleMap } from "@/app/types/rulemap";
 import { Scenario } from "@/app/types/scenario";
+import useLeaveScreenPopup from "@/app/hooks/useLeaveScreenPopup";
 import { DEFAULT_RULE_CONTENT } from "@/app/constants/defaultRuleContent";
 import SavePublish from "../SavePublish";
 import ScenariosManager from "../ScenariosManager";
@@ -50,6 +51,14 @@ export default function RuleManager({
   const [simulation, setSimulation] = useState<Simulation>();
   const [simulationContext, setSimulationContext] = useState<Record<string, any>>();
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
+  const { setHasUnsavedChanges } = useLeaveScreenPopup();
+
+  const updateRuleContent = (updatedRuleContent: DecisionGraphType) => {
+    if (ruleContent !== updatedRuleContent) {
+      setHasUnsavedChanges(true);
+      setRuleContent(updatedRuleContent);
+    }
+  };
 
   useEffect(() => {
     setRuleContent(initialRuleContent);
@@ -70,6 +79,7 @@ export default function RuleManager({
     if (canBeSchemaMapped()) {
       updateRuleMap();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ruleContent]);
 
   const resetContextAndResults = () => {
@@ -117,7 +127,7 @@ export default function RuleManager({
 
   if (!ruleContent) {
     return (
-      <Spin tip="Loading graph..." size="large" className={styles.spinner}>
+      <Spin tip="Loading graph..." size="large" className="spinner">
         <div className="content" />
       </Spin>
     );
@@ -126,11 +136,13 @@ export default function RuleManager({
   return (
     <Flex gap="large" vertical>
       <div className={styles.rulesWrapper}>
-        {editing && <SavePublish ruleInfo={ruleInfo} ruleContent={ruleContent} />}
+        {editing && (
+          <SavePublish ruleInfo={ruleInfo} ruleContent={ruleContent} setHasSaved={() => setHasUnsavedChanges(false)} />
+        )}
         <RuleViewerEditor
           jsonFilename={jsonFile}
           ruleContent={ruleContent}
-          setRuleContent={setRuleContent}
+          updateRuleContent={updateRuleContent}
           contextToSimulate={simulationContext}
           setContextToSimulate={setSimulationContext}
           simulation={simulation}

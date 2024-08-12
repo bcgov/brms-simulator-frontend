@@ -1,7 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Button, Flex, Tag } from "antd";
 import { HomeOutlined, EyeOutlined, EditOutlined, CheckOutlined } from "@ant-design/icons";
 import { RuleInfo } from "@/app/types/ruleInfo";
@@ -16,7 +15,6 @@ export default function RuleHeader({
   ruleInfo: RuleInfo;
   version?: string;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
 
   const [savedTitle, setSavedTitle] = useState("");
@@ -58,7 +56,8 @@ export default function RuleHeader({
   };
 
   const switchVersion = (versionToSwitchTo: string) => {
-    router.push(`${pathname}?version=${versionToSwitchTo}&_=${new Date().getTime()}`);
+    // Use window.locaiton.href instead of router.push so that we can detect page changes for "unsaved changes" popup
+    window.location.href = `${pathname}?version=${versionToSwitchTo}&_=${new Date().getTime()}`;
   };
 
   const formatVersionText = (text: string) => {
@@ -79,9 +78,9 @@ export default function RuleHeader({
     <div className={styles.headerContainer} style={{ background: versionColor }}>
       <Flex justify="space-between" className={styles.headerWrapper}>
         <Flex gap="middle" align="center" flex={isEditingTitle ? "1" : "none"} className={styles.headerContent}>
-          <Link href="/" className={styles.homeButton}>
+          <a href="/" className={styles.homeButton}>
             <HomeOutlined />
-          </Link>
+          </a>
           <Flex flex={1} vertical>
             <h1
               onClick={startEditingTitle}
@@ -111,7 +110,7 @@ export default function RuleHeader({
           <Tag color={versionColor}>{formatVersionText(version)}</Tag>
         </Flex>
         <Flex gap="small" align="end">
-          {version !== RULE_VERSION.published && (
+          {ruleInfo.isPublished && version !== RULE_VERSION.published && (
             <Button onClick={() => switchVersion("published")} icon={<EyeOutlined />} type="dashed">
               Published
             </Button>

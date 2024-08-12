@@ -41,8 +41,10 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
   }, [openRuleDrawer]);
 
   useEffect(() => {
-    updateRuleContent(goRulesJSONFilename);
-  }, []);
+    if (goRulesJSONFilename) {
+      updateRuleContent(goRulesJSONFilename);
+    }
+  }, [goRulesJSONFilename]);
 
   const showRuleDrawer = () => {
     setOpenRuleDrawer(true);
@@ -101,7 +103,7 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
             )}
           </>
         ) : (
-          <Spin tip="Loading rules..." size="large" className={styles.spinner}>
+          <Spin tip="Loading rules..." size="large" className="spinner">
             <div className="content" />
           </Spin>
         )}
