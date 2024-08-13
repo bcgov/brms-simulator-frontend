@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Modal, Button, Flex, message } from "antd";
+import { Modal, Button, Flex, message, App } from "antd";
 import { SaveOutlined, UploadOutlined } from "@ant-design/icons";
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { updateRuleData } from "@/app/utils/api";
@@ -10,9 +10,10 @@ import styles from "./SavePublish.module.css";
 interface SavePublishProps {
   ruleInfo: RuleInfo;
   ruleContent: object;
+  setHasSaved: () => void;
 }
 
-export default function SavePublish({ ruleInfo, ruleContent }: SavePublishProps) {
+export default function SavePublish({ ruleInfo, ruleContent, setHasSaved }: SavePublishProps) {
   const { _id: ruleId, goRulesJSONFilename: filePath, reviewBranch } = ruleInfo;
 
   const [openNewReviewModal, setOpenNewReviewModal] = useState(false);
@@ -29,13 +30,14 @@ export default function SavePublish({ ruleInfo, ruleContent }: SavePublishProps)
       message.error("Failed to save draft");
     }
     setIsSaving(false);
+    setHasSaved();
   };
 
   const createOrUpdateReview = async (newReviewBranch?: string, reviewDescription: string = "") => {
     setIsSaving(true);
     setIsSendingToReview(true);
     // Save before sending to review
-    await updateRuleData(ruleId, { ruleDraft: { content: ruleContent } });
+    await updateRuleData(ruleId, { ruleDraft: { content: ruleContent, reviewBranch: "test" } });
     // Prompt for new review branch details if they don't exist
     const branch = currReviewBranch || newReviewBranch;
     if (!branch) {
@@ -54,8 +56,10 @@ export default function SavePublish({ ruleInfo, ruleContent }: SavePublishProps)
       console.error("Unable to update/create review");
       message.error("Unable to update/create review");
     }
+
     setIsSaving(false);
     setIsSendingToReview(false);
+    setHasSaved();
   };
 
   const createNewReview = ({

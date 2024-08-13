@@ -9,4 +9,5 @@ export interface RuleInfo {
   goRulesJSONFilename: string;
   ruleDraft?: RuleDraft;
   reviewBranch?: string;
+  isPublished?: boolean;
 }

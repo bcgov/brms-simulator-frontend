@@ -20,7 +20,7 @@ import { getScenariosByFilename } from "../../utils/api";
 interface RuleViewerEditorProps {
   jsonFilename: string;
   ruleContent: DecisionGraphType;
-  setRuleContent: (updateGraph: DecisionGraphType) => void;
+  updateRuleContent: (updateGraph: DecisionGraphType) => void;
   contextToSimulate?: Record<string, any> | null;
   setContextToSimulate: (results: Record<string, any>) => void;
   simulation?: Simulation;
@@ -31,7 +31,7 @@ interface RuleViewerEditorProps {
 export default function RuleViewerEditor({
   jsonFilename,
   ruleContent,
-  setRuleContent,
+  updateRuleContent,
   contextToSimulate,
   setContextToSimulate,
   simulation,
@@ -132,7 +132,7 @@ export default function RuleViewerEditor({
             id={id}
             isSelected={selected}
             name={data?.name}
-            isEditable={false}
+            isEditable={isEditable}
           />
         ),
       },
@@ -170,7 +170,7 @@ export default function RuleViewerEditor({
         onReactFlowInit={reactFlowInit}
         panels={panels}
         components={additionalComponents}
-        onChange={(updatedGraphValue) => setRuleContent(updatedGraphValue)}
+        onChange={(updatedGraphValue) => updateRuleContent(updatedGraphValue)}
         disabled={!isEditable}
       />
     </JdmConfigProvider>

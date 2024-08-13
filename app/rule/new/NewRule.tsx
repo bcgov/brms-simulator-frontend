@@ -44,6 +44,7 @@ export default function NewRule() {
           <Form.Item
             label="File path/name"
             name="goRulesJSONFilename"
+            tooltip="example: my-rule.json or my-path/my-rule.json"
             rules={[
               {
                 required: true,

@@ -1,0 +1,36 @@
+.headerWrapper {
+  background: linear-gradient(0deg, #ffffff, #1677ff21);
+  padding: 16px 16px 32px 16px;
+  border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+@media (max-width: 768px) {
+  .headerWrapper {
+    flex-direction: column;
+    padding-bottom: 40px;
+    align-items: flex-start !important;
+  }
+}
+
+.mainLink {
+  color: #333;
+}
+.mainLink:hover {
+  color: black;
+}
+.inReviewBtn {
+  color: orange !important;
+  border-color: orange !important;
+}
+.publishedBtn {
+  color: #389e0d !important;
+  border-color: #389e0d !important;
+}
+.embeddedBtn {
+  color: #666 !important;
+  border-color: #666 !important;
+}
+.draftBtn:hover, .inReviewBtn:hover, .publishedBtn:hover, .embeddedBtn:hover {
+  border: 1px solid;
+}

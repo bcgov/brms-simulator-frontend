@@ -5,6 +5,7 @@ const theme: ThemeConfig = {
   components: {
     Table: {
       headerBorderRadius: 0,
+      rowHoverBg: "#f7f9fc",
     },
     Select: {
       optionFontSize: 16,
