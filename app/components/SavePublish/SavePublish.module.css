@@ -1,0 +1,17 @@
+.savePublishWrapper {
+  background: #f7f9fc;
+  padding: 16px;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.sendForReviewBtn {
+  background: orange !important;
+  border-color: orange !important;
+}
+
+
+@media (max-width: 767px) {
+  .savePublishWrapper {
+    justify-content: start !important;
+  }
+}

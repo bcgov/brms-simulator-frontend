@@ -3,8 +3,8 @@ import { Table, Button } from "antd";
 import { Scenario } from "@/app/types/scenario";
 import styles from "./ScenarioFormatter.module.css";
 import { RuleMap } from "@/app/types/rulemap";
-import InputStyler from "../InputStyler/InputStyler";
-import { parseSchemaTemplate } from "../InputStyler/ArrayFormatter";
+import InputStyler from "../../InputStyler/InputStyler";
+import { parseSchemaTemplate } from "../../InputStyler/ArrayFormatter";
 
 const COLUMNS = [
   {

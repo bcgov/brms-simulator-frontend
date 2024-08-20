@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Flex, Button, Input } from "antd";
-import InputOutputTable from "../InputOutputTable";
+import InputOutputTable from "../../InputOutputTable";
 import { Scenario } from "@/app/types/scenario";
 import { createScenario } from "@/app/utils/api";
 import { RuleMap } from "@/app/types/rulemap";

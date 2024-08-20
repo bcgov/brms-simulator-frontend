@@ -4,7 +4,7 @@ import { CheckCircleOutlined, CloseCircleOutlined, RightCircleOutlined, DownCirc
 import { DecisionGraphType } from "@gorules/jdm-editor";
 import styles from "./ScenarioTester.module.css";
 import { runDecisionsForScenarios } from "@/app/utils/api";
-import useResponsiveSize from "../../hooks/ScreenSizeHandler";
+import useResponsiveSize from "@/app/hooks/ScreenSizeHandler";
 interface ScenarioTesterProps {
   jsonFile: string;
   ruleContent?: DecisionGraphType;

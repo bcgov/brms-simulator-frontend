@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { ConfigProvider } from "antd";
+import { App, ConfigProvider } from "antd";
 import theme from "./styles/themeConfig";
+import ErrorBoundary from "./components/ErrorBoundary";
 import "./styles/globals.css";
 import styles from "./styles/layout.module.css";
 
@@ -19,7 +20,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={inter.className}>
         <AntdRegistry>
           <ConfigProvider theme={theme}>
-            <div className={styles.layoutWrapper}>{children}</div>
+            <ErrorBoundary>
+              <App>
+                <div className={styles.layoutWrapper}>{children}</div>
+              </App>
+            </ErrorBoundary>
           </ConfigProvider>
         </AntdRegistry>
       </body>

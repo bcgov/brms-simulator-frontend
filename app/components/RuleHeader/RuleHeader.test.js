@@ -1,10 +1,21 @@
 import { render, fireEvent, waitFor } from "@testing-library/react";
 import { toBeInTheDocument } from "@testing-library/jest-dom";
-import RuleHeader from "./RuleHeader";
 import api from "@/app/utils/api";
+import RuleHeader from "./RuleHeader";
 
 jest.mock("../../utils/api", () => ({
   updateRuleData: jest.fn(),
+}));
+
+jest.mock("next/navigation", () => ({
+  useRouter() {
+    return {
+      push: jest.fn(),
+    };
+  },
+  usePathname() {
+    return "/rule/123";
+  },
 }));
 
 describe("RuleHeader - doneEditingTitle", () => {

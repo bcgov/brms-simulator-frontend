@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Table, Input, Button, Flex } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { HomeOutlined } from "@ant-design/icons";
-import { RuleInfo } from "../types/ruleInfo";
-import { getAllRuleData, getAllRuleDocuments, postRuleData, updateRuleData, deleteRuleData } from "../utils/api";
+import { RuleInfo, RuleInfoBasic } from "../types/ruleInfo";
+import { getAllRuleData, postRuleData, updateRuleData, deleteRuleData } from "../utils/api";
 
 enum ACTION_STATUS {
   NEW = "new",
@@ -13,10 +13,13 @@ enum ACTION_STATUS {
   DELETE = "delete",
 }
 
+const PAGE_SIZE = 15;
+
 export default function Admin() {
   const [isLoading, setIsLoading] = useState(true);
   const [initialRules, setInitialRules] = useState<RuleInfo[]>([]);
   const [rules, setRules] = useState<RuleInfo[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const getOrRefreshRuleList = async () => {
     // Get rules that are already defined in the DB
@@ -30,15 +33,15 @@ export default function Admin() {
     getOrRefreshRuleList();
   }, []);
 
-  const updateRule = (e: React.ChangeEvent<HTMLInputElement>, index: number, property: keyof RuleInfo) => {
+  const updateRule = (e: React.ChangeEvent<HTMLInputElement>, index: number, property: keyof RuleInfoBasic) => {
     const newRules = [...rules];
     newRules[index][property] = e.target.value;
     setRules(newRules);
   };
 
   const deleteRule = async (index: number) => {
-    const newRules = [...rules];
-    newRules.splice(index, 1);
+    const deletionIndex = (currentPage - 1) * PAGE_SIZE + index;
+    const newRules = [...rules.slice(0, deletionIndex), ...rules.slice(deletionIndex + 1, rules.length)];
     setRules(newRules);
   };
 
@@ -62,6 +65,11 @@ export default function Admin() {
       .filter((initialRule) => !rules.find((rule) => rule._id === initialRule._id))
       .map((rule) => ({ rule, action: ACTION_STATUS.DELETE }));
     return [...updatedEntries, ...deletedEntries];
+  };
+
+  const updateCurrPage = (page: number, pageSize: number) => {
+    // Keep track of current page so we can delete via splice properly
+    setCurrentPage(page);
   };
 
   // Save all rule updates to the API/DB
@@ -88,7 +96,7 @@ export default function Admin() {
     getOrRefreshRuleList();
   };
 
-  const renderInputField = (fieldName: keyof RuleInfo) => {
+  const renderInputField = (fieldName: keyof RuleInfoBasic) => {
     const Component = (value: string, _: RuleInfo, index: number) => (
       <Input value={value} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateRule(e, index, fieldName)} />
     );
@@ -144,7 +152,11 @@ export default function Admin() {
       {isLoading ? (
         <p>Loading...</p>
       ) : (
-        <Table columns={columns} dataSource={rules.map((rule, key) => ({ key, ...rule }))} />
+        <Table
+          columns={columns}
+          pagination={{ pageSize: PAGE_SIZE, onChange: updateCurrPage }}
+          dataSource={rules.map((rule, key) => ({ key, ...rule }))}
+        />
       )}
     </>
   );

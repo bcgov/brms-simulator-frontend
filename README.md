@@ -5,7 +5,7 @@ This is a tool for testing/simulating rules for SDPR's Business Rules Engine. It
 
 ## Requirements
 
-This project current depends on the API provided by the [brms-api](https://github.com/bcgov/brms-api) project.
+This project current depends on the API provided by the [brms-api](https://github.com/bcgov/brms-api) project. You'll have to set an environment variable of `NEXT_PUBLIC_SERVER_URL` pointing to the URL of that when it is up and running (like `http://localhost:3000`).
 
 ## Getting it running
 

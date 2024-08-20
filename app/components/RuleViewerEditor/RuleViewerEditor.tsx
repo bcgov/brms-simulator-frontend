@@ -12,15 +12,15 @@ import {
 } from "@gorules/jdm-editor";
 import { ApartmentOutlined, PlayCircleOutlined } from "@ant-design/icons";
 import { Scenario, Variable } from "@/app/types/scenario";
-import LinkRuleComponent from "./LinkRuleComponent";
-import SimulatorPanel from "./SimulatorPanel";
+import LinkRuleComponent from "./subcomponents/LinkRuleComponent";
+import SimulatorPanel from "./subcomponents/SimulatorPanel";
 import { downloadFileBlob } from "@/app/utils/utils";
 import { getScenariosByFilename } from "../../utils/api";
 
-interface RulesViewerProps {
+interface RuleViewerEditorProps {
   jsonFilename: string;
   ruleContent: DecisionGraphType;
-  setRuleContent: (updateGraph: DecisionGraphType) => void;
+  updateRuleContent: (updateGraph: DecisionGraphType) => void;
   contextToSimulate?: Record<string, any> | null;
   setContextToSimulate: (results: Record<string, any>) => void;
   simulation?: Simulation;
@@ -28,16 +28,16 @@ interface RulesViewerProps {
   isEditable?: boolean;
 }
 
-export default function RulesDecisionGraph({
+export default function RuleViewerEditor({
   jsonFilename,
   ruleContent,
-  setRuleContent,
+  updateRuleContent,
   contextToSimulate,
   setContextToSimulate,
   simulation,
   runSimulation,
   isEditable = true,
-}: RulesViewerProps) {
+}: RuleViewerEditorProps) {
   const decisionGraphRef: any = useRef<DecisionGraphRef>();
   const [reactFlowRef, setReactFlowRef] = useState<ReactFlowInstance>();
 
@@ -124,9 +124,16 @@ export default function RulesDecisionGraph({
         displayName: "Rule",
         shortDescription: "Linked rule to execute",
         icon: <ApartmentOutlined />,
+        color: "#faad14",
         generateNode: () => ({ name: "Linked Rule" }),
         renderNode: ({ specification, id, selected, data }) => (
-          <LinkRuleComponent specification={specification} id={id} isSelected={selected} name={data?.name} />
+          <LinkRuleComponent
+            specification={specification}
+            id={id}
+            isSelected={selected}
+            name={data?.name}
+            isEditable={isEditable}
+          />
         ),
       },
     ],
@@ -163,7 +170,7 @@ export default function RulesDecisionGraph({
         onReactFlowInit={reactFlowInit}
         panels={panels}
         components={additionalComponents}
-        onChange={(updatedGraphValue) => setRuleContent(updatedGraphValue)}
+        onChange={(updatedGraphValue) => updateRuleContent(updatedGraphValue)}
         disabled={!isEditable}
       />
     </JdmConfigProvider>
