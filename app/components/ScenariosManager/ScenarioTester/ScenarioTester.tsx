@@ -4,14 +4,16 @@ import { CheckCircleOutlined, CloseCircleOutlined, RightCircleOutlined, DownCirc
 import { DecisionGraphType } from "@gorules/jdm-editor";
 import styles from "./ScenarioTester.module.css";
 import { runDecisionsForScenarios } from "@/app/utils/api";
+import { Scenario } from "@/app/types/scenario";
 import useResponsiveSize from "@/app/hooks/ScreenSizeHandler";
 interface ScenarioTesterProps {
+  scenarios: Scenario[];
   jsonFile: string;
   ruleContent?: DecisionGraphType;
   uploader?: boolean;
 }
 
-export default function ScenarioTester({ jsonFile, ruleContent }: ScenarioTesterProps) {
+export default function ScenarioTester({ scenarios, jsonFile, ruleContent }: ScenarioTesterProps) {
   const [scenarioResults, setScenarioResults] = useState<any | null>({});
   const hasError = useRef(false);
   const { isMobile, isTablet } = useResponsiveSize();
@@ -226,6 +228,12 @@ export default function ScenarioTester({ jsonFile, ruleContent }: ScenarioTester
     updateScenarioResults(jsonFile);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jsonFile]);
+
+  useEffect(() => {
+    hasError.current = false;
+    updateScenarioResults(jsonFile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenarios]);
 
   return (
     <div>

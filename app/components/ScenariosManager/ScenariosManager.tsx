@@ -40,13 +40,18 @@ export default function ScenariosManager({
   resultsOfSimulation,
 }: ScenariosManagerProps) {
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
+  const [activeKey, setActiveKey] = useState<string>(showAllScenarioTabs ? "3" : "1");
+  const [scenarioName, setScenarioName] = useState<string>("");
+  const [activeScenarios, setActiveScenarios] = useState<Scenario[]>(scenarios ? scenarios : []);
 
   const handleTabChange = (key: string) => {
+    setActiveKey(key);
     handleReset();
   };
 
   const handleReset = () => {
     setSimulationContext({});
+    setScenarioName("");
     setTimeout(() => {
       const ruleMapInputs = createRuleMap(rulemap?.inputs);
       setSimulationContext(ruleMapInputs);
@@ -57,12 +62,16 @@ export default function ScenariosManager({
   const scenarioTab = scenarios && rulemap && (
     <Flex gap="small" vertical>
       <ScenarioViewer
-        scenarios={scenarios}
+        scenarios={activeScenarios}
+        jsonFile={jsonFile}
         setSimulationContext={setSimulationContext}
         resultsOfSimulation={resultsOfSimulation}
         runSimulation={runSimulation}
         rulemap={rulemap}
         editing={isEditing}
+        setActiveKey={setActiveKey}
+        setResetTrigger={setResetTrigger}
+        setScenarioName={setScenarioName}
       />
     </Flex>
   );
@@ -70,7 +79,7 @@ export default function ScenariosManager({
   const scenarioGeneratorTab = scenarios && rulemap && ruleId && (
     <Flex gap="small " className={styles.scenarioGeneratorTab}>
       <ScenarioGenerator
-        scenarios={scenarios}
+        scenarios={activeScenarios}
         simulationContext={simulationContext}
         setSimulationContext={setSimulationContext}
         resultsOfSimulation={resultsOfSimulation}
@@ -80,6 +89,10 @@ export default function ScenariosManager({
         jsonFile={jsonFile}
         rulemap={rulemap}
         editing={isEditing}
+        scenarioName={scenarioName}
+        setScenarioName={setScenarioName}
+        setActiveKey={setActiveKey}
+        setActiveScenarios={setActiveScenarios}
       />
       <Button onClick={handleReset} size="large" type="primary">
         Reset ↻
@@ -89,7 +102,7 @@ export default function ScenariosManager({
 
   const scenarioTestsTab = (
     <Flex gap="small">
-      <ScenarioTester jsonFile={jsonFile} ruleContent={ruleContent} />
+      <ScenarioTester scenarios={activeScenarios} jsonFile={jsonFile} ruleContent={ruleContent} />
     </Flex>
   );
 
@@ -133,6 +146,7 @@ export default function ScenariosManager({
       <Flex gap="middle" justify="space-between">
         <Tabs
           className={styles.tabs}
+          activeKey={activeKey}
           defaultActiveKey={showAllScenarioTabs ? "3" : "1"}
           items={filteredItems}
           onChange={handleTabChange}

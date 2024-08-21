@@ -1,30 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { Flex, Button, Popconfirm, message, Pagination } from "antd";
 import type { PopconfirmProps } from "antd";
-import { DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import InputOutputTable from "@/app/components/InputOutputTable";
 import styles from "./ScenarioViewer.module.css";
 import { Scenario } from "@/app/types/scenario";
-import { deleteScenario } from "@/app/utils/api";
+import { deleteScenario, getScenariosByFilename } from "@/app/utils/api";
 import ScenarioFormatter from "../ScenarioFormatter";
 import { RuleMap } from "@/app/types/rulemap";
 
 interface ScenarioViewerProps {
   scenarios: Scenario[];
+  jsonFile: string;
   resultsOfSimulation: Record<string, any> | null | undefined;
   setSimulationContext: (data: any) => void;
   runSimulation: () => void;
   rulemap: RuleMap;
   editing?: boolean;
+  setActiveKey?: (key: string) => void;
+  setResetTrigger?: (trigger: boolean) => void;
+  setScenarioName?: (name: string) => void;
 }
 
 export default function ScenarioViewer({
   scenarios,
+  jsonFile,
   resultsOfSimulation,
   setSimulationContext,
   runSimulation,
   rulemap,
   editing = true,
+  setActiveKey,
+  setResetTrigger,
+  setScenarioName,
 }: ScenarioViewerProps) {
   const [scenariosDisplay, setScenariosDisplay] = useState<Scenario[] | null>(scenarios);
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
@@ -57,6 +65,22 @@ export default function ScenarioViewer({
     } catch (e) {
       message.error("Error deleting scenario");
     }
+  };
+
+  const handleEditScenario = (scenario: Scenario) => {
+    setManageScenarios(false);
+
+    const scenarioInputs = scenario.variables.reduce((acc, variable) => {
+      acc[variable.name] = variable.value;
+      return acc;
+    }, {} as Record<string, any>);
+    const editScenarioInputs = { ...scenarioInputs, ...{ rulemap: true } };
+    setSimulationContext(editScenarioInputs);
+
+    setResetTrigger?.(true ? false : true);
+    setScenarioName?.(scenario.title);
+
+    setActiveKey?.("2");
   };
 
   const cancel: PopconfirmProps["onCancel"] = (e) => {
@@ -94,6 +118,14 @@ export default function ScenarioViewer({
                       </span>
                       {manageScenarios && (
                         <>
+                          <Button
+                            shape="circle"
+                            icon={<EditOutlined />}
+                            disabled={!manageScenarios}
+                            size="small"
+                            type="dashed"
+                            onClick={() => handleEditScenario(scenario)}
+                          ></Button>
                           <Popconfirm
                             title="Are you sure you want to delete this scenario?"
                             onConfirm={() => handleDeleteScenario(scenario)}

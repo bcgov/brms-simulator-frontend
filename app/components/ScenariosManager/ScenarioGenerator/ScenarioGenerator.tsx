@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Flex, Button, Input } from "antd";
+import { Flex, Button, Input, Popconfirm } from "antd";
+import type { PopconfirmProps } from "antd";
 import InputOutputTable from "../../InputOutputTable";
 import { Scenario } from "@/app/types/scenario";
-import { createScenario } from "@/app/utils/api";
+import { createScenario, updateScenario } from "@/app/utils/api";
 import { RuleMap } from "@/app/types/rulemap";
 import ScenarioFormatter from "../ScenarioFormatter";
+import { getScenariosByFilename } from "@/app/utils/api";
 import styles from "./ScenarioGenerator.module.css";
 
 interface ScenarioGeneratorProps {
@@ -18,6 +20,10 @@ interface ScenarioGeneratorProps {
   jsonFile: string;
   rulemap: RuleMap;
   editing?: boolean;
+  scenarioName?: string;
+  setScenarioName?: (name: string) => void;
+  setActiveKey?: (key: string) => void;
+  setActiveScenarios?: (scenarios: Scenario[]) => void;
 }
 
 export default function ScenarioGenerator({
@@ -31,13 +37,22 @@ export default function ScenarioGenerator({
   jsonFile,
   rulemap,
   editing = true,
+  scenarioName,
+  setScenarioName,
+  setActiveKey,
+  setActiveScenarios,
 }: ScenarioGeneratorProps) {
   const [simulationRun, setSimulationRun] = useState(false);
-  const [newScenarioName, setNewScenarioName] = useState("");
   const [scenarioExpectedOutput, setScenarioExpectedOutput] = useState({});
+  const [editingScenario, setEditingScenario] = useState(scenarioName && scenarioName.length > 0 ? true : false);
+
+  const updateScenarios = async () => {
+    const newScenarios = await getScenariosByFilename(jsonFile);
+    setActiveScenarios?.(newScenarios);
+  };
 
   const handleSaveScenario = async () => {
-    if (!simulationRun || !simulationContext || !newScenarioName) return;
+    if (!simulationRun || !simulationContext || !scenarioName) return;
 
     const variables = Object.entries(simulationContext)
       .filter(([name, value]) => name !== "rulemap" && value !== null && value !== undefined)
@@ -48,7 +63,7 @@ export default function ScenarioGenerator({
       .map(([name, value]) => ({ name, value }));
 
     const newScenario: Scenario = {
-      title: newScenarioName,
+      title: scenarioName,
       ruleID: ruleId,
       goRulesJSONFilename: jsonFile,
       variables,
@@ -56,10 +71,18 @@ export default function ScenarioGenerator({
     };
 
     try {
-      await createScenario(newScenario);
-      setNewScenarioName("");
-      // Reload the page after the scenario is successfully created
-      window.location.reload();
+      const existingScenario = scenarios.find((scenario) => scenario.title === scenarioName);
+      if (existingScenario) {
+        await updateScenario(newScenario, existingScenario._id);
+      } else {
+        await createScenario(newScenario);
+      }
+      setScenarioName?.("");
+      setSimulationRun(false);
+      setEditingScenario(false);
+      setSimulationContext(newScenario);
+      updateScenarios();
+      setActiveKey?.("1");
     } catch (error) {
       console.error("Error creating scenario:", error);
     }
@@ -67,12 +90,18 @@ export default function ScenarioGenerator({
 
   const runScenarioSimulation = () => {
     if (!simulationContext) return;
+    if (scenarios.find((scenario) => scenario.title === scenarioName)) {
+      setEditingScenario(true);
+    }
     runSimulation();
     setSimulationRun(true);
   };
 
   useEffect(() => {
     setSimulationRun(false);
+    const editScenario = { ...simulationContext, ...{ rulemap: true } };
+    setSimulationContext(editScenario);
+    setEditingScenario(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetTrigger]);
 
@@ -83,6 +112,10 @@ export default function ScenarioGenerator({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const cancel: PopconfirmProps["onCancel"] = (e) => {
+    console.log(e);
+  };
 
   return (
     <Flex>
@@ -104,13 +137,22 @@ export default function ScenarioGenerator({
                 {simulationRun && editing && (
                   <>
                     <Input
-                      value={newScenarioName}
-                      onChange={(e) => setNewScenarioName(e.target.value)}
+                      disabled={editingScenario}
+                      value={scenarioName}
+                      onChange={(e) => setScenarioName?.(e.target.value)}
                       placeholder="Enter Scenario Name"
                     />
-                    <Button disabled={!newScenarioName} size="large" type="primary" onClick={handleSaveScenario}>
-                      Save Scenario ⬇️
-                    </Button>
+                    <Popconfirm
+                      title="Are you sure you want to save this scenario?"
+                      onConfirm={() => handleSaveScenario()}
+                      onCancel={cancel}
+                      okText="Yes, save scenario"
+                      cancelText="No"
+                    >
+                      <Button disabled={!scenarioName} size="large" type="primary">
+                        Save Scenario ⬇️
+                      </Button>
+                    </Popconfirm>
                   </>
                 )}
               </Flex>
