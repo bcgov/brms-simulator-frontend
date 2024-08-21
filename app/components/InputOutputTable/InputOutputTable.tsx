@@ -66,7 +66,11 @@ export default function InputOutputTable({
     }
 
     if (typeof value === "number" && property.toLowerCase().includes("amount")) {
-      return `$${value}`;
+      const formattedValue = value.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      return <Tag color="green">${formattedValue}</Tag>;
     }
 
     return <b>{value}</b>;
