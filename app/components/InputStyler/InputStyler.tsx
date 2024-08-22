@@ -1,4 +1,5 @@
-import { Tag, Input, Radio, AutoComplete, InputNumber, Flex, Button, Tooltip } from "antd";
+import dayjs from "dayjs";
+import { Tag, Input, Radio, AutoComplete, InputNumber, Flex, Button, Tooltip, DatePicker } from "antd";
 import { MinusCircleOutlined } from "@ant-design/icons";
 import ArrayFormatter, { parseSchemaTemplate, generateArrayFromSchema } from "./ArrayFormatter";
 import { Scenario } from "@/app/types/scenario";
@@ -32,7 +33,8 @@ export default function InputStyler(
   const handleValueChange = (value: any, property: string) => {
     let queryValue: any = value;
     if (typeof value === "string") {
-      if (value.toLowerCase() === "true") {
+      if (value === "") queryValue = "";
+      else if (value.toLowerCase() === "true") {
         queryValue = true;
       } else if (value.toLowerCase() === "false") {
         queryValue = false;
@@ -113,30 +115,61 @@ export default function InputStyler(
     }
 
     if (type === "string" || typeof value === "string") {
-      return (
-        <label className="labelsmall">
-          <Flex gap={"small"} align="center">
-            <AutoComplete
-              id={property}
-              options={valuesArray}
-              defaultValue={value}
-              onBlur={(e) => handleValueChange((e.target as HTMLInputElement).value, property)}
-              style={{ width: 200 }}
-              onChange={(val) => handleInputChange(val, property)}
-            />
-            <Tooltip title="Clear value">
-              <Button
-                type="dashed"
-                icon={<MinusCircleOutlined />}
-                size="small"
-                shape="circle"
-                onClick={() => handleClear(property)}
+      const dateCheck = /date|month|year|day/i;
+      if (dateCheck.test(property)) {
+        return (
+          <label className="labelsmall">
+            <Flex gap={"small"} align="center">
+              <DatePicker
+                allowClear={false}
+                id={property}
+                defaultValue={value ? dayjs(value, "YYYY-MM-DD") : null}
+                format="YYYY-MM-DD"
+                onChange={(val) => {
+                  const formattedDate = val ? val.format("YYYY-MM-DD") : null;
+                  handleInputChange(formattedDate, property);
+                }}
+                style={{ width: 200 }}
               />
-            </Tooltip>
-          </Flex>
-          <span className="label-text">{property}</span>
-        </label>
-      );
+              <Tooltip title="Clear value">
+                <Button
+                  type="dashed"
+                  icon={<MinusCircleOutlined />}
+                  size="small"
+                  shape="circle"
+                  onClick={() => handleClear(property)}
+                />
+              </Tooltip>
+            </Flex>
+            <span className="label-text">{property}</span>
+          </label>
+        );
+      } else {
+        return (
+          <label className="labelsmall">
+            <Flex gap={"small"} align="center">
+              <AutoComplete
+                id={property}
+                options={valuesArray}
+                defaultValue={value}
+                onBlur={(e) => handleValueChange((e.target as HTMLInputElement).value, property)}
+                style={{ width: 200 }}
+                onChange={(val) => handleInputChange(val, property)}
+              />
+              <Tooltip title="Clear value">
+                <Button
+                  type="dashed"
+                  icon={<MinusCircleOutlined />}
+                  size="small"
+                  shape="circle"
+                  onClick={() => handleClear(property)}
+                />
+              </Tooltip>
+            </Flex>
+            <span className="label-text">{property}</span>
+          </label>
+        );
+      }
     }
 
     if (type === "number" || typeof value === "number") {

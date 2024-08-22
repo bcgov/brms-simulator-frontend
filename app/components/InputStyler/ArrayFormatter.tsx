@@ -1,4 +1,5 @@
-import { Input, Radio, AutoComplete, InputNumber, Button } from "antd";
+import { Input, Radio, AutoComplete, InputNumber, Button, Flex, Tooltip, DatePicker } from "antd";
+import { MinusCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { Scenario } from "@/app/types/scenario";
 import { getAutoCompleteOptions, rawDataProps } from "./InputStyler";
 
@@ -89,7 +90,9 @@ export default function ArrayFormatter(
   const handleArrayItemChange = (arrayName: string, index: number, key: string, newValue: any) => {
     let queryValue: any = newValue;
     if (typeof newValue === "string") {
-      if (newValue.toLowerCase() === "true") {
+      if (newValue.trim() === "") {
+        queryValue = "";
+      } else if (newValue.toLowerCase() === "true") {
         queryValue = true;
       } else if (newValue.toLowerCase() === "false") {
         queryValue = false;
@@ -109,6 +112,18 @@ export default function ArrayFormatter(
       updatedData[arrayName][index][key] = queryValue;
       setRawData(updatedData);
     }
+  };
+
+  const handleClear = (property: any, index: number, key: string, newValue: any) => {
+    const inputID = `${property}-${index}-${key}`;
+    const inputElement = document.getElementById(inputID) as any;
+
+    if (inputElement) {
+      inputElement.value = newValue;
+      inputElement.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    handleArrayItemChange(property, index, key, newValue);
   };
 
   const parsedValue = generateArrayFromSchema(property);
@@ -146,52 +161,139 @@ export default function ArrayFormatter(
     setRawData(newData);
   };
 
+  // Utility function to remove an item from an array
+  const removeItemFromArray = (arrayPath: string) => {
+    const currentArray = rawData ? getValueFromPath(arrayPath, rawData) || [] : [];
+    currentArray.pop();
+    const newData = { ...rawData, [arrayPath]: currentArray };
+    setRawData(newData);
+  };
+
   if (editable) {
     if (Array.isArray(parsedValue)) {
+      const dateCheck = /date|month|year|day/i;
       const customName = (parsedPropertyName.charAt(0).toUpperCase() + parsedPropertyName.slice(1)).slice(0, -1);
       return (
         <div>
-          <Button onClick={() => addCopyInArray(parsedPropertyName, parsedValue[0])}>Add {customName}</Button>
+          <Button icon={<PlusCircleOutlined />} onClick={() => addCopyInArray(parsedPropertyName, parsedValue[0])}>
+            Add {customName}
+          </Button>
+          <Button icon={<MinusCircleOutlined />} onClick={() => removeItemFromArray(parsedPropertyName)}>
+            Remove {customName}
+          </Button>
           {(rawData?.[parsedPropertyName] || []).map(
             (item: { [s: string]: unknown } | ArrayLike<unknown>, index: number) => (
               <div key={index}>
-                <h4>
-                  {customName} {index ? index + 1 : "1"}
-                </h4>
-                {Object.entries(item).map(([key, val]) => (
-                  <div key={key}>
-                    <label className="labelsmall">
-                      {key}:
-                      {typeof val === "boolean" ? (
-                        <Radio.Group
-                          onChange={(e) => handleArrayInputItemChange(parsedPropertyName, index, key, e.target.value)}
-                          value={val}
-                        >
-                          <Radio value={true}>Yes</Radio>
-                          <Radio value={false}>No</Radio>
-                        </Radio.Group>
-                      ) : typeof val === "number" ? (
-                        <InputNumber
-                          value={val}
-                          onBlur={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)}
-                          onChange={(newVal) => handleArrayInputItemChange(parsedPropertyName, index, key, newVal)}
-                        />
-                      ) : typeof val === "string" ? (
-                        <AutoComplete
-                          options={getAutoCompleteOptions(key)}
-                          value={val}
-                          onBlur={(e) =>
-                            handleArrayItemChange(parsedPropertyName, index, key, (e.target as HTMLInputElement).value)
-                          }
-                          style={{ width: 200 }}
-                          onChange={(newVal) => handleArrayInputItemChange(parsedPropertyName, index, key, newVal)}
-                        />
-                      ) : (
-                        <Input onBlur={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)} />
-                      )}
-                    </label>
-                  </div>
-                ))}
+                <Flex gap={"small"} align="center">
+                  <h4>
+                    {customName} {index ? index + 1 : "1"}
+                  </h4>
+                </Flex>
+                <Flex gap={"small"} align="left" vertical>
+                  {Object.entries(item).map(([key, val]) => (
+                    <div key={key}>
+                      <label className="labelsmall">
+                        <Flex gap={"small"} align="center">
+                          {key}:
+                          {typeof val === "boolean" ? (
+                            <Flex gap={"small"} align="center" vertical>
+                              <Flex gap={"small"} align="center">
+                                <Radio.Group
+                                  onChange={(e) =>
+                                    handleArrayInputItemChange(parsedPropertyName, index, key, e.target.value)
+                                  }
+                                  value={val}
+                                >
+                                  <Radio value={true}>Yes</Radio>
+                                  <Radio value={false}>No</Radio>
+                                </Radio.Group>
+                              </Flex>
+                            </Flex>
+                          ) : typeof val === "number" ? (
+                            <Flex gap={"small"} align="center">
+                              <InputNumber
+                                value={val}
+                                onBlur={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)}
+                                onChange={(newVal) =>
+                                  handleArrayInputItemChange(parsedPropertyName, index, key, newVal)
+                                }
+                              />
+                              <Tooltip title="Clear value">
+                                <Button
+                                  type="dashed"
+                                  icon={<MinusCircleOutlined />}
+                                  size="small"
+                                  shape="circle"
+                                  onClick={() => handleArrayInputItemChange(parsedPropertyName, index, key, 0)}
+                                />
+                              </Tooltip>
+                            </Flex>
+                          ) : typeof val === "string" && dateCheck.test(key) ? (
+                            <Flex gap={"small"} align="center">
+                              <DatePicker
+                                allowClear={false}
+                                id={`${parsedPropertyName}-${index}-${key}`}
+                                defaultValue={value}
+                                format="YYYY-MM-DD"
+                                onChange={(val) =>
+                                  handleArrayInputItemChange(
+                                    parsedPropertyName,
+                                    index,
+                                    key,
+                                    val?.toISOString().split("T")[0] || null
+                                  )
+                                }
+                                style={{ width: 200 }}
+                              />
+                              <Tooltip title="Clear value">
+                                <Button
+                                  type="dashed"
+                                  icon={<MinusCircleOutlined />}
+                                  size="small"
+                                  shape="circle"
+                                  onClick={() => handleClear(parsedPropertyName, index, key, "")}
+                                />
+                              </Tooltip>
+                            </Flex>
+                          ) : typeof val === "string" ? (
+                            <Flex gap={"small"} align="center">
+                              <AutoComplete
+                                id={`${parsedPropertyName}-${index}-${key}`}
+                                options={getAutoCompleteOptions(key)}
+                                value={val}
+                                onBlur={(e) =>
+                                  handleArrayItemChange(
+                                    parsedPropertyName,
+                                    index,
+                                    key,
+                                    (e.target as HTMLInputElement).value
+                                  )
+                                }
+                                style={{ width: 200 }}
+                                onChange={(newVal) =>
+                                  handleArrayInputItemChange(parsedPropertyName, index, key, newVal)
+                                }
+                              />
+                              <Tooltip title="Clear value">
+                                <Button
+                                  type="dashed"
+                                  icon={<MinusCircleOutlined />}
+                                  size="small"
+                                  shape="circle"
+                                  onClick={() => handleClear(parsedPropertyName, index, key, "")}
+                                />
+                              </Tooltip>
+                            </Flex>
+                          ) : (
+                            <Input
+                              onBlur={(e) => handleArrayItemChange(parsedPropertyName, index, key, e.target.value)}
+                            />
+                          )}
+                        </Flex>
+                      </label>
+                    </div>
+                  ))}
+                </Flex>
               </div>
             )
           )}
