@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { Input, Radio, AutoComplete, InputNumber, Button, Flex, Tooltip, DatePicker } from "antd";
 import { MinusCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { Scenario } from "@/app/types/scenario";
@@ -233,7 +234,7 @@ export default function ArrayFormatter(
                               <DatePicker
                                 allowClear={false}
                                 id={`${parsedPropertyName}-${index}-${key}`}
-                                defaultValue={value}
+                                defaultValue={val ? dayjs(val, "YYYY-MM-DD") : null}
                                 format="YYYY-MM-DD"
                                 onChange={(val) =>
                                   handleArrayInputItemChange(
