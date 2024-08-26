@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Table, Tag, Button, TableProps, Flex, message, List } from "antd";
+import { Table, Tag, Button, Flex, message, List, Space } from "antd";
+import type { TableColumnsType, TableProps } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined, RightCircleOutlined, DownCircleOutlined } from "@ant-design/icons";
 import { DecisionGraphType } from "@gorules/jdm-editor";
 import styles from "./ScenarioTester.module.css";
@@ -13,16 +14,31 @@ interface ScenarioTesterProps {
   uploader?: boolean;
 }
 
+type DataType = {
+  key: string;
+  name: string;
+  [key: string]: any;
+};
+
+type OnChange = NonNullable<TableProps<DataType>["onChange"]>;
+type Filters = Parameters<OnChange>[1];
+
+type GetSingle<T> = T extends (infer U)[] ? U : never;
+type Sorts = GetSingle<Parameters<OnChange>[2]>;
+
 export default function ScenarioTester({ scenarios, jsonFile, ruleContent }: ScenarioTesterProps) {
   const [scenarioResults, setScenarioResults] = useState<any | null>({});
+  const [finalResults, setFinalResults] = useState<any | null>({});
+  const [filteredInfo, setFilteredInfo] = useState<Filters>({});
+  const [sortedInfo, setSortedInfo] = useState<Sorts>({});
   const hasError = useRef(false);
   const { isMobile, isTablet } = useResponsiveSize();
 
-  type DataType = {
-    key: string;
-    name: string;
-    [key: string]: any;
-  };
+  const dollarFormat = (value: number) =>
+    `$${value.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
   const applyConditionalStyling = (value: any, property: string): React.ReactNode => {
     if (value === null || value === undefined) {
@@ -46,10 +62,7 @@ export default function ScenarioTester({ scenarios, jsonFile, ruleContent }: Sce
     // Handle numbers with "amount" in the property name
     let displayValue = value;
     if (typeof value === "number" && property.toLowerCase().includes("amount")) {
-      displayValue = `$${value.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`;
+      displayValue = dollarFormat(value);
     } else if (typeof value === "number") {
       displayValue = <Tag color="blue">{value}</Tag>;
     }
@@ -58,12 +71,66 @@ export default function ScenarioTester({ scenarios, jsonFile, ruleContent }: Sce
     return <b>{displayValue}</b>;
   };
 
+  const getValue = (value: any): string => {
+    if (typeof value === "object" && value !== null) {
+      if (value?.props?.children !== undefined) {
+        return getValue(value.props.children);
+      }
+      return "";
+    }
+    return value === 0 ? "0" : value == null ? "null" : String(value);
+  };
+
+  const getFilters = (key: string, prefix: string = "input") => {
+    const lowerCasePrefix = prefix === "input" ? "inputs" : prefix.toLowerCase();
+
+    const filterArray = Object.values(scenarioResults)
+      .map((scenario: any) => scenario?.[lowerCasePrefix]?.[key])
+      .filter((result) => result != null);
+
+    const filterSet = Array.from(new Set(filterArray));
+
+    const filters = filterSet.map((text) => ({
+      text: typeof text === "boolean" ? (text ? "True" : "False") : text,
+      value: text,
+      key: text,
+    }));
+
+    filters.push({ text: "No Value", value: null, key: "null" });
+    return filters;
+  };
+
   const generateColumns = (keys: string[], prefix: string) => {
     return keys.map((key) => ({
       title: key,
       dataIndex: `${prefix.toLowerCase()}_${key}`,
       key: `${prefix.toLowerCase()}_${key}`,
       render: (value: any) => applyConditionalStyling(value, key),
+      filteredValue: filteredInfo[`${prefix.toLowerCase()}_${key}`] || null,
+      filters: getFilters(key, prefix).sort((a, b) => a.text - b.text),
+      filterSearch: true,
+      textWrap: "word-break",
+      onFilter: (value: string | number | boolean | any, record: DataType) => {
+        let recordValue = getValue(record[`${prefix.toLowerCase()}_${key}`]);
+        if (key.toLowerCase().includes("amount")) {
+          value = dollarFormat(parseFloat(value));
+        }
+        return recordValue.toLowerCase().includes(String(value).toLowerCase());
+      },
+      sorter: (a: DataType, b: DataType) => {
+        const aValue = getValue(a[`${prefix.toLowerCase()}_${key}`]);
+        const bValue = getValue(b[`${prefix.toLowerCase()}_${key}`]);
+        const isNumericValue = (value: any) => !isNaN(parseFloat(value)) && isFinite(value);
+        const isDollarValue = (value: any) => /^\$/.test(value);
+        if (isDollarValue(aValue) && isDollarValue(bValue)) {
+          return parseFloat(aValue.replace("$", "")) - parseFloat(bValue.replace("$", ""));
+        }
+        if (isNumericValue(aValue) && isNumericValue(bValue)) {
+          return parseFloat(aValue) - parseFloat(bValue);
+        }
+        return aValue.localeCompare(bValue);
+      },
+      sortOrder: sortedInfo.columnKey === `${prefix.toLowerCase()}_${key}` ? sortedInfo.order : null,
     }));
   };
 
@@ -132,7 +199,8 @@ export default function ScenarioTester({ scenarios, jsonFile, ruleContent }: Sce
     //Unused columns for now, unless we'd like to display the expected results as columns on the frontend
     const expectedColumns = generateColumns(expectedKeys, "expected_result");
 
-    const columns: TableProps<DataType>["columns"] = [
+    const columns: TableColumnsType<DataType> = [
+      Table.EXPAND_COLUMN,
       {
         title: "Name",
         dataIndex: "name",
@@ -140,6 +208,15 @@ export default function ScenarioTester({ scenarios, jsonFile, ruleContent }: Sce
         render: (text) => <a>{text}</a>,
         fixed: "left",
         width: "10%",
+        sorter: (a: DataType, b: DataType) => a.name.localeCompare(b.name),
+        filteredValue: filteredInfo.name || null,
+        sortOrder: sortedInfo.columnKey === "name" ? sortedInfo.order : undefined,
+        filterSearch: true,
+        onFilter: (value: any, record: DataType) => record.name.toLowerCase().includes(value.toLowerCase()),
+        filters: formattedData.map((scenario) => ({
+          text: scenario.name,
+          value: scenario.name,
+        })),
       },
       {
         title: "Inputs",
@@ -213,8 +290,7 @@ export default function ScenarioTester({ scenarios, jsonFile, ruleContent }: Sce
           );
         }
       }
-      const formattedResults = formatData(results);
-      setScenarioResults(formattedResults);
+      setScenarioResults(results);
     } catch (error) {
       if (!hasError.current) {
         hasError.current = true;
@@ -235,25 +311,58 @@ export default function ScenarioTester({ scenarios, jsonFile, ruleContent }: Sce
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scenarios]);
 
+  useEffect(() => {
+    hasError.current = false;
+    setFinalResults(formatData(scenarioResults));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenarioResults, filteredInfo, sortedInfo]);
+
+  const handleChange: TableProps<DataType>["onChange"] = (pagination, filters, sorter) => {
+    setFilteredInfo(filters);
+    setSortedInfo(Array.isArray(sorter) ? sorter[0] : sorter);
+  };
+
+  const clearAll = () => {
+    setFilteredInfo({});
+    setSortedInfo({
+      columnKey: "",
+      order: null,
+    });
+  };
+
+  const showErrorScenarios = () => {
+    updateScenarioResults(jsonFile);
+    const filters = Object.keys(scenarioResults).filter((key) => !scenarioResults[key].resultMatch);
+    const filterObject = { name: filters };
+    setFilteredInfo(filterObject);
+  };
+
   return (
     <div>
       <div className={styles.scenarioContainer}>
-        <Flex gap={"small"} justify="space-between">
-          <Button onClick={() => updateScenarioResults(jsonFile)} size="large" type="primary">
-            Run Scenarios
-          </Button>
-        </Flex>
+        <Space>
+          <Flex gap={"small"} justify="space-between" align="center">
+            <Button onClick={() => updateScenarioResults(jsonFile)} size="large" type="primary">
+              Re-Run Scenarios
+            </Button>
+            <Button onClick={showErrorScenarios} type="dashed" danger>
+              Show Error Scenarios
+            </Button>
+            <Button onClick={clearAll}>Clear filters and sorters</Button>
+          </Flex>
+        </Space>
         <Flex gap="small" vertical>
           <Table
             pagination={{ hideOnSinglePage: true, size: "small", pageSize: 10 }}
             bordered
-            dataSource={scenarioResults.formattedData}
-            columns={scenarioResults.columns}
+            dataSource={finalResults.formattedData}
+            columns={finalResults.columns}
             expandable={{
               expandedRowRender: (record: any) => expandedRowRender(record, isMobile || isTablet),
               rowExpandable: (record: any) => rowExpandable(record),
               columnTitle: isMobile || isTablet ? "Expand Record" : "Status",
-              columnWidth: "10%",
+              columnWidth: "5%",
+              fixed: "left",
               expandIcon: ({ expanded, onExpand, record }) =>
                 record.resultMatch.props.className !== "result-mismatch" ? (
                   rowExpandable(record) ? (
@@ -280,8 +389,8 @@ export default function ScenarioTester({ scenarios, jsonFile, ruleContent }: Sce
             }}
             className={styles.scenarioTable}
             size="small"
-            scroll={{ x: isMobile || isTablet ? 400 : 800, y: 600 }}
-            virtual
+            onChange={handleChange}
+            tableLayout="auto"
           />
         </Flex>
       </div>
