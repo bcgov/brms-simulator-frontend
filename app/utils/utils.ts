@@ -33,3 +33,16 @@ export const getShortFilenameOnly = (
   }
   return filename;
 };
+
+/**
+ * Converts a number to a dollar format
+ * @param value
+ */
+
+export const dollarFormat = (value: number) => {
+  const newValue = value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return newValue;
+};

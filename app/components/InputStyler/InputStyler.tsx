@@ -3,6 +3,7 @@ import { Tag, Input, Radio, AutoComplete, InputNumber, Flex, Button, Tooltip, Da
 import { MinusCircleOutlined } from "@ant-design/icons";
 import ArrayFormatter, { parseSchemaTemplate, generateArrayFromSchema } from "./ArrayFormatter";
 import { Scenario } from "@/app/types/scenario";
+import { dollarFormat } from "@/app/utils/utils";
 
 export interface rawDataProps {
   [key: string]: any;
@@ -246,10 +247,7 @@ export default function InputStyler(
     if (type === "number" || typeof value === "number") {
       if (typeof value === "number" && property.toLowerCase().includes("amount")) {
         if (property.toLowerCase().includes("amount")) {
-          const formattedValue = value.toLocaleString("en-US", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+          const formattedValue = dollarFormat(value);
           return <Tag color="green">${formattedValue}</Tag>;
         }
       } else {

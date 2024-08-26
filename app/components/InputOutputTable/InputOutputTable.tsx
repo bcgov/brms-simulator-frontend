@@ -2,6 +2,7 @@ import { useState, useEffect, FocusEvent } from "react";
 import { Table, Tag, Input, Button } from "antd";
 import { RuleMap } from "@/app/types/rulemap";
 import styles from "./InputOutputTable.module.css";
+import { dollarFormat } from "@/app/utils/utils";
 
 const COLUMNS = [
   {
@@ -66,10 +67,7 @@ export default function InputOutputTable({
     }
 
     if (typeof value === "number" && property.toLowerCase().includes("amount")) {
-      const formattedValue = value.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
+      const formattedValue = dollarFormat(value);
       return <Tag color="green">${formattedValue}</Tag>;
     }
 

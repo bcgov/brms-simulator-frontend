@@ -7,6 +7,7 @@ import styles from "./ScenarioTester.module.css";
 import { runDecisionsForScenarios } from "@/app/utils/api";
 import { Scenario } from "@/app/types/scenario";
 import useResponsiveSize from "@/app/hooks/ScreenSizeHandler";
+import { dollarFormat } from "@/app/utils/utils";
 interface ScenarioTesterProps {
   scenarios: Scenario[];
   jsonFile: string;
@@ -33,12 +34,6 @@ export default function ScenarioTester({ scenarios, jsonFile, ruleContent }: Sce
   const [sortedInfo, setSortedInfo] = useState<Sorts>({});
   const hasError = useRef(false);
   const { isMobile, isTablet } = useResponsiveSize();
-
-  const dollarFormat = (value: number) =>
-    `$${value.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
 
   const applyConditionalStyling = (value: any, property: string): React.ReactNode => {
     if (value === null || value === undefined) {
