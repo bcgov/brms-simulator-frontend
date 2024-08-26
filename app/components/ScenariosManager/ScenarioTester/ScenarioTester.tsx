@@ -57,7 +57,7 @@ export default function ScenarioTester({ scenarios, jsonFile, ruleContent }: Sce
     // Handle numbers with "amount" in the property name
     let displayValue = value;
     if (typeof value === "number" && property.toLowerCase().includes("amount")) {
-      displayValue = dollarFormat(value);
+      displayValue = `$${dollarFormat(value)}`;
     } else if (typeof value === "number") {
       displayValue = <Tag color="blue">{value}</Tag>;
     }
