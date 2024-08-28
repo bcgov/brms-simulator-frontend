@@ -6,7 +6,7 @@ import { Scenario } from "@/app/types/scenario";
 import { RuleMap } from "@/app/types/rulemap";
 import ScenarioViewer from "./ScenarioViewer";
 import ScenarioGenerator from "./ScenarioGenerator";
-import ScenarioTester from "./ScenarioTester";
+import ScenarioResults from "./ScenarioResults";
 import ScenarioCSV from "./ScenarioCSV";
 import styles from "./ScenariosManager.module.css";
 
@@ -113,7 +113,7 @@ export default function ScenariosManager({
 
   const resultsTab = (
     <Flex gap="small">
-      <ScenarioTester scenarios={activeScenarios} jsonFile={jsonFile} ruleContent={ruleContent} />
+      <ScenarioResults scenarios={activeScenarios} jsonFile={jsonFile} ruleContent={ruleContent} />
     </Flex>
   );
 

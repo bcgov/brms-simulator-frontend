@@ -3,12 +3,12 @@ import { Table, Tag, Button, Flex, message, List, Space } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined, RightCircleOutlined, DownCircleOutlined } from "@ant-design/icons";
 import { DecisionGraphType } from "@gorules/jdm-editor";
-import styles from "./ScenarioTester.module.css";
+import styles from "./ScenarioResults.module.css";
 import { runDecisionsForScenarios } from "@/app/utils/api";
 import { Scenario } from "@/app/types/scenario";
 import useResponsiveSize from "@/app/hooks/ScreenSizeHandler";
 import { dollarFormat } from "@/app/utils/utils";
-interface ScenarioTesterProps {
+interface ScenarioResultsProps {
   scenarios: Scenario[];
   jsonFile: string;
   ruleContent?: DecisionGraphType;
@@ -27,7 +27,7 @@ type Filters = Parameters<OnChange>[1];
 type GetSingle<T> = T extends (infer U)[] ? U : never;
 type Sorts = GetSingle<Parameters<OnChange>[2]>;
 
-export default function ScenarioTester({ scenarios, jsonFile, ruleContent }: ScenarioTesterProps) {
+export default function ScenarioResults({ scenarios, jsonFile, ruleContent }: ScenarioResultsProps) {
   const [scenarioResults, setScenarioResults] = useState<any | null>({});
   const [finalResults, setFinalResults] = useState<any | null>({});
   const [filteredInfo, setFilteredInfo] = useState<Filters>({});
