@@ -23,6 +23,7 @@ interface ScenarioGeneratorProps {
   scenarioName?: string;
   setScenarioName?: (name: string) => void;
   setActiveKey?: (key: string) => void;
+  scenariosManagerTabs?: any;
   setActiveScenarios?: (scenarios: Scenario[]) => void;
 }
 
@@ -40,6 +41,7 @@ export default function ScenarioGenerator({
   scenarioName,
   setScenarioName,
   setActiveKey,
+  scenariosManagerTabs,
   setActiveScenarios,
 }: ScenarioGeneratorProps) {
   const [simulationRun, setSimulationRun] = useState(false);
@@ -82,7 +84,7 @@ export default function ScenarioGenerator({
       setEditingScenario(false);
       setSimulationContext(newScenario);
       updateScenarios();
-      setActiveKey?.("1");
+      setActiveKey?.(scenariosManagerTabs.ScenariosTab);
     } catch (error) {
       console.error("Error creating scenario:", error);
     }

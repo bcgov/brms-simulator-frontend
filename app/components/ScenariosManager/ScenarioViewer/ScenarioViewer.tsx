@@ -18,6 +18,7 @@ interface ScenarioViewerProps {
   rulemap: RuleMap;
   editing?: boolean;
   setActiveKey?: (key: string) => void;
+  scenariosManagerTabs?: any;
   setResetTrigger?: (trigger: boolean) => void;
   setScenarioName?: (name: string) => void;
 }
@@ -31,6 +32,7 @@ export default function ScenarioViewer({
   rulemap,
   editing = true,
   setActiveKey,
+  scenariosManagerTabs,
   setResetTrigger,
   setScenarioName,
 }: ScenarioViewerProps) {
@@ -80,7 +82,7 @@ export default function ScenarioViewer({
     setResetTrigger?.(true ? false : true);
     setScenarioName?.(scenario.title);
 
-    setActiveKey?.("2");
+    setActiveKey?.(scenariosManagerTabs.InputsTab);
   };
 
   const cancel: PopconfirmProps["onCancel"] = (e) => {
