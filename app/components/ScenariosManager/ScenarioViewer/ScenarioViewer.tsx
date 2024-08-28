@@ -17,7 +17,7 @@ interface ScenarioViewerProps {
   runSimulation: () => void;
   rulemap: RuleMap;
   editing?: boolean;
-  setActiveKey?: (key: string) => void;
+  setActiveTabKey?: (key: string) => void;
   scenariosManagerTabs?: any;
   setResetTrigger?: (trigger: boolean) => void;
   setScenarioName?: (name: string) => void;
@@ -31,7 +31,7 @@ export default function ScenarioViewer({
   runSimulation,
   rulemap,
   editing = true,
-  setActiveKey,
+  setActiveTabKey,
   scenariosManagerTabs,
   setResetTrigger,
   setScenarioName,
@@ -76,13 +76,13 @@ export default function ScenarioViewer({
       acc[variable.name] = variable.value;
       return acc;
     }, {} as Record<string, any>);
-    const editScenarioInputs = { ...scenarioInputs, ...{ rulemap: true } };
+    const editScenarioInputs = { ...scenarioInputs, rulemap: true };
     setSimulationContext(editScenarioInputs);
 
     setResetTrigger?.(true ? false : true);
     setScenarioName?.(scenario.title);
 
-    setActiveKey?.(scenariosManagerTabs.InputsTab);
+    setActiveTabKey?.(scenariosManagerTabs.InputsTab);
   };
 
   const cancel: PopconfirmProps["onCancel"] = (e) => {

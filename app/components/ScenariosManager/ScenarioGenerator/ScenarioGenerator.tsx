@@ -22,7 +22,7 @@ interface ScenarioGeneratorProps {
   editing?: boolean;
   scenarioName?: string;
   setScenarioName?: (name: string) => void;
-  setActiveKey?: (key: string) => void;
+  setActiveTabKey?: (key: string) => void;
   scenariosManagerTabs?: any;
   setActiveScenarios?: (scenarios: Scenario[]) => void;
 }
@@ -40,7 +40,7 @@ export default function ScenarioGenerator({
   editing = true,
   scenarioName,
   setScenarioName,
-  setActiveKey,
+  setActiveTabKey,
   scenariosManagerTabs,
   setActiveScenarios,
 }: ScenarioGeneratorProps) {
@@ -79,12 +79,8 @@ export default function ScenarioGenerator({
       } else {
         await createScenario(newScenario);
       }
-      setScenarioName?.("");
-      setSimulationRun(false);
-      setEditingScenario(false);
-      setSimulationContext(newScenario);
       updateScenarios();
-      setActiveKey?.(scenariosManagerTabs.ScenariosTab);
+      setActiveTabKey?.(scenariosManagerTabs.ScenariosTab);
     } catch (error) {
       console.error("Error creating scenario:", error);
     }
@@ -101,7 +97,7 @@ export default function ScenarioGenerator({
 
   useEffect(() => {
     setSimulationRun(false);
-    const editScenario = { ...simulationContext, ...{ rulemap: true } };
+    const editScenario = { ...simulationContext, rulemap: true };
     setSimulationContext(editScenario);
     setEditingScenario(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps

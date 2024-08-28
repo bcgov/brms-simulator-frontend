@@ -47,14 +47,14 @@ export default function ScenariosManager({
   }
 
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
-  const [activeKey, setActiveKey] = useState<string>(
+  const [activeTabKey, setActiveTabKey] = useState<string>(
     showAllScenarioTabs ? ScenariosManagerTabs.ResultsTab : ScenariosManagerTabs.ScenariosTab
   );
   const [scenarioName, setScenarioName] = useState<string>("");
   const [activeScenarios, setActiveScenarios] = useState<Scenario[]>(scenarios ? scenarios : []);
 
   const handleTabChange = (key: string) => {
-    setActiveKey(key);
+    setActiveTabKey(key);
     handleReset();
   };
 
@@ -78,7 +78,7 @@ export default function ScenariosManager({
         runSimulation={runSimulation}
         rulemap={rulemap}
         editing={isEditing}
-        setActiveKey={setActiveKey}
+        setActiveTabKey={setActiveTabKey}
         scenariosManagerTabs={ScenariosManagerTabs}
         setResetTrigger={setResetTrigger}
         setScenarioName={setScenarioName}
@@ -101,7 +101,7 @@ export default function ScenariosManager({
         editing={isEditing}
         scenarioName={scenarioName}
         setScenarioName={setScenarioName}
-        setActiveKey={setActiveKey}
+        setActiveTabKey={setActiveTabKey}
         scenariosManagerTabs={ScenariosManagerTabs}
         setActiveScenarios={setActiveScenarios}
       />
@@ -157,7 +157,7 @@ export default function ScenariosManager({
       <Flex gap="middle" justify="space-between">
         <Tabs
           className={styles.tabs}
-          activeKey={activeKey}
+          activeKey={activeTabKey}
           defaultActiveKey={showAllScenarioTabs ? ScenariosManagerTabs.ResultsTab : ScenariosManagerTabs.ScenariosTab}
           items={filteredItems}
           onChange={handleTabChange}

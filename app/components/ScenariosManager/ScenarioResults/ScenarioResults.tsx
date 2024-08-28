@@ -203,15 +203,18 @@ export default function ScenarioResults({ scenarios, jsonFile, ruleContent }: Sc
         render: (text) => <a>{text}</a>,
         fixed: "left",
         width: "10%",
-        sorter: (a: DataType, b: DataType) => a.name.localeCompare(b.name),
-        filteredValue: filteredInfo.name || null,
-        sortOrder: sortedInfo.columnKey === "name" ? sortedInfo.order : undefined,
+        sorter: isMobile || isTablet ? undefined : (a: DataType, b: DataType) => a.name.localeCompare(b.name),
+        filteredValue: isMobile || isTablet ? undefined : filteredInfo.name || null,
+        sortOrder: isMobile || isTablet ? undefined : sortedInfo.columnKey === "name" ? sortedInfo.order : undefined,
         filterSearch: true,
         onFilter: (value: any, record: DataType) => record.name.toLowerCase().includes(value.toLowerCase()),
-        filters: formattedData.map((scenario) => ({
-          text: scenario.name,
-          value: scenario.name,
-        })),
+        filters:
+          isMobile || isTablet
+            ? undefined
+            : formattedData.map((scenario) => ({
+                text: scenario.name,
+                value: scenario.name,
+              })),
       },
       {
         title: "Inputs",
@@ -340,10 +343,14 @@ export default function ScenarioResults({ scenarios, jsonFile, ruleContent }: Sc
             <Button onClick={() => updateScenarioResults(jsonFile)} size="large" type="primary">
               Re-Run Scenarios
             </Button>
-            <Button onClick={showErrorScenarios} type="dashed" danger>
-              Show Error Scenarios
-            </Button>
-            <Button onClick={clearAll}>Clear filters and sorters</Button>
+            {!isMobile && !isTablet && (
+              <>
+                <Button onClick={showErrorScenarios} type="dashed" danger>
+                  Show Error Scenarios
+                </Button>
+                <Button onClick={clearAll}>Clear filters and sorters</Button>
+              </>
+            )}
           </Flex>
         </Space>
         <Flex gap="small" vertical>
