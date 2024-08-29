@@ -309,5 +309,5 @@ export default function ArrayFormatter(
     );
   };
 
-  return <ArrayComponent {...{ editable, parsedValue, parsedPropertyName, rawData }} /> || <></>;
+  return <ArrayComponent {...{ editable, parsedValue, parsedPropertyName, rawData }} />;
 }
