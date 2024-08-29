@@ -1,6 +1,9 @@
-import { Tag, Input, Radio, AutoComplete, InputNumber, Flex } from "antd";
+import dayjs from "dayjs";
+import { Tag, Input, Radio, AutoComplete, InputNumber, Flex, Button, Tooltip, DatePicker } from "antd";
+import { MinusCircleOutlined } from "@ant-design/icons";
 import ArrayFormatter, { parseSchemaTemplate, generateArrayFromSchema } from "./ArrayFormatter";
 import { Scenario } from "@/app/types/scenario";
+import { dollarFormat } from "@/app/utils/utils";
 
 export interface rawDataProps {
   [key: string]: any;
@@ -31,7 +34,8 @@ export default function InputStyler(
   const handleValueChange = (value: any, property: string) => {
     let queryValue: any = value;
     if (typeof value === "string") {
-      if (value.toLowerCase() === "true") {
+      if (value === "") queryValue = "";
+      else if (value.toLowerCase() === "true") {
         queryValue = true;
       } else if (value.toLowerCase() === "false") {
         queryValue = false;
@@ -47,6 +51,17 @@ export default function InputStyler(
     } else {
       console.error("setRawData is not a function or is undefined");
     }
+  };
+
+  const handleClear = (property: any) => {
+    const inputElement = document.getElementById(property) as any;
+
+    if (inputElement) {
+      inputElement.value = null;
+      inputElement.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    handleValueChange(null, property);
   };
 
   const handleInputChange = (val: any, property: string) => {
@@ -77,10 +92,23 @@ export default function InputStyler(
       return (
         <Flex gap={"small"} align="center" vertical>
           <label className="labelsmall">
-            <Radio.Group onChange={(e) => handleInputChange(e.target.value, property)} value={value}>
-              <Radio value={true}>Yes</Radio>
-              <Radio value={false}>No</Radio>
-            </Radio.Group>
+            <Flex gap={"small"} align="center">
+              <Radio.Group onChange={(e) => handleInputChange(e.target.value, property)} value={value}>
+                <Flex gap={"small"} align="center">
+                  <Radio value={true}>Yes</Radio>
+                  <Radio value={false}>No</Radio>
+                </Flex>
+              </Radio.Group>
+              <Tooltip title="Clear value">
+                <Button
+                  type="dashed"
+                  icon={<MinusCircleOutlined />}
+                  size="small"
+                  shape="circle"
+                  onClick={() => handleInputChange(undefined, property)}
+                />
+              </Tooltip>
+            </Flex>
             <span className="label-text">{property}</span>
           </label>
         </Flex>
@@ -88,28 +116,82 @@ export default function InputStyler(
     }
 
     if (type === "string" || typeof value === "string") {
-      return (
-        <label className="labelsmall">
-          <AutoComplete
-            options={valuesArray}
-            defaultValue={value}
-            onBlur={(e) => handleValueChange((e.target as HTMLInputElement).value, property)}
-            style={{ width: 200 }}
-            onChange={(val) => handleInputChange(val, property)}
-          />
-          <span className="label-text">{property}</span>
-        </label>
-      );
+      const dateCheck = /date|month|year|day/i;
+      if (dateCheck.test(property)) {
+        return (
+          <label className="labelsmall">
+            <Flex gap={"small"} align="center">
+              <DatePicker
+                allowClear={false}
+                id={property}
+                defaultValue={value ? dayjs(value, "YYYY-MM-DD") : null}
+                format="YYYY-MM-DD"
+                onChange={(val) => {
+                  const formattedDate = val ? val.format("YYYY-MM-DD") : null;
+                  handleInputChange(formattedDate, property);
+                }}
+                style={{ width: 200 }}
+              />
+              <Tooltip title="Clear value">
+                <Button
+                  type="dashed"
+                  icon={<MinusCircleOutlined />}
+                  size="small"
+                  shape="circle"
+                  onClick={() => handleClear(property)}
+                />
+              </Tooltip>
+            </Flex>
+            <span className="label-text">{property}</span>
+          </label>
+        );
+      } else {
+        return (
+          <label className="labelsmall">
+            <Flex gap={"small"} align="center">
+              <AutoComplete
+                id={property}
+                options={valuesArray}
+                defaultValue={value}
+                onBlur={(e) => handleValueChange((e.target as HTMLInputElement).value, property)}
+                style={{ width: 200 }}
+                onChange={(val) => handleInputChange(val, property)}
+              />
+              <Tooltip title="Clear value">
+                <Button
+                  type="dashed"
+                  icon={<MinusCircleOutlined />}
+                  size="small"
+                  shape="circle"
+                  onClick={() => handleClear(property)}
+                />
+              </Tooltip>
+            </Flex>
+            <span className="label-text">{property}</span>
+          </label>
+        );
+      }
     }
 
     if (type === "number" || typeof value === "number") {
       return (
         <label className="labelsmall">
-          <InputNumber
-            value={value}
-            onBlur={(e) => handleValueChange(e.target.value, property)}
-            onChange={(val) => handleInputChange(val, property)}
-          />
+          <Flex gap={"small"} align="center">
+            <InputNumber
+              value={value}
+              onBlur={(e) => handleValueChange(e.target.value, property)}
+              onChange={(val) => handleInputChange(val, property)}
+            />
+            <Tooltip title="Clear value">
+              <Button
+                type="dashed"
+                icon={<MinusCircleOutlined />}
+                size="small"
+                shape="circle"
+                onClick={() => handleInputChange(undefined, property)}
+              />
+            </Tooltip>
+          </Flex>
           <span className="label-text">{property}</span>
         </label>
       );
@@ -163,8 +245,11 @@ export default function InputStyler(
     }
 
     if (type === "number" || typeof value === "number") {
-      if (property.toLowerCase().includes("amount")) {
-        return <Tag color="green">${value}</Tag>;
+      if (typeof value === "number" && property.toLowerCase().includes("amount")) {
+        if (property.toLowerCase().includes("amount")) {
+          const formattedValue = dollarFormat(value);
+          return <Tag color="green">${formattedValue}</Tag>;
+        }
       } else {
         return <Tag color="blue">{value}</Tag>;
       }

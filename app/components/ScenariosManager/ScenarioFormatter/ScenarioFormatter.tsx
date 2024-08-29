@@ -49,8 +49,16 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
   useEffect(() => {
     if (rawData) {
       const editable = title === "Inputs" && rawData.rulemap === true;
+      let updatedRawData = rawData;
+      if (editable) {
+        const ruleMapInputs = rulemap?.inputs.reduce((obj: Record<string, any>, item: any) => {
+          obj[item.property] = null;
+          return obj;
+        }, {});
+        updatedRawData = { ...ruleMapInputs, ...rawData };
+      }
       const propertyRuleMap = Object.values(rulemap || {}).flat();
-      const newData = Object.entries(rawData)
+      const newData = Object.entries(updatedRawData)
         .filter(([property]) => !PROPERTIES_TO_IGNORE.includes(property))
         .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
         .map(([property, value], index) => ({
@@ -58,7 +66,7 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
             propertyRuleMap?.find((item) => item.property === property)?.name ||
             parseSchemaTemplate(property)?.arrayName ||
             property,
-          value: InputStyler(value, property, editable, scenarios, rawData, setRawData),
+          value: InputStyler(value, property, editable, scenarios, updatedRawData, setRawData),
           key: index,
         }));
       // Check if data.result is an array

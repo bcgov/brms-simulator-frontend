@@ -2,11 +2,12 @@
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;
-  max-width: 100%;
+  max-width: 1180px;
 }
 
 .scenarioTable {
-  max-width: 100%;
+  max-width: 1180px;
+  overflow-x: auto;
 }
 
 .expectedResultsExpanded {

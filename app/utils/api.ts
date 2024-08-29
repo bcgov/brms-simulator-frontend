@@ -229,6 +229,23 @@ export const createScenario = async (scenarioResponse: unknown) => {
 };
 
 /**
+ *
+ * @param scenarioResponse The response from scenario creation.
+ * @returns The confirmation of rule posting.
+ * @throws If an error occurs while retrieving the rule data.
+ */
+
+export const updateScenario = async (scenarioResponse: unknown, scenarioID?: string) => {
+  try {
+    const { data } = await axiosAPIInstance.put(`/scenario/${scenarioID}`, scenarioResponse);
+    return data;
+  } catch (error) {
+    console.error(`Error posting output schema: ${error}`);
+    throw error;
+  }
+};
+
+/**
  * Deletes a scenario by its ID
  * @param scenarioId The ID of the scenario to delete.
  * @returns The confirmation of scenario deletion.
