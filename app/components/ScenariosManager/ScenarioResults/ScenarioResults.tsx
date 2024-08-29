@@ -12,7 +12,6 @@ interface ScenarioResultsProps {
   scenarios: Scenario[];
   jsonFile: string;
   ruleContent?: DecisionGraphType;
-  uploader?: boolean;
 }
 
 type DataType = {
