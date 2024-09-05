@@ -2,6 +2,7 @@ import { DecisionGraphType } from "@gorules/jdm-editor";
 import axios from "axios";
 import { RuleDraft, RuleInfo } from "../types/ruleInfo";
 import { RuleMap } from "../types/rulemap";
+import { KlammBREField } from "../types/klamm";
 import { downloadFileBlob } from "./utils";
 
 const axiosAPIInstance = axios.create({
@@ -349,5 +350,22 @@ export const uploadCSVAndProcess = async (
   } catch (error) {
     console.error(`Error processing CSV file: ${error}`);
     throw new Error("Error processing CSV file");
+  }
+};
+
+/**
+ * Retrieves a list of bre fields from Klamm
+ * @returns List of bre fields
+ * @throws If an error occurs while retrieving the fields
+ */
+export const getBREFields = async (): Promise<KlammBREField[]> => {
+  try {
+    const {
+      data: { data },
+    } = await axiosAPIInstance.get("/klamm/brefields");
+    return data;
+  } catch (error) {
+    console.error(`Error getting rule data: ${error}`);
+    throw error;
   }
 };
