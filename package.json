@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.0",
-    "@gorules/jdm-editor": "https://gitpkg.vercel.app/bcgov/jdm-editor/packages/jdm-editor?feature/input-output-schema-support",
-    "@gorules/jdm-monorepo": "bcgov/jdm-editor#feature/input-output-schema-support",
+    "@gorules/jdm-editor": "https://gitpkg.vercel.app/bcgov/jdm-editor/packages/jdm-editor?master",
+    "@gorules/jdm-monorepo": "bcgov/jdm-editor",
     "@rjsf/core": "^5.17.1",
     "@rjsf/utils": "^5.17.1",
     "@rjsf/validator-ajv8": "^5.17.1",
