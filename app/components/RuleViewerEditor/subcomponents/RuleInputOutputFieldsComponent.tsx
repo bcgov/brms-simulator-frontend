@@ -18,6 +18,7 @@ declare type InputOutputField = {
 };
 
 interface RuleInputOutputFieldsComponent extends GraphNodeProps {
+  fieldsTypeLabel: string;
   setInputOutputSchema: (schema: SchemaSelectProps[]) => void;
   isEditable: boolean;
 }
@@ -27,6 +28,7 @@ export default function RuleInputOutputFieldsComponent({
   id,
   isSelected,
   name,
+  fieldsTypeLabel = "Input",
   setInputOutputSchema,
   isEditable,
 }: RuleInputOutputFieldsComponent) {
@@ -146,7 +148,7 @@ export default function RuleInputOutputFieldsComponent({
         isEditable
           ? [
               <Button key="add row" type="link" onClick={addInputField} disabled={!isEditable}>
-                Add Input +
+                Add {fieldsTypeLabel} +
               </Button>,
             ]
           : []
@@ -167,7 +169,7 @@ export default function RuleInputOutputFieldsComponent({
                     filterOption={filterOption}
                     options={inputOutputOptions}
                     onChange={(value) => updateInputField(item, value)}
-                    value={item.field}
+                    value={{ label: item.label, value: item.field }}
                     notFoundContent={isLoading ? <Spin size="small" /> : null}
                     style={{ width: 200 }}
                     popupMatchSelectWidth={false}

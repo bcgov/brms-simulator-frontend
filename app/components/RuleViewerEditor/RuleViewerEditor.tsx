@@ -18,7 +18,7 @@ import { downloadFileBlob } from "@/app/utils/utils";
 import { getScenariosByFilename } from "@/app/utils/api";
 import LinkRuleComponent from "./subcomponents/LinkRuleComponent";
 import SimulatorPanel from "./subcomponents/SimulatorPanel";
-import RuleInputsComponent from "./subcomponents/RuleInputOutputFieldsComponent";
+import RuleInputOutputFieldsComponent from "./subcomponents/RuleInputOutputFieldsComponent";
 
 interface RuleViewerEditorProps {
   jsonFilename: string;
@@ -155,13 +155,14 @@ export default function RuleViewerEditor({
           content: { fields: [] },
         }),
         renderNode: ({ specification, id, selected, data }) => (
-          <RuleInputsComponent
+          <RuleInputOutputFieldsComponent
             specification={specification}
             id={id}
             isSelected={selected}
             name={data?.name}
-            isEditable={isEditable}
+            fieldsTypeLabel="Input"
             setInputOutputSchema={setInputsSchema}
+            isEditable={isEditable}
           />
         ),
       },
@@ -179,13 +180,14 @@ export default function RuleViewerEditor({
           content: { fields: [] },
         }),
         renderNode: ({ specification, id, selected, data }) => (
-          <RuleInputsComponent
+          <RuleInputOutputFieldsComponent
             specification={specification}
             id={id}
             isSelected={selected}
             name={data?.name}
-            isEditable={isEditable}
+            fieldsTypeLabel="Output"
             setInputOutputSchema={setOutputsSchema}
+            isEditable={isEditable}
           />
         ),
       },
