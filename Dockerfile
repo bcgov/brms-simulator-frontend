@@ -11,8 +11,11 @@ WORKDIR /opt/app-root/src
 # Copy package.json, and optionally package-lock.json if it exists
 COPY package.json package-lock.json* ./
 
+# Clear npm cache
+RUN npm cache clean --force
+
 # Install app dependencies
-RUN npm ci 
+RUN npm ci --no-strict-ssl --no-shrinkwrap --verbose || npm install --prefer-online --verbose
 
 # Copy the application code
 COPY . ./

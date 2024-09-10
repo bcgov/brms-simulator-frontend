@@ -2,6 +2,8 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import type { ReactFlowInstance } from "reactflow";
 import "@gorules/jdm-editor/dist/style.css";
+import { Spin } from "antd";
+import { ApartmentOutlined, PlayCircleOutlined, LoginOutlined, LogoutOutlined } from "@ant-design/icons";
 import {
   JdmConfigProvider,
   DecisionGraph,
@@ -10,21 +12,22 @@ import {
   DecisionGraphRef,
   Simulation,
 } from "@gorules/jdm-editor";
-import { ApartmentOutlined, PlayCircleOutlined } from "@ant-design/icons";
+import { SchemaSelectProps } from "@gorules/jdm-editor/src/helpers/components";
 import { Scenario, Variable } from "@/app/types/scenario";
+import { downloadFileBlob } from "@/app/utils/utils";
+import { getScenariosByFilename } from "@/app/utils/api";
 import LinkRuleComponent from "./subcomponents/LinkRuleComponent";
 import SimulatorPanel from "./subcomponents/SimulatorPanel";
-import { downloadFileBlob } from "@/app/utils/utils";
-import { getScenariosByFilename } from "../../utils/api";
+import RuleInputOutputFieldsComponent from "./subcomponents/RuleInputOutputFieldsComponent";
 
 interface RuleViewerEditorProps {
   jsonFilename: string;
   ruleContent: DecisionGraphType;
   updateRuleContent: (updateGraph: DecisionGraphType) => void;
   contextToSimulate?: Record<string, any> | null;
-  setContextToSimulate: (results: Record<string, any>) => void;
+  setContextToSimulate?: (results: Record<string, any>) => void;
   simulation?: Simulation;
-  runSimulation: (results: unknown) => void;
+  runSimulation?: (results: unknown) => void;
   isEditable?: boolean;
 }
 
@@ -40,6 +43,8 @@ export default function RuleViewerEditor({
 }: RuleViewerEditorProps) {
   const decisionGraphRef: any = useRef<DecisionGraphRef>();
   const [reactFlowRef, setReactFlowRef] = useState<ReactFlowInstance>();
+  const [inputsSchema, setInputsSchema] = useState<SchemaSelectProps[]>([]);
+  const [outputsSchema, setOutputsSchema] = useState<SchemaSelectProps[]>([]);
 
   useEffect(() => {
     // Ensure graph is in view
@@ -116,9 +121,9 @@ export default function RuleViewerEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ruleContent]);
 
-  // This is to add the decision node - note that this may be added to the DecisionGraph library
   const additionalComponents: NodeSpecification[] = useMemo(
     () => [
+      // This is to add the decision node - note that this may be added to the DecisionGraph library eventually
       {
         type: "decisionNode",
         displayName: "Rule",
@@ -132,6 +137,56 @@ export default function RuleViewerEditor({
             id={id}
             isSelected={selected}
             name={data?.name}
+            isEditable={isEditable}
+          />
+        ),
+      },
+      // Input node - overrides existing one (but duplication occurs atm)
+      {
+        type: "inputNode",
+        displayName: "Request",
+        shortDescription: "Provides input context",
+        color: "secondary",
+        icon: <LoginOutlined />,
+        disabled: true,
+        generateNode: ({ index }) => ({
+          name: "Request",
+          type: "inputNode",
+          content: { fields: [] },
+        }),
+        renderNode: ({ specification, id, selected, data }) => (
+          <RuleInputOutputFieldsComponent
+            specification={specification}
+            id={id}
+            isSelected={selected}
+            name={data?.name}
+            fieldsTypeLabel="Input"
+            setInputOutputSchema={setInputsSchema}
+            isEditable={isEditable}
+          />
+        ),
+      },
+      // Output node - overrides existing one (but duplication occurs atm)
+      {
+        type: "outputNode",
+        displayName: "Response",
+        shortDescription: "Outputs the context",
+        color: "secondary",
+        icon: <LogoutOutlined />,
+        disabled: true,
+        generateNode: ({ index }) => ({
+          name: "Response",
+          type: "outputNode",
+          content: { fields: [] },
+        }),
+        renderNode: ({ specification, id, selected, data }) => (
+          <RuleInputOutputFieldsComponent
+            specification={specification}
+            id={id}
+            isSelected={selected}
+            name={data?.name}
+            fieldsTypeLabel="Output"
+            setInputOutputSchema={setOutputsSchema}
             isEditable={isEditable}
           />
         ),
@@ -159,6 +214,14 @@ export default function RuleViewerEditor({
     [contextToSimulate, runSimulation, setContextToSimulate]
   );
 
+  if (!ruleContent || !additionalComponents || !panels) {
+    return (
+      <Spin tip="Loading graph..." size="large" className="spinner">
+        <div className="content" />
+      </Spin>
+    );
+  }
+
   return (
     <JdmConfigProvider>
       <DecisionGraph
@@ -172,6 +235,8 @@ export default function RuleViewerEditor({
         components={additionalComponents}
         onChange={(updatedGraphValue) => updateRuleContent(updatedGraphValue)}
         disabled={!isEditable}
+        inputsSchema={inputsSchema}
+        outputsSchema={outputsSchema}
       />
     </JdmConfigProvider>
   );
