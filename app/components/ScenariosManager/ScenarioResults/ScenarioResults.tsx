@@ -268,7 +268,7 @@ export default function ScenarioResults({ scenarios, jsonFile, ruleContent }: Sc
     );
   };
 
-  const rowExpandable = (record: { resultMatch: { props: { className: string } } }) => {
+  const rowExpandable = (record: DataType) => {
     if (isMobile || isTablet) {
       return true;
     }

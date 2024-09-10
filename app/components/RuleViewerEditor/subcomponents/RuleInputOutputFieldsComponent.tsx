@@ -5,7 +5,7 @@ import type { BaseOptionType } from "antd/es/select";
 import type { FlattenOptionData } from "rc-select/lib/interface";
 import { GraphNode, useDecisionGraphActions, useDecisionGraphState } from "@gorules/jdm-editor";
 import type { GraphNodeProps } from "@gorules/jdm-editor";
-import { SchemaSelectProps } from "@gorules/jdm-editor/src/helpers/components";
+import { SchemaSelectProps } from "@/app/types/jdm-editor";
 import { KlammBREField } from "@/app/types/klamm";
 import { getBREFields } from "@/app/utils/api";
 import styles from "./RuleInputOutputFieldsComponent.module.css";
@@ -64,6 +64,7 @@ export default function RuleInputOutputFieldsComponent({
         return draft;
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function RuleInputOutputFieldsComponent({
       .filter(({ field }) => field)
       .map(({ field, label }) => ({ field, name: label }));
     setInputOutputSchema(schemafiedInputs);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputOutputFields]);
 
   const addInputField = () => {

@@ -44,7 +44,7 @@ export default function InputStyler(
       }
     }
 
-    const updatedData = { ...rawData, [property]: queryValue } || {};
+    const updatedData = { ...rawData, [property]: queryValue };
 
     if (typeof setRawData === "function") {
       setRawData(updatedData);

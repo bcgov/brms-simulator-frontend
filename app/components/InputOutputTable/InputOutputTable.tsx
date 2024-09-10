@@ -87,7 +87,7 @@ export default function InputOutputTable({
       queryValue = Number(newValue);
     }
 
-    const updatedData = { ...rawData, [property]: queryValue } || {};
+    const updatedData = { ...rawData, [property]: queryValue };
 
     if (typeof setRawData === "function") {
       setRawData(updatedData);

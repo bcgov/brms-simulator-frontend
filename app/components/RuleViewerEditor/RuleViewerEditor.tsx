@@ -11,8 +11,9 @@ import {
   DecisionGraphType,
   DecisionGraphRef,
   Simulation,
+  CustomNodeSpecification,
 } from "@gorules/jdm-editor";
-import { SchemaSelectProps } from "@gorules/jdm-editor/src/helpers/components";
+import { SchemaSelectProps, PanelType } from "@/app/types/jdm-editor";
 import { Scenario, Variable } from "@/app/types/scenario";
 import { downloadFileBlob } from "@/app/utils/utils";
 import { getScenariosByFilename } from "@/app/utils/api";
@@ -192,25 +193,29 @@ export default function RuleViewerEditor({
         ),
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
   // Simulator custom panel
-  const panels = useMemo(
-    () => [
-      {
-        id: "simulator",
-        title: "Simulator",
-        icon: <PlayCircleOutlined />,
-        renderPanel: () => (
-          <SimulatorPanel
-            contextToSimulate={contextToSimulate}
-            runSimulation={runSimulation}
-            setContextToSimulate={setContextToSimulate}
-          />
-        ),
-      },
-    ],
+  const panels: PanelType[] = useMemo(
+    () =>
+      (runSimulation &&
+        setContextToSimulate && [
+          {
+            id: "simulator",
+            title: "Simulator",
+            icon: <PlayCircleOutlined />,
+            renderPanel: () => (
+              <SimulatorPanel
+                contextToSimulate={contextToSimulate}
+                runSimulation={runSimulation}
+                setContextToSimulate={setContextToSimulate}
+              />
+            ),
+          } as PanelType,
+        ]) ||
+      [],
     [contextToSimulate, runSimulation, setContextToSimulate]
   );
 
