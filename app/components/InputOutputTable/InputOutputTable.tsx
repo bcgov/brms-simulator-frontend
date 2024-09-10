@@ -1,5 +1,6 @@
 import { useState, useEffect, FocusEvent } from "react";
-import { Table, Tag, Input, Button } from "antd";
+import { Table, Tag, Input, Button, Tooltip, Flex } from "antd";
+import { MinusCircleOutlined } from "@ant-design/icons";
 import { RuleMap } from "@/app/types/rulemap";
 import styles from "./InputOutputTable.module.css";
 import { dollarFormat } from "@/app/utils/utils";
@@ -48,15 +49,40 @@ export default function InputOutputTable({
     setShowTable(!showTable);
   };
 
+  const handleClear = (property: any) => {
+    const inputElement = document.getElementById(property) as any;
+
+    if (inputElement) {
+      inputElement.value = null;
+      inputElement.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    handleValueChange(null, property);
+  };
+
   const convertAndStyleValue = (value: any, property: string, editable: boolean) => {
     if (editable) {
       return (
         <label className="labelsmall">
-          <Input
-            defaultValue={value}
-            onBlur={(e) => handleValueChange(e, property)}
-            onKeyDown={(e) => handleKeyDown(e)}
-          />
+          <Flex gap={"small"} align="center">
+            <Input
+              id={property}
+              value={value ?? null}
+              onChange={(e) => handleInputChange(e, property)}
+              defaultValue={value ?? ""}
+              onBlur={(e) => handleValueChange(e, property)}
+              onKeyDown={(e) => handleKeyDown(e)}
+            />
+            <Tooltip title="Clear value">
+              <Button
+                type="dashed"
+                icon={<MinusCircleOutlined />}
+                size="small"
+                shape="circle"
+                onClick={() => handleClear(property)}
+              />
+            </Tooltip>
+          </Flex>
           <span className="label-text">{property}</span>
         </label>
       );
@@ -74,20 +100,33 @@ export default function InputOutputTable({
     return <b>{value}</b>;
   };
 
-  const handleValueChange = (e: FocusEvent<HTMLInputElement, Element>, property: string) => {
-    if (!e.target) return;
-    const newValue = (e.target as HTMLInputElement).value;
+  const handleValueChange = (
+    e: FocusEvent<HTMLInputElement, Element> | React.ChangeEvent<HTMLInputElement> | null,
+    property: string
+  ) => {
+    const newValue = e?.target?.value || null;
     let queryValue: any = newValue;
 
-    if (newValue.toLowerCase() === "true") {
+    if (newValue?.toLowerCase() === "true") {
       queryValue = true;
-    } else if (newValue.toLowerCase() === "false") {
+    } else if (newValue?.toLowerCase() === "false") {
       queryValue = false;
-    } else if (!isNaN(Number(newValue))) {
+    } else if (newValue && !isNaN(Number(newValue))) {
       queryValue = Number(newValue);
     }
 
     const updatedData = { ...rawData, [property]: queryValue };
+
+    if (typeof setRawData === "function") {
+      setRawData(updatedData);
+    } else {
+      console.error("setRawData is not a function or is undefined");
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | null, property: string) => {
+    const newValue = e?.target?.value || "";
+    const updatedData = { ...rawData, [property]: newValue };
 
     if (typeof setRawData === "function") {
       setRawData(updatedData);
