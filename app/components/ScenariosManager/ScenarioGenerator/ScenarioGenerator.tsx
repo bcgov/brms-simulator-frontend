@@ -25,6 +25,8 @@ interface ScenarioGeneratorProps {
   setActiveTabKey?: (key: string) => void;
   scenariosManagerTabs?: any;
   setActiveScenarios?: (scenarios: Scenario[]) => void;
+  schemaContext?: Record<string, any>;
+  setSchemaContext?: (results: Record<string, any>) => void;
 }
 
 export default function ScenarioGenerator({
@@ -43,6 +45,8 @@ export default function ScenarioGenerator({
   setActiveTabKey,
   scenariosManagerTabs,
   setActiveScenarios,
+  schemaContext,
+  setSchemaContext,
 }: ScenarioGeneratorProps) {
   const [simulationRun, setSimulationRun] = useState(false);
   const [scenarioExpectedOutput, setScenarioExpectedOutput] = useState({});
@@ -127,6 +131,7 @@ export default function ScenarioGenerator({
               setRawData={(data) => setSimulationContext(data)}
               scenarios={scenarios}
               rulemap={rulemap}
+              schemaContext={schemaContext}
             />
             <Flex gap={"small"} align="end" vertical>
               <Flex gap={"small"} align="end">
@@ -161,7 +166,7 @@ export default function ScenarioGenerator({
           </Flex>
         )}
         <Flex gap={"small"} vertical>
-          {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} rulemap={rulemap} />}
+          {resultsOfSimulation && <InputOutputTable title="Results" rawData={resultsOfSimulation} rulemap={rulemap} schemaContext={schemaContext} />}
         </Flex>
         <Flex gap={"small"} vertical>
           {scenarioExpectedOutput && editing && (
@@ -173,6 +178,7 @@ export default function ScenarioGenerator({
               rawData={scenarioExpectedOutput}
               editable
               rulemap={rulemap}
+              schemaContext={schemaContext}
             />
           )}
         </Flex>

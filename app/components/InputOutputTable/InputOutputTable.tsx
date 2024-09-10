@@ -31,6 +31,7 @@ interface InputOutputTableProps {
   submitButtonRef?: React.RefObject<HTMLButtonElement>;
   editable?: boolean;
   rulemap?: RuleMap;
+  schemaContext?: Record<string, any>;
 }
 
 export default function InputOutputTable({
@@ -40,6 +41,7 @@ export default function InputOutputTable({
   submitButtonRef,
   editable = false,
   rulemap,
+  schemaContext,
 }: InputOutputTableProps) {
   const [dataSource, setDataSource] = useState<object[]>([]);
   const [columns, setColumns] = useState(COLUMNS);

@@ -31,9 +31,17 @@ interface ScenarioFormatterProps {
   setRawData?: (data: object) => void;
   scenarios?: Scenario[];
   rulemap: RuleMap;
+  schemaContext?: Record<string, any>;
 }
 
-export default function ScenarioFormatter({ title, rawData, setRawData, scenarios, rulemap }: ScenarioFormatterProps) {
+export default function ScenarioFormatter({
+  title,
+  rawData,
+  setRawData,
+  scenarios,
+  rulemap,
+  schemaContext,
+}: ScenarioFormatterProps) {
   const [dataSource, setDataSource] = useState<object[]>([]);
   const [columns, setColumns] = useState(COLUMNS);
   const [showTable, setShowTable] = useState(true);
@@ -66,10 +74,11 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
             propertyRuleMap?.find((item) => item.property === property)?.name ||
             parseSchemaTemplate(property)?.arrayName ||
             property,
-          value: InputStyler(value, property, editable, scenarios, updatedRawData, setRawData),
+          value: InputStyler(value, property, editable, scenarios, updatedRawData, setRawData, schemaContext),
           key: index,
         }));
       // Check if data.result is an array
+      console.log(schemaContext, "schemaContext");
       if (Array.isArray(rawData)) {
         throw new Error("Please update your rule and ensure that outputs are on one line.");
       }
@@ -78,7 +87,7 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
       setColumns(newColumns);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rawData]);
+  }, [rawData, schemaContext]);
 
   return (
     <div>

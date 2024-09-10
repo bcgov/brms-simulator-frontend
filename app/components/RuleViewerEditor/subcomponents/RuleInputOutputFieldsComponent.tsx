@@ -15,12 +15,18 @@ declare type InputOutputField = {
   field: string;
   label?: string;
   type?: string;
+  value?: string;
 };
 
 interface RuleInputOutputFieldsComponent extends GraphNodeProps {
   fieldsTypeLabel: string;
   setInputOutputSchema: (schema: SchemaSelectProps[]) => void;
   isEditable: boolean;
+  contextToSimulate?: Record<string, any> | null;
+  resultsOfSimulation?: Record<string, any> | null;
+  setContextToSimulate?: (results: Record<string, any>) => void;
+  schemaContext?: Record<string, any>;
+  setSchemaContext?: (results: Record<string, any>) => void;
 }
 
 export default function RuleInputOutputFieldsComponent({
@@ -31,12 +37,18 @@ export default function RuleInputOutputFieldsComponent({
   fieldsTypeLabel = "Input",
   setInputOutputSchema,
   isEditable,
+  contextToSimulate,
+  resultsOfSimulation,
+  setContextToSimulate,
+  schemaContext,
+  setSchemaContext,
 }: RuleInputOutputFieldsComponent) {
   const { updateNode } = useDecisionGraphActions();
   const node = useDecisionGraphState((state) => (state.decisionGraph?.nodes || []).find((n) => n.id === id));
   const inputOutputFields: InputOutputField[] = node?.content?.fields || [];
 
   const [inputOutputOptions, setInputOutputOptions] = useState<BaseOptionType[]>([]);
+  const [inputOutputSchemaFields, setInputOutputSchemaFields] = useState<any>(contextToSimulate || {});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -47,6 +59,16 @@ export default function RuleInputOutputFieldsComponent({
           label: `${label}${description ? `: ${description}` : ""}`, // Add the description as part of the label - will be formatted properly later
           value: name,
         }));
+
+        const variables = Object.entries(contextToSimulate || {})
+          .filter(([name]) => name !== "rulemap")
+          .map(([name]) => ({ label: `${name}`, value: name }));
+
+        const expectedResults = Object.entries(resultsOfSimulation || {})
+          .filter(([name]) => name !== "rulemap")
+          .map(([name]) => ({ label: `${name}`, value: name }));
+
+        setInputOutputSchemaFields(fieldsTypeLabel === "Input" ? variables : expectedResults);
         setInputOutputOptions(newInputOutputOptions);
         setIsLoading(false);
       } catch (error) {
@@ -54,7 +76,7 @@ export default function RuleInputOutputFieldsComponent({
       }
     };
     getFieldsFromKlamm();
-  }, []);
+  }, [contextToSimulate, resultsOfSimulation, fieldsTypeLabel]);
 
   useEffect(() => {
     // Add a new field by default if one doesn't exist when editing
@@ -62,6 +84,12 @@ export default function RuleInputOutputFieldsComponent({
       updateNode(id, (draft) => {
         draft.content = { fields: [{ id: crypto.randomUUID(), field: "" }] };
         return draft;
+      });
+      inputOutputFields.forEach((field) => {
+        setSchemaContext?.((prevContext: any) => ({
+          ...prevContext,
+          [field.field]: field,
+        }));
       });
     }
   }, []);
@@ -91,6 +119,22 @@ export default function RuleInputOutputFieldsComponent({
         if (input.id === item.id) {
           input.field = key;
           input.label = label;
+        }
+        return input;
+      });
+      return draft;
+    });
+  };
+
+  const updateInputFieldMatch = (item: InputOutputField, { value }: any) => {
+    setSchemaContext?.((prevContext: any) => ({
+      ...prevContext,
+      [value]: item,
+    }));
+    updateNode(id, (draft) => {
+      draft.content.fields = draft.content.fields.map((input: InputOutputField) => {
+        if (input.id === item.id) {
+          input.value = value;
         }
         return input;
       });
@@ -178,6 +222,23 @@ export default function RuleInputOutputFieldsComponent({
                     labelRender={renderSelectLabel}
                     optionRender={renderSelectOption}
                   />
+                  <Select
+                    disabled={!isEditable}
+                    showSearch
+                    placeholder={`Select matching ${fieldsTypeLabel}`}
+                    // filterOption={filterOption}
+                    options={inputOutputSchemaFields}
+                    onChange={(value) => updateInputFieldMatch(item, value)}
+                    value={{ label: item.value, value: item.value }}
+                    notFoundContent={isLoading ? <Spin size="small" /> : null}
+                    // style={{ width: 200 }}
+                    popupMatchSelectWidth={false}
+                    className={styles.inputSelect}
+                    labelInValue
+                    // labelRender={renderSelectLabel}
+                    // optionRender={renderSelectOption}
+                  />
+
                   <Button
                     type="text"
                     danger

@@ -29,6 +29,9 @@ interface RuleViewerEditorProps {
   simulation?: Simulation;
   runSimulation?: (results: unknown) => void;
   isEditable?: boolean;
+  resultsOfSimulation?: Record<string, any> | null;
+  schemaContext?: Record<string, any>;
+  setSchemaContext?: (results: Record<string, any>) => void;
 }
 
 export default function RuleViewerEditor({
@@ -40,6 +43,9 @@ export default function RuleViewerEditor({
   simulation,
   runSimulation,
   isEditable = true,
+  resultsOfSimulation,
+  schemaContext,
+  setSchemaContext,
 }: RuleViewerEditorProps) {
   const decisionGraphRef: any = useRef<DecisionGraphRef>();
   const [reactFlowRef, setReactFlowRef] = useState<ReactFlowInstance>();
@@ -163,6 +169,11 @@ export default function RuleViewerEditor({
             fieldsTypeLabel="Input"
             setInputOutputSchema={setInputsSchema}
             isEditable={isEditable}
+            contextToSimulate={contextToSimulate}
+            resultsOfSimulation={resultsOfSimulation}
+            setContextToSimulate={setContextToSimulate}
+            schemaContext={schemaContext}
+            setSchemaContext={setSchemaContext}
           />
         ),
       },
@@ -188,6 +199,11 @@ export default function RuleViewerEditor({
             fieldsTypeLabel="Output"
             setInputOutputSchema={setOutputsSchema}
             isEditable={isEditable}
+            contextToSimulate={contextToSimulate}
+            resultsOfSimulation={resultsOfSimulation}
+            setContextToSimulate={setContextToSimulate}
+            schemaContext={schemaContext}
+            setSchemaContext={setSchemaContext}
           />
         ),
       },

@@ -29,7 +29,8 @@ export default function InputStyler(
   editable: boolean,
   scenarios: Scenario[] = [],
   rawData: rawDataProps | null | undefined,
-  setRawData: any
+  setRawData: any,
+  schemaContext?: Record<string, any>
 ) {
   const handleValueChange = (value: any, property: string) => {
     let queryValue: any = value;
@@ -80,6 +81,8 @@ export default function InputStyler(
   const parsedValue = generateArrayFromSchema(property);
   const parsedSchema = parseSchemaTemplate(property);
   const parsedPropertyName = parsedSchema?.arrayName || property;
+  const parsedValueSchema = schemaContext?.[parsedPropertyName];
+  console.log(parsedValueSchema, "parsedValueSchema");
 
   if (editable) {
     if (Array.isArray(parsedValue)) {

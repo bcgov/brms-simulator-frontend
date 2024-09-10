@@ -21,6 +21,8 @@ interface ScenarioViewerProps {
   scenariosManagerTabs?: any;
   setResetTrigger?: (trigger: boolean) => void;
   setScenarioName?: (name: string) => void;
+  schemaContext?: Record<string, any>;
+  setSchemaContext?: (results: Record<string, any>) => void;
 }
 
 export default function ScenarioViewer({
@@ -35,6 +37,8 @@ export default function ScenarioViewer({
   scenariosManagerTabs,
   setResetTrigger,
   setScenarioName,
+  schemaContext,
+  setSchemaContext,
 }: ScenarioViewerProps) {
   const [scenariosDisplay, setScenariosDisplay] = useState<Scenario[] | null>(scenarios);
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);

@@ -50,6 +50,7 @@ export default function RuleManager({
   const [rulemap, setRulemap] = useState<RuleMap>();
   const [simulation, setSimulation] = useState<Simulation>();
   const [simulationContext, setSimulationContext] = useState<Record<string, any>>();
+  const [schemaContext, setSchemaContext] = useState<Record<string, any>>();
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
   const { setHasUnsavedChanges } = useLeaveScreenPopup();
 
@@ -148,6 +149,9 @@ export default function RuleManager({
           simulation={simulation}
           runSimulation={runSimulation}
           isEditable={editing}
+          resultsOfSimulation={resultsOfSimulation}
+          schemaContext={schemaContext}
+          setSchemaContext={setSchemaContext}
         />
       </div>
       {scenarios && rulemap && (
@@ -164,6 +168,8 @@ export default function RuleManager({
           simulationContext={simulationContext}
           runSimulation={runSimulation}
           resultsOfSimulation={resultsOfSimulation}
+          schemaContext={schemaContext}
+          setSchemaContext={setSchemaContext}
         />
       )}
     </Flex>

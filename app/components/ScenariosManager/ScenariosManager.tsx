@@ -23,6 +23,8 @@ interface ScenariosManagerProps {
   setSimulationContext: (newContext: Record<string, any>) => void;
   runSimulation: (newContext?: Record<string, any>) => void;
   resultsOfSimulation?: Record<string, any> | null;
+  schemaContext?: Record<string, any>;
+  setSchemaContext?: (results: Record<string, any>) => void;
 }
 
 export default function ScenariosManager({
@@ -38,6 +40,8 @@ export default function ScenariosManager({
   setSimulationContext,
   runSimulation,
   resultsOfSimulation,
+  schemaContext,
+  setSchemaContext,
 }: ScenariosManagerProps) {
   enum ScenariosManagerTabs {
     ScenariosTab = "1",
@@ -82,6 +86,8 @@ export default function ScenariosManager({
         scenariosManagerTabs={ScenariosManagerTabs}
         setResetTrigger={setResetTrigger}
         setScenarioName={setScenarioName}
+        schemaContext={schemaContext}
+        setSchemaContext={setSchemaContext}
       />
     </Flex>
   );
@@ -104,6 +110,8 @@ export default function ScenariosManager({
         setActiveTabKey={setActiveTabKey}
         scenariosManagerTabs={ScenariosManagerTabs}
         setActiveScenarios={setActiveScenarios}
+        schemaContext={schemaContext}
+        setSchemaContext={setSchemaContext}
       />
       <Button onClick={handleReset} size="large" type="primary">
         Reset ↻
