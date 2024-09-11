@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Button, List, Select, Spin, Tooltip } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
-import type { BaseOptionType } from "antd/es/select";
+import type { DefaultOptionType } from "antd/es/select";
 import type { FlattenOptionData } from "rc-select/lib/interface";
 import { GraphNode, useDecisionGraphActions, useDecisionGraphState } from "@gorules/jdm-editor";
 import type { GraphNodeProps } from "@gorules/jdm-editor";
 import { SchemaSelectProps } from "@/app/types/jdm-editor";
 import { KlammBREField } from "@/app/types/klamm";
-import { getBREFields } from "@/app/utils/api";
+import { getBREFields, getBREFieldFromName } from "@/app/utils/api";
 import styles from "./RuleInputOutputFieldsComponent.module.css";
 
 declare type InputOutputField = {
   id?: string;
-  field: string;
+  name: string;
   label?: string;
-  type?: string;
+  description?: string;
+  dataType?: string;
+  validationCriteria?: string;
 };
 
 interface RuleInputOutputFieldsComponent extends GraphNodeProps {
@@ -36,14 +38,14 @@ export default function RuleInputOutputFieldsComponent({
   const node = useDecisionGraphState((state) => (state.decisionGraph?.nodes || []).find((n) => n.id === id));
   const inputOutputFields: InputOutputField[] = node?.content?.fields || [];
 
-  const [inputOutputOptions, setInputOutputOptions] = useState<BaseOptionType[]>([]);
+  const [inputOutputOptions, setInputOutputOptions] = useState<DefaultOptionType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const getFieldsFromKlamm = async () => {
       try {
         const data: KlammBREField[] = await getBREFields();
-        const newInputOutputOptions: BaseOptionType[] = data.map(({ id, name, label, description }) => ({
+        const newInputOutputOptions: DefaultOptionType[] = data.map(({ name, label, description }) => ({
           label: `${label}${description ? `: ${description}` : ""}`, // Add the description as part of the label - will be formatted properly later
           value: name,
         }));
@@ -60,7 +62,7 @@ export default function RuleInputOutputFieldsComponent({
     // Add a new field by default if one doesn't exist when editing
     if (isEditable && inputOutputFields?.length == 0) {
       updateNode(id, (draft) => {
-        draft.content = { fields: [{ id: crypto.randomUUID(), field: "" }] };
+        draft.content = { fields: [{ name: "" }] };
         return draft;
       });
     }
@@ -69,10 +71,11 @@ export default function RuleInputOutputFieldsComponent({
 
   useEffect(() => {
     if (inputOutputFields?.length == 0) return;
-    // Map the fields from the schema - basically just converting label to name
+    // Map the fields from the schema
+    // This is a bit confusing because we have to map name->field and label->name for the ant select component to work
     const schemafiedInputs = inputOutputFields
-      .filter(({ field }) => field)
-      .map(({ field, label }) => ({ field, name: label }));
+      .filter(({ name }) => name)
+      .map(({ name, label }) => ({ field: name, name: label }));
     setInputOutputSchema(schemafiedInputs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputOutputFields]);
@@ -82,17 +85,27 @@ export default function RuleInputOutputFieldsComponent({
       if (!draft.content?.fields) {
         draft.content = { fields: [] };
       }
-      draft.content.fields.push({ id: crypto.randomUUID(), field: "" });
+      draft.content.fields.push({ name: "" });
       return draft;
     });
   };
 
-  const updateInputField = (item: InputOutputField, { key, label }: any) => {
+  const updateInputField = async (item: InputOutputField, { value, label }: any) => {
+    // Get the actual values from the ids
+    // TODO: potentially add loading feedback when this is being fetched
+    const data: KlammBREField = await getBREFieldFromName(value);
+    // Update the node with the information we want to store in the json
     updateNode(id, (draft) => {
       draft.content.fields = draft.content.fields.map((input: InputOutputField) => {
+        console.log(input.id, item.id, data.id);
         if (input.id === item.id) {
-          input.field = key;
-          input.label = label;
+          // Get important bits of data to store in json
+          input.id = data.id;
+          input.name = data.name;
+          input.label = data.label;
+          input.description = data.description;
+          input.dataType = data?.data_type?.name;
+          input.validationCriteria = data?.data_validation?.validation_criteria;
         }
         return input;
       });
@@ -107,7 +120,7 @@ export default function RuleInputOutputFieldsComponent({
     });
   };
 
-  const filterOption = (inputValue: string, option?: BaseOptionType) =>
+  const filterOption = (inputValue: string, option?: DefaultOptionType) =>
     (option?.label ?? "").toString().toLowerCase().includes(inputValue.toLowerCase());
 
   const renderSelectLabel = ({ label }: { label: React.ReactNode }) => {
@@ -118,7 +131,7 @@ export default function RuleInputOutputFieldsComponent({
     return name;
   };
 
-  const renderSelectOption = ({ label }: FlattenOptionData<BaseOptionType>) => {
+  const renderSelectOption = ({ label }: FlattenOptionData<DefaultOptionType>) => {
     if (!label) {
       return null;
     }
@@ -171,7 +184,7 @@ export default function RuleInputOutputFieldsComponent({
                     filterOption={filterOption}
                     options={inputOutputOptions}
                     onChange={(value) => updateInputField(item, value)}
-                    value={{ label: item.label, value: item.field }}
+                    value={{ label: item.label, value: item.name }}
                     notFoundContent={isLoading ? <Spin size="small" /> : null}
                     style={{ width: 200 }}
                     popupMatchSelectWidth={false}
