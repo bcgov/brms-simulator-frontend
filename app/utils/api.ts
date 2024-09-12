@@ -369,3 +369,18 @@ export const getBREFields = async (): Promise<KlammBREField[]> => {
     throw error;
   }
 };
+
+/**
+ * Retrieves a field from Klamm by field name
+ * @returns BRE field with that name
+ * @throws If an error occurs while retrieving the field
+ */
+export const getBREFieldFromName = async (fieldName: string): Promise<KlammBREField> => {
+  try {
+    const { data } = await axiosAPIInstance.get(`/klamm/brefield/${fieldName}`);
+    return data;
+  } catch (error) {
+    console.error(`Error getting rule data: ${error}`);
+    throw error;
+  }
+};

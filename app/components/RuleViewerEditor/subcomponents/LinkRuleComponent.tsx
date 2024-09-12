@@ -5,6 +5,7 @@ import { EditOutlined } from "@ant-design/icons";
 import { GraphNode, useDecisionGraphActions, useDecisionGraphState } from "@gorules/jdm-editor";
 import type { DecisionGraphType, GraphNodeProps } from "@gorules/jdm-editor";
 import { getAllRuleData, getDocument } from "@/app/utils/api";
+import { getShortFilenameOnly } from "@/app/utils/utils";
 import RuleManager from "../../RuleManager";
 import styles from "./LinkRuleComponent.module.css";
 
@@ -61,12 +62,6 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
       return draft;
     });
     updateRuleContent(updatedJsonFilename);
-  };
-
-  const getShortFilenameOnly = (filepath: string, maxLength: number = 25) => {
-    const filepathSections = filepath.split("/");
-    const filename = filepathSections[filepathSections.length - 1];
-    return filename.length > maxLength ? `${filename.substring(0, maxLength - 3)}...` : filename;
   };
 
   return (
