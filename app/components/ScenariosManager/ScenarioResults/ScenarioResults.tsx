@@ -300,13 +300,7 @@ export default function ScenarioResults({ scenarios, jsonFile, ruleContent }: Sc
     hasError.current = false;
     updateScenarioResults(jsonFile);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jsonFile]);
-
-  useEffect(() => {
-    hasError.current = false;
-    updateScenarioResults(jsonFile);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scenarios]);
+  }, [jsonFile, scenarios]);
 
   useEffect(() => {
     hasError.current = false;
