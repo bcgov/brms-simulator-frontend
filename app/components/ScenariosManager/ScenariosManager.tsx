@@ -48,7 +48,7 @@ export default function ScenariosManager({
 
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
   const [activeTabKey, setActiveTabKey] = useState<string>(
-    showAllScenarioTabs ? ScenariosManagerTabs.ResultsTab : ScenariosManagerTabs.ScenariosTab
+    showAllScenarioTabs ? ScenariosManagerTabs.InputsTab : ScenariosManagerTabs.ScenariosTab
   );
   const [scenarioName, setScenarioName] = useState<string>("");
   const [activeScenarios, setActiveScenarios] = useState<Scenario[]>(scenarios ? scenarios : []);
@@ -158,7 +158,7 @@ export default function ScenariosManager({
         <Tabs
           className={styles.tabs}
           activeKey={activeTabKey}
-          defaultActiveKey={showAllScenarioTabs ? ScenariosManagerTabs.ResultsTab : ScenariosManagerTabs.ScenariosTab}
+          defaultActiveKey={showAllScenarioTabs ? ScenariosManagerTabs.InputsTab : ScenariosManagerTabs.ScenariosTab}
           items={filteredItems}
           onChange={handleTabChange}
         ></Tabs>
