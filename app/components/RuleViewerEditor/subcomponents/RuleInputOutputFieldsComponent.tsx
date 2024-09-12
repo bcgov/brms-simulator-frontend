@@ -17,6 +17,7 @@ declare type InputOutputField = {
   description?: string;
   dataType?: string;
   validationCriteria?: string;
+  validationType?: string;
 };
 
 interface RuleInputOutputFieldsComponent extends GraphNodeProps {
@@ -106,6 +107,7 @@ export default function RuleInputOutputFieldsComponent({
           input.description = data.description;
           input.dataType = data?.data_type?.name;
           input.validationCriteria = data?.data_validation?.validation_criteria;
+          input.validationType = data?.data_validation?.bre_validation_type?.value;
         }
         return input;
       });

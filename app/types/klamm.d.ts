@@ -8,5 +8,8 @@ export interface KlammBREField {
   };
   data_validation?: {
     validation_criteria: string;
+    bre_validation_type: {
+      value: string;
+    };
   };
 }
