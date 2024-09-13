@@ -4,7 +4,7 @@ import { Scenario } from "@/app/types/scenario";
 import styles from "./ScenarioFormatter.module.css";
 import { RuleMap } from "@/app/types/rulemap";
 import InputStyler from "../../InputStyler/InputStyler";
-import { parseSchemaTemplate } from "../../InputStyler/ArrayFormatter";
+import { parseSchemaTemplate } from "../../InputStyler/InputStyler";
 
 const COLUMNS = [
   {
@@ -66,7 +66,15 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
             propertyRuleMap?.find((item) => item.property === property)?.name ||
             parseSchemaTemplate(property)?.arrayName ||
             property,
-          value: InputStyler(value, property, editable, scenarios, updatedRawData, setRawData),
+          value: InputStyler(
+            value,
+            property,
+            editable,
+            scenarios,
+            updatedRawData,
+            setRawData,
+            rulemap?.inputs.find((item) => item.property === property)
+          ),
           key: index,
         }));
       // Check if data.result is an array

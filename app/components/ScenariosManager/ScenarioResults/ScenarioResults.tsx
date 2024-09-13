@@ -39,6 +39,10 @@ export default function ScenarioResults({ scenarios, jsonFile, ruleContent }: Sc
       return null;
     }
 
+    if (Array.isArray(value)) {
+      return value.length > 0 ? value.length : null;
+    }
+
     if (typeof value === "boolean" && property === "resultMatch") {
       return value ? (
         <span className="result-match">

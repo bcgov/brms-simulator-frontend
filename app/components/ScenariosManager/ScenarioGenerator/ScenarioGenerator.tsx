@@ -106,9 +106,14 @@ export default function ScenarioGenerator({
 
   // Update scenarioExpectedOutput on first render to display full rulemap possible results
   useEffect(() => {
-    if (resultsOfSimulation) {
-      setScenarioExpectedOutput(resultsOfSimulation);
-    }
+    const expectedOutputsMap = rulemap.resultOutputs.reduce<Record<string, null>>((acc, obj: { property?: string }) => {
+      if (obj?.property) {
+        acc[obj.property] = null;
+      }
+      return acc;
+    }, {});
+    setScenarioExpectedOutput(expectedOutputsMap);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

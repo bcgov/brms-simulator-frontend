@@ -144,6 +144,7 @@ export default function InputOutputTable({
   };
 
   useEffect(() => {
+    console.log("this is testing rawData", rawData);
     if (rawData) {
       const propertyRuleMap = Object.values(rulemap || {}).flat();
       const newData = Object.entries(rawData)

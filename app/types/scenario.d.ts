@@ -11,4 +11,5 @@ export interface Variable {
   name: string;
   value: any;
   type?: string;
+  property?: string;
 }

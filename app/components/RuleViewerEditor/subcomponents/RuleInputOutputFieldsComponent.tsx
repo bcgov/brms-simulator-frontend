@@ -18,6 +18,7 @@ declare type InputOutputField = {
   dataType?: string;
   validationCriteria?: string;
   validationType?: string;
+  child_fields?: InputOutputField[];
 };
 
 interface RuleInputOutputFieldsComponent extends GraphNodeProps {
@@ -108,6 +109,22 @@ export default function RuleInputOutputFieldsComponent({
           input.dataType = data?.data_type?.name;
           input.validationCriteria = data?.data_validation?.validation_criteria;
           input.validationType = data?.data_validation?.bre_validation_type?.value;
+          // Check if data type is 'object-array'
+          if (data?.data_type?.name === "object-array") {
+            input.child_fields =
+              data?.child_fields &&
+              data?.child_fields.map((child) => ({
+                id: child.id,
+                name: child.name,
+                label: child.label,
+                description: child.description,
+                dataType: child?.bre_data_type?.name,
+                validationCriteria: child?.bre_data_validation?.validation_criteria,
+                validationType: child?.bre_data_validation?.bre_validation_type?.value,
+              }));
+          } else {
+            input.child_fields = [];
+          }
         }
         return input;
       });
