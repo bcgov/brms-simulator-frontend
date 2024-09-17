@@ -12,8 +12,8 @@ import styles from "./RuleInputOutputFieldsComponent.module.css";
 
 declare type InputOutputField = {
   id?: string;
-  name: string;
-  label?: string;
+  field: string;
+  name?: string;
   description?: string;
   dataType?: string;
   validationCriteria?: string;
@@ -74,10 +74,7 @@ export default function RuleInputOutputFieldsComponent({
   useEffect(() => {
     if (inputOutputFields?.length == 0) return;
     // Map the fields from the schema
-    // This is a bit confusing because we have to map name->field and label->name for the ant select component to work
-    const schemafiedInputs = inputOutputFields
-      .filter(({ name }) => name)
-      .map(({ name, label }) => ({ field: name, name: label }));
+    const schemafiedInputs = inputOutputFields.filter(({ field }) => field).map(({ field, name }) => ({ field, name }));
     setInputOutputSchema(schemafiedInputs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputOutputFields]);
@@ -103,8 +100,8 @@ export default function RuleInputOutputFieldsComponent({
         if (input.id === item.id) {
           // Get important bits of data to store in json
           input.id = data.id;
-          input.name = data.name;
-          input.label = data.label;
+          input.field = data.name;
+          input.name = data.label;
           input.description = data.description;
           input.dataType = data?.data_type?.name;
           input.validationCriteria = data?.data_validation?.validation_criteria;
@@ -203,7 +200,7 @@ export default function RuleInputOutputFieldsComponent({
                     filterOption={filterOption}
                     options={inputOutputOptions}
                     onChange={(value) => updateInputField(item, value)}
-                    value={{ label: item.label, value: item.name }}
+                    value={{ label: item.name, value: item.field }}
                     notFoundContent={isLoading ? <Spin size="small" /> : null}
                     style={{ width: 200 }}
                     popupMatchSelectWidth={false}
@@ -222,7 +219,7 @@ export default function RuleInputOutputFieldsComponent({
                   />
                 </>
               ) : (
-                item.label && <span>{renderLabel(item.label)}</span>
+                item.name && <span>{renderLabel(item.name)}</span>
               )}
             </List.Item>
           )}
