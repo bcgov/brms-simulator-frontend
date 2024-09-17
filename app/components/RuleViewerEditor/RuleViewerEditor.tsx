@@ -30,6 +30,7 @@ interface RuleViewerEditorProps {
   simulation?: Simulation;
   runSimulation?: (results: unknown) => void;
   isEditable?: boolean;
+  setLoadingComplete: () => void;
 }
 
 export default function RuleViewerEditor({
@@ -41,6 +42,7 @@ export default function RuleViewerEditor({
   simulation,
   runSimulation,
   isEditable = true,
+  setLoadingComplete,
 }: RuleViewerEditorProps) {
   const decisionGraphRef: any = useRef<DecisionGraphRef>();
   const [reactFlowRef, setReactFlowRef] = useState<ReactFlowInstance>();
@@ -64,6 +66,7 @@ export default function RuleViewerEditor({
 
   // Can set additional react flow options here if we need to change how graph looks when it's loaded in
   const reactFlowInit = (reactFlow: ReactFlowInstance) => {
+    setLoadingComplete();
     setReactFlowRef(reactFlow);
   };
 
