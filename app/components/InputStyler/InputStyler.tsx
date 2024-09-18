@@ -1,5 +1,3 @@
-import { AutoComplete, InputNumber, Flex, Button, Tooltip } from "antd";
-import { MinusCircleOutlined } from "@ant-design/icons";
 import { Scenario } from "@/app/types/scenario";
 import { getFieldValidation } from "@/app/utils/utils";
 import {
@@ -13,6 +11,8 @@ import {
   ReadOnlyBooleanDisplay,
   ReadOnlyStringDisplay,
   ReadOnlyNumberDisplay,
+  NumberInput,
+  TextInput,
 } from "./subcomponents/InputComponents";
 
 export interface rawDataProps {
@@ -144,101 +144,70 @@ export default function InputStyler(
         />
       );
     }
-    if (typeof value === "object" && value !== null && !Array.isArray(property) && property !== null) {
-      return <ObjectLengthDisplay show={true} value={value} />;
-    }
-
-    if (validationRules?.type === "true-false") {
-      return <BooleanInput show={true} value={value} property={property} handleInputChange={handleInputChange} />;
-    }
-    if (validationRules?.options) {
-      return (
-        <SelectInput
-          show={true}
-          value={value}
-          property={property}
-          options={validationRules?.options}
-          handleInputChange={handleInputChange}
-        />
-      );
-    }
-
-    if (validationRules?.type === "text") {
-      return (
-        <label className="labelsmall">
-          <Flex gap={"small"} align="center">
-            <AutoComplete
-              id={property}
-              options={valuesArray}
-              defaultValue={value}
-              onBlur={(e) => handleValueChange((e.target as HTMLInputElement).value, property)}
-              style={{ width: 200 }}
-              onChange={(val) => handleInputChange(val, property)}
+    return (
+      <>
+        {" "}
+        {validationRules?.type ? (
+          <>
+            <ObjectLengthDisplay
+              show={typeof value === "object" && value !== null && !Array.isArray(property) && property !== null}
+              value={value || []}
             />
-            <Tooltip title="Clear value">
-              <Button
-                type="dashed"
-                icon={<MinusCircleOutlined />}
-                size="small"
-                shape="circle"
-                onClick={() => handleClear(property)}
-              />
-            </Tooltip>
-          </Flex>
-          <span className="label-text">{parsePropertyName(property)}</span>
-        </label>
-      );
-    }
-    const maximum = validationRules?.range ? validationRules?.range.max : validationRules?.max;
-    const minimum = validationRules?.range ? validationRules?.range.min : validationRules?.min;
-    if (validationRules?.type === "date") {
-      return (
-        <DateInput
-          show={true}
-          value={value}
-          property={property}
-          maximum={maximum}
-          minimum={minimum}
-          handleInputChange={handleInputChange}
-          handleClear={handleClear}
-        />
-      );
-    }
-
-    if (validationRules?.type === "number") {
-      return (
-        <label className="labelsmall">
-          <Flex gap={"small"} align="center">
-            <InputNumber
-              max={maximum}
-              min={minimum}
+            <BooleanInput
+              show={validationRules?.type === "true-false"}
               value={value}
-              onBlur={(e) => handleValueChange(e.target.value, property)}
-              onChange={(val) => handleInputChange(val, property)}
+              property={property}
+              handleInputChange={handleInputChange}
             />
-            <Tooltip title="Clear value">
-              <Button
-                type="dashed"
-                icon={<MinusCircleOutlined />}
-                size="small"
-                shape="circle"
-                onClick={() => handleInputChange(undefined, property)}
-              />
-            </Tooltip>
-          </Flex>
-          <span className="label-text">{parsePropertyName(property)}</span>
-        </label>
-      );
-    }
-
-    if (value === null || value === undefined) {
-      return <DefaultInput show={true} property={property} handleValueChange={handleValueChange} />;
-    }
+            <SelectInput
+              show={validationRules?.type === "select"}
+              value={value}
+              property={property}
+              options={validationRules?.options}
+              handleInputChange={handleInputChange}
+            />
+            <TextInput
+              show={validationRules?.type === "text"}
+              value={value}
+              property={property}
+              valuesArray={valuesArray}
+              handleValueChange={handleValueChange}
+              handleInputChange={handleInputChange}
+              handleClear={handleClear}
+            />
+            <NumberInput
+              show={validationRules?.type === "number"}
+              value={value}
+              property={property}
+              maximum={validationRules?.range ? validationRules?.range.max : validationRules?.max}
+              minimum={validationRules?.range ? validationRules?.range.min : validationRules?.min}
+              handleValueChange={handleValueChange}
+              handleInputChange={handleInputChange}
+            />
+            <DateInput
+              show={validationRules?.type === "date"}
+              value={value}
+              property={property}
+              maximum={validationRules?.range ? validationRules?.range.max : validationRules?.max}
+              minimum={validationRules?.range ? validationRules?.range.min : validationRules?.min}
+              handleInputChange={handleInputChange}
+              handleClear={handleClear}
+            />
+          </>
+        ) : (
+          <DefaultInput
+            show={value === null || value === undefined}
+            property={property}
+            handleValueChange={handleValueChange}
+          />
+        )}
+      </>
+    );
   } else {
-    if (Array.isArray(value)) {
-      return (
+    return (
+      <>
         <ReadOnlyArrayDisplay
-          show={true}
+          show={Array.isArray(value)}
           value={value}
           property={property}
           scenarios={scenarios}
@@ -246,24 +215,14 @@ export default function InputStyler(
           setRawData={setRawData}
           ruleProperties={ruleProperties}
         />
-      );
-    }
-    if (type === "boolean" || typeof value === "boolean") {
-      return <ReadOnlyBooleanDisplay show={true} value={value} />;
-    }
-
-    if (type === "string" || typeof value === "string") {
-      return <ReadOnlyStringDisplay show={true} value={value} />;
-    }
-
-    if (type === "number" || typeof value === "number") {
-      return <ReadOnlyNumberDisplay show={true} value={value} property={property} />;
-    }
-
-    if (value === null || value === undefined) {
-      return null;
-    }
+        <ReadOnlyBooleanDisplay show={type === "boolean" || typeof value === "boolean"} value={value} />
+        <ReadOnlyStringDisplay show={type === "string" || typeof value === "string"} value={value} />
+        <ReadOnlyNumberDisplay
+          show={type === "number" || typeof value === "number"}
+          value={value}
+          property={property}
+        />
+      </>
+    );
   }
-
-  return <b>{value}</b>;
 }
