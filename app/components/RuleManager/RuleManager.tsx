@@ -20,7 +20,7 @@ interface RuleManagerProps {
   ruleInfo: RuleInfo;
   scenarios?: Scenario[];
   initialRuleContent?: DecisionGraphType;
-  editing?: boolean;
+  editing?: string | boolean;
   showAllScenarioTabs?: boolean;
 }
 
@@ -136,9 +136,14 @@ export default function RuleManager({
   return (
     <Flex gap="large" vertical>
       <div className={styles.rulesWrapper}>
-        {editing && (
-          <SavePublish ruleInfo={ruleInfo} ruleContent={ruleContent} setHasSaved={() => setHasUnsavedChanges(false)} />
-        )}
+        {editing ||
+          (editing === "draft" && (
+            <SavePublish
+              ruleInfo={ruleInfo}
+              ruleContent={ruleContent}
+              setHasSaved={() => setHasUnsavedChanges(false)}
+            />
+          ))}
         <RuleViewerEditor
           jsonFilename={jsonFile}
           ruleContent={ruleContent}
@@ -147,7 +152,7 @@ export default function RuleManager({
           setContextToSimulate={setSimulationContext}
           simulation={simulation}
           runSimulation={runSimulation}
-          isEditable={editing}
+          isEditable={editing === "draft"}
         />
       </div>
       {scenarios && rulemap && (
@@ -157,7 +162,7 @@ export default function RuleManager({
           ruleContent={ruleContent}
           rulemap={rulemap}
           scenarios={scenarios}
-          isEditing={editing}
+          isEditing={editing === "draft" || editing === "inreview"}
           showAllScenarioTabs={showAllScenarioTabs}
           createRuleMap={createRuleMap}
           setSimulationContext={setSimulationContext}
