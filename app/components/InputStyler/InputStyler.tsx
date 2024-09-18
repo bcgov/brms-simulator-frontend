@@ -102,7 +102,6 @@ export default function InputStyler(
   };
 
   const handleInputChange = (val: any, property: string) => {
-    console.log("this is testing handleInputChange", val, property);
     const updatedData = { ...rawData, [property]: val };
     if (typeof setRawData === "function") {
       setRawData(updatedData);
