@@ -1,8 +1,19 @@
-import dayjs from "dayjs";
-import { Tag, Input, Radio, AutoComplete, InputNumber, Flex, Button, Tooltip, DatePicker, Select } from "antd";
-import { MinusCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import { AutoComplete, InputNumber, Flex, Button, Tooltip } from "antd";
+import { MinusCircleOutlined } from "@ant-design/icons";
 import { Scenario } from "@/app/types/scenario";
-import { dollarFormat, getFieldValidation } from "@/app/utils/utils";
+import { getFieldValidation } from "@/app/utils/utils";
+import {
+  DefaultInput,
+  ObjectArrayInput,
+  ObjectLengthDisplay,
+  BooleanInput,
+  SelectInput,
+  DateInput,
+  ReadOnlyArrayDisplay,
+  ReadOnlyBooleanDisplay,
+  ReadOnlyStringDisplay,
+  ReadOnlyNumberDisplay,
+} from "./subcomponents/InputComponents";
 
 export interface rawDataProps {
   [key: string]: any;
@@ -22,7 +33,7 @@ export const getAutoCompleteOptions = (property: string, scenarios: Scenario[] =
   return Array.from(optionsSet).map((value) => ({ value, type: typeof value }));
 };
 
-const parsePropertyName = (property: string): string => {
+export const parsePropertyName = (property: string): string => {
   const match = property.match(/\[.*?\]\.(.+)$/);
   return match ? match[1] : property;
 };
@@ -114,111 +125,41 @@ export default function InputStyler(
     type = typeof valuesArray[0].value;
   }
 
-  const parsedSchema = parseSchemaTemplate(property);
-  const parsedPropertyName = parsedSchema?.arrayName || property;
-
   if (editable) {
-    if (ruleProperties?.type === "object-array" && ruleProperties?.child_fields?.length > 0) {
-      const customName = parsedPropertyName.charAt(0).toUpperCase() + parsedPropertyName.slice(1);
-      value = value || [];
-      const childFields = ruleProperties?.child_fields || [];
-      const childFieldMap = childFields.reduce((acc: { [x: string]: null }, field: { name: string | number }) => {
-        acc[field.name] = null;
-        return acc;
-      }, {});
-      return (
-        <div>
-          <Button icon={<PlusCircleOutlined />} onClick={() => handleInputChange([...value, childFieldMap], property)}>
-            Add
-          </Button>
-          <Button icon={<MinusCircleOutlined />} onClick={() => handleInputChange(value.slice(0, -1), property)}>
-            Remove
-          </Button>
-          {value.map((item: any, index: number) => (
-            <div key={index}>
-              <h4>
-                {customName} {index + 1}
-              </h4>
-              <label className="labelsmall">
-                {childFields.map((each: any) => (
-                  <div key={each.property}>
-                    {each.label}
-                    {InputStyler(
-                      item[each.name],
-                      `${property}[${index}].${each.name}`,
-                      editable,
-                      scenarios,
-                      rawData,
-                      (newData: any) => {
-                        const updatedArray = [...value];
-                        updatedArray[index] = {
-                          ...updatedArray[index],
-                          [each.name]: newData[`${property}[${index}].${each.name}`],
-                        };
-                        handleInputChange(updatedArray, property);
-                      },
-                      each
-                    )}
-                  </div>
-                ))}
-              </label>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    if (typeof value === "object" && value !== null && !Array.isArray(property) && property !== null) {
-      return <div>{Object.keys(value).length}</div>;
-    }
     const validationRules = getFieldValidation(
       ruleProperties?.validationCriteria,
       ruleProperties?.validationType,
       ruleProperties?.type ?? ruleProperties?.dataType
     );
+    if (ruleProperties?.type === "object-array" && ruleProperties?.child_fields?.length > 0) {
+      return (
+        <ObjectArrayInput
+          show={true}
+          value={value || []}
+          property={property}
+          ruleProperties={ruleProperties}
+          handleInputChange={handleInputChange}
+          scenarios={scenarios}
+          rawData={rawData}
+        />
+      );
+    }
+    if (typeof value === "object" && value !== null && !Array.isArray(property) && property !== null) {
+      return <ObjectLengthDisplay show={true} value={value} />;
+    }
 
     if (validationRules?.type === "true-false") {
-      return (
-        <Flex gap={"small"} align="center" vertical>
-          <label className="labelsmall">
-            <Flex gap={"small"} align="center">
-              <Radio.Group
-                onChange={(e) => handleInputChange(e.target.value, property)}
-                value={value === true ? true : value === false ? false : undefined}
-              >
-                <Flex gap={"small"} align="center">
-                  <Radio value={true}>Yes</Radio>
-                  <Radio value={false}>No</Radio>
-                </Flex>
-              </Radio.Group>
-              <Tooltip title="Clear value">
-                <Button
-                  type="dashed"
-                  icon={<MinusCircleOutlined />}
-                  size="small"
-                  shape="circle"
-                  onClick={() => handleInputChange(undefined, property)}
-                />
-              </Tooltip>
-            </Flex>
-            <span className="label-text">{parsePropertyName(property)}</span>
-          </label>
-        </Flex>
-      );
+      return <BooleanInput show={true} value={value} property={property} handleInputChange={handleInputChange} />;
     }
     if (validationRules?.options) {
       return (
-        <label className="labelsmall">
-          <Flex gap={"small"} align="center">
-            <Select
-              id={property}
-              options={validationRules?.options}
-              defaultValue={value}
-              style={{ width: 200 }}
-              onChange={(val) => handleInputChange(val, property)}
-            />
-          </Flex>
-          <span className="label-text">{parsePropertyName(property)}</span>
-        </label>
+        <SelectInput
+          show={true}
+          value={value}
+          property={property}
+          options={validationRules?.options}
+          handleInputChange={handleInputChange}
+        />
       );
     }
 
@@ -252,33 +193,15 @@ export default function InputStyler(
     const minimum = validationRules?.range ? validationRules?.range.min : validationRules?.min;
     if (validationRules?.type === "date") {
       return (
-        <label className="labelsmall">
-          <Flex gap={"small"} align="center">
-            <DatePicker
-              allowClear={false}
-              id={property}
-              maxDate={maximum}
-              minDate={minimum}
-              defaultValue={value ? dayjs(value, "YYYY-MM-DD") : null}
-              format="YYYY-MM-DD"
-              onChange={(val) => {
-                const formattedDate = val ? val.format("YYYY-MM-DD") : null;
-                handleInputChange(formattedDate, property);
-              }}
-              style={{ width: 200 }}
-            />
-            <Tooltip title="Clear value">
-              <Button
-                type="dashed"
-                icon={<MinusCircleOutlined />}
-                size="small"
-                shape="circle"
-                onClick={() => handleClear(property)}
-              />
-            </Tooltip>
-          </Flex>
-          <span className="label-text">{parsePropertyName(property)}</span>
-        </label>
+        <DateInput
+          show={true}
+          value={value}
+          property={property}
+          maximum={maximum}
+          minimum={minimum}
+          handleInputChange={handleInputChange}
+          handleClear={handleClear}
+        />
       );
     }
 
@@ -309,58 +232,32 @@ export default function InputStyler(
     }
 
     if (value === null || value === undefined) {
-      return (
-        <label className="labelsmall">
-          <Input onBlur={(e) => handleValueChange(e.target.value, property)} />
-          <span className="label-text">{parsePropertyName(property)}</span>
-        </label>
-      );
+      return <DefaultInput show={true} property={property} handleValueChange={handleValueChange} />;
     }
   } else {
     if (Array.isArray(value)) {
-      const customName = parsePropertyName(property);
       return (
-        <div>
-          {value.map((item: any, index: number) => (
-            <div key={index}>
-              <h4>
-                {customName} {index + 1}
-              </h4>
-              {Object.entries(item).map(([key, val]) => (
-                <div key={key}>
-                  <label className="labelsmall">
-                    {key}
-                    {InputStyler(val, key, false, scenarios, rawData, setRawData, ruleProperties)}
-                  </label>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+        <ReadOnlyArrayDisplay
+          show={true}
+          value={value}
+          property={property}
+          scenarios={scenarios}
+          rawData={rawData}
+          setRawData={setRawData}
+          ruleProperties={ruleProperties}
+        />
       );
     }
     if (type === "boolean" || typeof value === "boolean") {
-      return (
-        <Radio.Group onChange={() => null} value={value}>
-          <Radio value={true}>Yes</Radio>
-          <Radio value={false}>No</Radio>
-        </Radio.Group>
-      );
+      return <ReadOnlyBooleanDisplay show={true} value={value} />;
     }
 
     if (type === "string" || typeof value === "string") {
-      return <Tag color="blue">{value}</Tag>;
+      return <ReadOnlyStringDisplay show={true} value={value} />;
     }
 
     if (type === "number" || typeof value === "number") {
-      if (typeof value === "number" && property.toLowerCase().includes("amount")) {
-        if (property.toLowerCase().includes("amount")) {
-          const formattedValue = dollarFormat(value);
-          return <Tag color="green">${formattedValue}</Tag>;
-        }
-      } else {
-        return <Tag color="blue">{value}</Tag>;
-      }
+      return <ReadOnlyNumberDisplay show={true} value={value} property={property} />;
     }
 
     if (value === null || value === undefined) {
