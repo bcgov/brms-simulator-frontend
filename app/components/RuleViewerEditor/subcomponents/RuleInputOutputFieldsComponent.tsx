@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button, List, Select, Spin, Tooltip } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import type { DefaultOptionType } from "antd/es/select";
@@ -26,6 +26,8 @@ interface RuleInputOutputFieldsComponent extends GraphNodeProps {
   isEditable: boolean;
 }
 
+const SEARCH_DEBOUNCE_TIME = 500;
+
 export default function RuleInputOutputFieldsComponent({
   specification,
   id,
@@ -41,29 +43,42 @@ export default function RuleInputOutputFieldsComponent({
 
   const [inputOutputOptions, setInputOutputOptions] = useState<DefaultOptionType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchValue, setSearchValue] = useState("");
 
+  const timeoutId = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
+    // Get the BRE fields from Klamm
     const getFieldsFromKlamm = async () => {
       try {
-        const data: KlammBREField[] = await getBREFields();
-        const newInputOutputOptions: DefaultOptionType[] = data.map(({ name, label, description }) => ({
-          label: `${label}${description ? `: ${description}` : ""}`, // Add the description as part of the label - will be formatted properly later
-          value: name,
-        }));
-        setInputOutputOptions(newInputOutputOptions);
+        if (searchValue) {
+          const data: KlammBREField[] = await getBREFields(searchValue);
+          const newInputOutputOptions: DefaultOptionType[] = data.map(({ name, label, description }) => ({
+            label: `${label}${description ? `: ${description}` : ""}`, // Add the description as part of the label - will be formatted properly later
+            value: name,
+          }));
+          setInputOutputOptions(newInputOutputOptions);
+        }
         setIsLoading(false);
       } catch (error) {
         console.error("Error:", error);
       }
     };
-    getFieldsFromKlamm();
-  }, []);
+    // Before searching, first set the options to empty and isLoading to true while we wait
+    setInputOutputOptions([]);
+    setIsLoading(true);
+    // Add debounce to the call to get field options from Klamm
+    if (timeoutId.current) clearTimeout(timeoutId.current);
+    timeoutId.current = setTimeout(getFieldsFromKlamm, SEARCH_DEBOUNCE_TIME);
+    return () => {
+      if (timeoutId.current) clearTimeout(timeoutId.current);
+    };
+  }, [searchValue]);
 
   useEffect(() => {
     // Add a new field by default if one doesn't exist when editing
     if (isEditable && inputOutputFields?.length == 0) {
       updateNode(id, (draft) => {
-        draft.content = { fields: [{ name: "" }] };
+        draft.content = { fields: [{ field: "", name: "" }] };
         return draft;
       });
     }
@@ -83,28 +98,37 @@ export default function RuleInputOutputFieldsComponent({
       if (!draft.content?.fields) {
         draft.content = { fields: [] };
       }
-      draft.content.fields.push({ name: "" });
+      draft.content.fields.push({ field: "", name: "" });
       return draft;
     });
   };
 
-  const updateInputField = async (item: InputOutputField, { value, label }: any) => {
-    // Get the actual values from the ids
-    // TODO: potentially add loading feedback when this is being fetched
-    const data: KlammBREField = await getBREFieldFromName(value);
+  const updateInputField = async (item: InputOutputField, { value, label }: { value: string; label?: string }) => {
+    // Set initial values from selection
+    updateNode(id, (draft) => {
+      draft.content.fields = draft.content.fields.map((input: InputOutputField) => {
+        if (input.id === item.id) {
+          input.field = value;
+          input.name = label;
+        }
+        return input;
+      });
+      return draft;
+    });
+    // Get more information from Klamm
+    const klammData: KlammBREField = await getBREFieldFromName(value);
     // Update the node with the information we want to store in the json
     updateNode(id, (draft) => {
       draft.content.fields = draft.content.fields.map((input: InputOutputField) => {
-        console.log(input.id, item.id, data.id);
         if (input.id === item.id) {
           // Get important bits of data to store in json
-          input.id = data.id;
-          input.field = data.name;
-          input.name = data.label;
-          input.description = data.description;
-          input.dataType = data?.data_type?.name;
-          input.validationCriteria = data?.data_validation?.validation_criteria;
-          input.validationType = data?.data_validation?.bre_validation_type?.value;
+          input.id = klammData.id;
+          input.field = klammData.name;
+          input.name = klammData.label;
+          input.description = klammData.description;
+          input.dataType = klammData?.data_type?.name;
+          input.validationCriteria = klammData?.data_validation?.validation_criteria;
+          input.validationType = klammData?.data_validation?.bre_validation_type?.value;
         }
         return input;
       });
@@ -118,9 +142,6 @@ export default function RuleInputOutputFieldsComponent({
       return draft;
     });
   };
-
-  const filterOption = (inputValue: string, option?: DefaultOptionType) =>
-    (option?.label ?? "").toString().toLowerCase().includes(inputValue.toLowerCase());
 
   const renderSelectLabel = ({ label }: { label: React.ReactNode }) => {
     if (!label) {
@@ -173,17 +194,19 @@ export default function RuleInputOutputFieldsComponent({
           size="small"
           dataSource={inputOutputFields}
           renderItem={(item) => (
-            <List.Item>
+            <List.Item key={item.field}>
               {isEditable ? (
                 <>
                   <Select
                     disabled={!isEditable}
                     showSearch
-                    placeholder="Select rule"
-                    filterOption={filterOption}
+                    placeholder="Search Klamm fields..."
+                    filterOption={() => true}
+                    onSearch={(value: string) => setSearchValue(value)}
                     options={inputOutputOptions}
-                    onChange={(value) => updateInputField(item, value)}
-                    value={{ label: item.name, value: item.field }}
+                    onChange={(value) => value && value.value && updateInputField(item, value)}
+                    optionLabelProp="label"
+                    value={item.field ? { label: item.name, value: item.field } : null}
                     notFoundContent={isLoading ? <Spin size="small" /> : null}
                     style={{ width: 200 }}
                     popupMatchSelectWidth={false}
