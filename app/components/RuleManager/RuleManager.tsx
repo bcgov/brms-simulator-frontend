@@ -46,6 +46,7 @@ export default function RuleManager({
     );
   };
 
+  const [isLoading, setIsLoading] = useState(true);
   const [ruleContent, setRuleContent] = useState<DecisionGraphType>();
   const [rulemap, setRulemap] = useState<RuleMap>();
   const [simulation, setSimulation] = useState<Simulation>();
@@ -127,7 +128,7 @@ export default function RuleManager({
 
   if (!ruleContent) {
     return (
-      <Spin tip="Loading graph..." size="large" className="spinner">
+      <Spin tip="Loading rule..." size="large" className="spinner">
         <div className="content" />
       </Spin>
     );
@@ -136,14 +137,14 @@ export default function RuleManager({
   return (
     <Flex gap="large" vertical>
       <div className={styles.rulesWrapper}>
-        {editing ||
-          (editing === "draft" && (
-            <SavePublish
-              ruleInfo={ruleInfo}
-              ruleContent={ruleContent}
-              setHasSaved={() => setHasUnsavedChanges(false)}
-            />
-          ))}
+        {editing === "draft" && (
+          <SavePublish ruleInfo={ruleInfo} ruleContent={ruleContent} setHasSaved={() => setHasUnsavedChanges(false)} />
+        )}
+        {isLoading && (
+          <Spin tip="Loading graph..." size="large" className="spinner">
+            <div className="content" />
+          </Spin>
+        )}
         <RuleViewerEditor
           jsonFilename={jsonFile}
           ruleContent={ruleContent}
@@ -153,6 +154,7 @@ export default function RuleManager({
           simulation={simulation}
           runSimulation={runSimulation}
           isEditable={editing === "draft"}
+          setLoadingComplete={() => setIsLoading(false)}
         />
       </div>
       {scenarios && rulemap && (

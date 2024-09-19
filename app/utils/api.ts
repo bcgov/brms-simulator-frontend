@@ -356,14 +356,15 @@ export const uploadCSVAndProcess = async (
 
 /**
  * Retrieves a list of bre fields from Klamm
+ * @param searchText text to filter results by
  * @returns List of bre fields
  * @throws If an error occurs while retrieving the fields
  */
-export const getBREFields = async (): Promise<KlammBREField[]> => {
+export const getBREFields = async (searchText: string): Promise<KlammBREField[]> => {
   try {
     const {
       data: { data },
-    } = await axiosAPIInstance.get("/klamm/brefields");
+    } = await axiosAPIInstance.get(`/klamm/brefields?searchText=${searchText}`);
     return data;
   } catch (error) {
     console.error(`Error getting rule data: ${error}`);
