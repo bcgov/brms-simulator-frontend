@@ -120,7 +120,9 @@ export const getFieldValidation = (validationCriteria: string, validationType: s
   }
 
   // Enforce proper type-based validation
-  if (dataType === "number-input") {
+  if (validationRules["options"] && validationRules?.["options"].length > 0) {
+    validationRules["type"] = "select";
+  } else if (dataType === "number-input") {
     validationRules["type"] = "number";
   } else if (dataType === "date") {
     validationRules["type"] = "date";
