@@ -8,9 +8,10 @@ import { uploadCSVAndProcess, getCSVForRuleRun } from "@/app/utils/api";
 interface ScenarioCSVProps {
   jsonFile: string;
   ruleContent?: DecisionGraphType;
+  ruleVersion?: string | boolean;
 }
 
-export default function ScenarioCSV({ jsonFile, ruleContent }: ScenarioCSVProps) {
+export default function ScenarioCSV({ jsonFile, ruleContent, ruleVersion = "" }: ScenarioCSVProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploadedFile, setUploadedFile] = useState(false);
 
@@ -29,8 +30,9 @@ export default function ScenarioCSV({ jsonFile, ruleContent }: ScenarioCSVProps)
   };
 
   const handleDownloadScenarios = async () => {
+    const ruleName = ruleVersion === "draft" ? "Draft" : ruleVersion === "inreview" ? "In Review" : "Published";
     try {
-      const csvContent = await getCSVForRuleRun(jsonFile, ruleContent);
+      const csvContent = await getCSVForRuleRun(jsonFile, ruleName, ruleContent);
       message.success(`Scenario Testing Template: ${csvContent}`);
     } catch (error) {
       message.error("Error downloading scenarios.");

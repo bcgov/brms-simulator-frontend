@@ -162,7 +162,7 @@ export default function RuleManager({
           ruleContent={ruleContent}
           rulemap={rulemap}
           scenarios={scenarios}
-          isEditing={editing === "draft" || editing === "inreview"}
+          isEditing={editing}
           showAllScenarioTabs={showAllScenarioTabs}
           createRuleMap={createRuleMap}
           setSimulationContext={setSimulationContext}
