@@ -34,12 +34,16 @@ export default function ScenarioResults({ scenarios, jsonFile, ruleContent }: Sc
   const hasError = useRef(false);
   const { isMobile, isTablet } = useResponsiveSize();
 
-  const applyConditionalStyling = (value: any, property: string): React.ReactNode => {
+  const applyConditionalStyling = (value: any, field: string): React.ReactNode => {
     if (value === null || value === undefined) {
       return null;
     }
 
-    if (typeof value === "boolean" && property === "resultMatch") {
+    if (Array.isArray(value)) {
+      return value.length > 0 ? value.length : null;
+    }
+
+    if (typeof value === "boolean" && field === "resultMatch") {
       return value ? (
         <span className="result-match">
           <Tag color="success" icon={<CheckCircleOutlined />}></Tag>
@@ -53,9 +57,9 @@ export default function ScenarioResults({ scenarios, jsonFile, ruleContent }: Sc
       return value ? <Tag color="green">TRUE</Tag> : <Tag color="red">FALSE</Tag>;
     }
 
-    // Handle numbers with "amount" in the property name
+    // Handle numbers with "amount" in the field name
     let displayValue = value;
-    if (typeof value === "number" && property.toLowerCase().includes("amount")) {
+    if (typeof value === "number" && field.toLowerCase().includes("amount")) {
       displayValue = `$${dollarFormat(value)}`;
     } else if (typeof value === "number") {
       displayValue = <Tag color="blue">{value}</Tag>;
@@ -231,20 +235,20 @@ export default function ScenarioResults({ scenarios, jsonFile, ruleContent }: Sc
   };
 
   const expandedRowRender = (record: { name: string }, displayExpanded: boolean) => {
-    const expandedData = Object.entries(record || {}).map(([property, value], index) => ({
+    const expandedData = Object.entries(record || {}).map(([field, value], index) => ({
       key: index.toString(),
-      property,
+      field,
       value,
     }));
     const filteredExpected = displayExpanded
       ? expandedData
-      : expandedData.filter((entry) => entry.property.includes("expected_result"));
+      : expandedData.filter((entry) => entry.field.includes("expected_result"));
 
     const expandedDataColumns = filteredExpected.map((entry) => ({
-      title: displayExpanded ? entry.property : entry.property.replace("expected_result_", ""),
-      dataIndex: entry.property,
-      key: entry.property,
-      value: applyConditionalStyling(entry.value, entry.property),
+      title: displayExpanded ? entry.field : entry.field.replace("expected_result_", ""),
+      dataIndex: entry.field,
+      key: entry.field,
+      value: applyConditionalStyling(entry.value, entry.field),
     }));
 
     return (
@@ -300,13 +304,7 @@ export default function ScenarioResults({ scenarios, jsonFile, ruleContent }: Sc
     hasError.current = false;
     updateScenarioResults(jsonFile);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jsonFile]);
-
-  useEffect(() => {
-    hasError.current = false;
-    updateScenarioResults(jsonFile);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scenarios]);
+  }, [jsonFile, scenarios]);
 
   useEffect(() => {
     hasError.current = false;

@@ -288,6 +288,7 @@ export const runDecisionsForScenarios = async (goRulesJSONFilename: string, rule
  */
 export const getCSVForRuleRun = async (
   goRulesJSONFilename: string,
+  ruleVersion: string,
   ruleContent?: DecisionGraphType
 ): Promise<string> => {
   try {
@@ -300,7 +301,7 @@ export const getCSVForRuleRun = async (
       }
     );
 
-    const filename = `${goRulesJSONFilename.replace(/\.json$/, ".csv")}`;
+    const filename = `${(ruleVersion + "_" + goRulesJSONFilename).replace(/\.json$/, ".csv")}`;
     downloadFileBlob(response.data, "text/csv", filename);
 
     return "CSV downloaded successfully";

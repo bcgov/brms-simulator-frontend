@@ -4,13 +4,13 @@ import { Scenario } from "@/app/types/scenario";
 import styles from "./ScenarioFormatter.module.css";
 import { RuleMap } from "@/app/types/rulemap";
 import InputStyler from "../../InputStyler/InputStyler";
-import { parseSchemaTemplate } from "../../InputStyler/ArrayFormatter";
+import { parseSchemaTemplate } from "../../InputStyler/InputStyler";
 
 const COLUMNS = [
   {
-    title: "Property",
-    dataIndex: "property",
-    key: "property",
+    title: "Field",
+    dataIndex: "field",
+    key: "field",
   },
   {
     title: "Value",
@@ -52,21 +52,29 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
       let updatedRawData = rawData;
       if (editable) {
         const ruleMapInputs = rulemap?.inputs.reduce((obj: Record<string, any>, item: any) => {
-          obj[item.property] = null;
+          obj[item.field] = null;
           return obj;
         }, {});
         updatedRawData = { ...ruleMapInputs, ...rawData };
       }
       const propertyRuleMap = Object.values(rulemap || {}).flat();
       const newData = Object.entries(updatedRawData)
-        .filter(([property]) => !PROPERTIES_TO_IGNORE.includes(property))
+        .filter(([field]) => !PROPERTIES_TO_IGNORE.includes(field))
         .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
-        .map(([property, value], index) => ({
-          property:
-            propertyRuleMap?.find((item) => item.property === property)?.name ||
-            parseSchemaTemplate(property)?.arrayName ||
-            property,
-          value: InputStyler(value, property, editable, scenarios, updatedRawData, setRawData),
+        .map(([field, value], index) => ({
+          field:
+            propertyRuleMap?.find((item) => item.field === field)?.name ||
+            parseSchemaTemplate(field)?.arrayName ||
+            field,
+          value: InputStyler(
+            value,
+            field,
+            editable,
+            scenarios,
+            updatedRawData,
+            setRawData,
+            rulemap?.inputs.find((item) => item.field === field)
+          ),
           key: index,
         }));
       // Check if data.result is an array

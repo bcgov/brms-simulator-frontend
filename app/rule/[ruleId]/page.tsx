@@ -34,12 +34,7 @@ export default async function Rule({
   return (
     <GithubAuthProvider authInfo={{ githubAuthToken, githubAuthUsername }}>
       <RuleHeader ruleInfo={ruleInfo} version={version} />
-      <RuleManager
-        ruleInfo={ruleInfo}
-        initialRuleContent={ruleContent}
-        scenarios={scenarios}
-        editing={version === RULE_VERSION.draft}
-      />
+      <RuleManager ruleInfo={ruleInfo} initialRuleContent={ruleContent} scenarios={scenarios} editing={version} />
     </GithubAuthProvider>
   );
 }

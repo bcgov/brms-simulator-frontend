@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Flex, Button, Input, Popconfirm } from "antd";
+import { Flex, Button, Input, Popconfirm, Tooltip } from "antd";
 import type { PopconfirmProps } from "antd";
 import InputOutputTable from "../../InputOutputTable";
 import { Scenario } from "@/app/types/scenario";
@@ -97,6 +97,7 @@ export default function ScenarioGenerator({
 
   useEffect(() => {
     setSimulationRun(false);
+    setScenarioExpectedOutput(resultsOfSimulation ?? {});
     const editScenario = { ...simulationContext, rulemap: true };
     setSimulationContext(editScenario);
     setEditingScenario(false);
@@ -105,9 +106,14 @@ export default function ScenarioGenerator({
 
   // Update scenarioExpectedOutput on first render to display full rulemap possible results
   useEffect(() => {
-    if (resultsOfSimulation) {
-      setScenarioExpectedOutput(resultsOfSimulation);
-    }
+    const expectedOutputsMap = rulemap.resultOutputs.reduce<Record<string, null>>((acc, obj: { field?: string }) => {
+      if (obj?.field) {
+        acc[obj.field] = null;
+      }
+      return acc;
+    }, {});
+    setScenarioExpectedOutput(expectedOutputsMap);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -128,9 +134,6 @@ export default function ScenarioGenerator({
               rulemap={rulemap}
             />
             <Flex gap={"small"} align="end" vertical>
-              <Button size="large" type="primary" onClick={runScenarioSimulation}>
-                Simulate ▶
-              </Button>
               <Flex gap={"small"} align="end">
                 {simulationRun && editing && (
                   <>
@@ -147,13 +150,18 @@ export default function ScenarioGenerator({
                       okText="Yes, save scenario"
                       cancelText="No"
                     >
-                      <Button disabled={!scenarioName} size="large" type="primary">
-                        Save Scenario ⬇️
-                      </Button>
+                      <Tooltip title={!scenarioName && "Scenario name required"}>
+                        <Button disabled={!scenarioName} size="large" type="primary">
+                          Save Scenario ⬇️
+                        </Button>
+                      </Tooltip>
                     </Popconfirm>
                   </>
                 )}
               </Flex>
+              <Button size="large" type="primary" onClick={runScenarioSimulation}>
+                Simulate ▶
+              </Button>
             </Flex>
           </Flex>
         )}
