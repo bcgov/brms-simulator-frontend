@@ -20,22 +20,22 @@ export interface rawDataProps {
   rulemap?: boolean;
 }
 
-export const getAutoCompleteOptions = (property: string, scenarios: Scenario[] = []) => {
+export const getAutoCompleteOptions = (field: string, scenarios: Scenario[] = []) => {
   if (!scenarios) return [];
   const optionsSet = new Set<string>();
 
   scenarios.forEach((scenario) => {
     scenario.variables
-      .filter((variable) => variable.name === property)
+      .filter((variable) => variable.name === field)
       .forEach((variable) => optionsSet.add(variable.value));
   });
 
   return Array.from(optionsSet).map((value) => ({ value, type: typeof value }));
 };
 
-export const parsePropertyName = (property: string): string => {
-  const match = property.match(/\[.*?\]\.(.+)$/);
-  return match ? match[1] : property;
+export const parsePropertyName = (field: string): string => {
+  const match = field.match(/\[.*?\]\.(.+)$/);
+  return match ? match[1] : field;
 };
 
 export const parseSchemaTemplate = (template: string) => {
@@ -72,14 +72,14 @@ export const parseSchemaTemplate = (template: string) => {
 
 export default function InputStyler(
   value: any,
-  property: string,
+  field: string,
   editable: boolean,
   scenarios: Scenario[] = [],
   rawData: rawDataProps | null | undefined,
   setRawData: any,
   ruleProperties: any
 ) {
-  const handleValueChange = (value: any, property: string) => {
+  const handleValueChange = (value: any, field: string) => {
     let queryValue: any = value;
     if (typeof value === "string") {
       if (value === "") queryValue = "";
@@ -92,7 +92,7 @@ export default function InputStyler(
       }
     }
 
-    const updatedData = { ...rawData, [property]: queryValue };
+    const updatedData = { ...rawData, [field]: queryValue };
 
     if (typeof setRawData === "function") {
       setRawData(updatedData);
@@ -101,25 +101,25 @@ export default function InputStyler(
     }
   };
 
-  const handleClear = (property: any) => {
-    const inputElement = document.getElementById(property) as any;
+  const handleClear = (field: any) => {
+    const inputElement = document.getElementById(field) as any;
 
     if (inputElement) {
       inputElement.value = null;
       inputElement.dispatchEvent(new Event("input", { bubbles: true }));
     }
 
-    handleValueChange(null, property);
+    handleValueChange(null, field);
   };
 
-  const handleInputChange = (val: any, property: string) => {
-    const updatedData = { ...rawData, [property]: val };
+  const handleInputChange = (val: any, field: string) => {
+    const updatedData = { ...rawData, [field]: val };
     if (typeof setRawData === "function") {
       setRawData(updatedData);
     }
   };
 
-  const valuesArray = getAutoCompleteOptions(property, scenarios);
+  const valuesArray = getAutoCompleteOptions(field, scenarios);
   let type = typeof value;
   if (valuesArray.length > 0) {
     type = typeof valuesArray[0].value;
@@ -131,12 +131,12 @@ export default function InputStyler(
       ruleProperties?.validationType,
       ruleProperties?.type ?? ruleProperties?.dataType
     );
-    if (ruleProperties?.type === "object-array" && ruleProperties?.child_fields?.length > 0) {
+    if (ruleProperties?.type === "object-array" && ruleProperties?.childFields?.length > 0) {
       return (
         <ObjectArrayInput
           show={true}
           value={value || []}
-          property={property}
+          field={field}
           ruleProperties={ruleProperties}
           handleInputChange={handleInputChange}
           scenarios={scenarios}
@@ -150,26 +150,26 @@ export default function InputStyler(
         {validationRules?.type ? (
           <>
             <ObjectLengthDisplay
-              show={typeof value === "object" && value !== null && !Array.isArray(property) && property !== null}
+              show={typeof value === "object" && value !== null && !Array.isArray(field) && field !== null}
               value={value || []}
             />
             <BooleanInput
               show={validationRules?.type === "true-false"}
               value={value}
-              property={property}
+              field={field}
               handleInputChange={handleInputChange}
             />
             <SelectInput
               show={validationRules?.type === "select"}
               value={value}
-              property={property}
+              field={field}
               options={validationRules?.options}
               handleInputChange={handleInputChange}
             />
             <TextInput
               show={validationRules?.type === "text"}
               value={value}
-              property={property}
+              field={field}
               valuesArray={valuesArray}
               handleValueChange={handleValueChange}
               handleInputChange={handleInputChange}
@@ -178,7 +178,7 @@ export default function InputStyler(
             <NumberInput
               show={validationRules?.type === "number"}
               value={value}
-              property={property}
+              field={field}
               maximum={validationRules?.range ? validationRules?.range.max : validationRules?.max}
               minimum={validationRules?.range ? validationRules?.range.min : validationRules?.min}
               handleValueChange={handleValueChange}
@@ -187,7 +187,7 @@ export default function InputStyler(
             <DateInput
               show={validationRules?.type === "date"}
               value={value}
-              property={property}
+              field={field}
               maximum={validationRules?.range ? validationRules?.range.max : validationRules?.max}
               minimum={validationRules?.range ? validationRules?.range.min : validationRules?.min}
               handleInputChange={handleInputChange}
@@ -197,7 +197,7 @@ export default function InputStyler(
         ) : (
           <DefaultInput
             show={value === null || value === undefined}
-            property={property}
+            field={field}
             handleValueChange={handleValueChange}
           />
         )}
@@ -209,7 +209,7 @@ export default function InputStyler(
         <ReadOnlyArrayDisplay
           show={Array.isArray(value)}
           value={value}
-          property={property}
+          field={field}
           scenarios={scenarios}
           rawData={rawData}
           setRawData={setRawData}
@@ -217,11 +217,7 @@ export default function InputStyler(
         />
         <ReadOnlyBooleanDisplay show={type === "boolean" || typeof value === "boolean"} value={value} />
         <ReadOnlyStringDisplay show={type === "string" || typeof value === "string"} value={value} />
-        <ReadOnlyNumberDisplay
-          show={type === "number" || typeof value === "number"}
-          value={value}
-          property={property}
-        />
+        <ReadOnlyNumberDisplay show={type === "number" || typeof value === "number"} value={value} field={field} />
       </>
     );
   }

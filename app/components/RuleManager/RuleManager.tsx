@@ -35,10 +35,10 @@ export default function RuleManager({
   const createRuleMap = (array: any[] = [], preExistingContext?: Record<string, any>) => {
     return array.reduce(
       (acc, obj) => {
-        if (preExistingContext?.hasOwnProperty(obj.property)) {
-          acc[obj.property] = preExistingContext[obj.property];
+        if (preExistingContext?.hasOwnProperty(obj.field)) {
+          acc[obj.field] = preExistingContext[obj.field];
         } else {
-          acc[obj.property] = null;
+          acc[obj.field] = null;
         }
         return acc;
       },

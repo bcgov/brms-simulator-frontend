@@ -19,12 +19,12 @@ import {
   ReadOnlyArrayDisplayProps,
 } from "@/app/types/inputs";
 
-export const DefaultInput = ({ show, property, handleValueChange }: InputProps) => {
+export const DefaultInput = ({ show, field, handleValueChange }: InputProps) => {
   if (!show) return null;
   return (
     <label className="labelsmall">
-      <Input onBlur={(e) => handleValueChange?.(e.target.value, property)} />
-      <span className="label-text">{parsePropertyName(property)}</span>
+      <Input onBlur={(e) => handleValueChange?.(e.target.value, field)} />
+      <span className="label-text">{parsePropertyName(field)}</span>
     </label>
   );
 };
@@ -33,17 +33,17 @@ export const ChildFieldInput = ({
   item,
   each,
   index,
-  property,
+  field,
   handleInputChange,
   scenarios,
   rawData,
   value,
 }: ChildFieldInputProps) => (
-  <div key={each.property}>
+  <div key={each.field}>
     {each.label}
     {InputStyler(
       item[each.name],
-      `${property}[${index}].${each.name}`,
+      `${field}[${index}].${each.name}`,
       true,
       scenarios,
       rawData,
@@ -51,9 +51,9 @@ export const ChildFieldInput = ({
         const updatedArray = [...value];
         updatedArray[index] = {
           ...updatedArray[index],
-          [each.name]: newData[`${property}[${index}].${each.name}`],
+          [each.name]: newData[`${field}[${index}].${each.name}`],
         };
-        handleInputChange?.(updatedArray, property);
+        handleInputChange?.(updatedArray, field);
       },
       each
     )}
@@ -63,7 +63,7 @@ export const ChildFieldInput = ({
 export const ObjectArrayInput = ({
   show,
   value,
-  property,
+  field,
   ruleProperties,
   handleInputChange,
   scenarios,
@@ -71,11 +71,11 @@ export const ObjectArrayInput = ({
 }: ObjectArrayInputProps) => {
   if (!show) return null;
 
-  const parsedSchema = parseSchemaTemplate(property);
-  const parsedPropertyName = parsedSchema?.arrayName || property;
+  const parsedSchema = parseSchemaTemplate(field);
+  const parsedPropertyName = parsedSchema?.arrayName || field;
 
   const customName = parsedPropertyName.charAt(0).toUpperCase() + parsedPropertyName.slice(1);
-  const childFields = ruleProperties?.child_fields || [];
+  const childFields = ruleProperties?.childFields || [];
   const childFieldMap = childFields.reduce((acc: { [x: string]: null }, field: { name: string | number }) => {
     acc[field.name] = null;
     return acc;
@@ -83,10 +83,10 @@ export const ObjectArrayInput = ({
 
   return (
     <div>
-      <Button icon={<PlusCircleOutlined />} onClick={() => handleInputChange([...value, childFieldMap], property)}>
+      <Button icon={<PlusCircleOutlined />} onClick={() => handleInputChange([...value, childFieldMap], field)}>
         Add
       </Button>
-      <Button icon={<MinusCircleOutlined />} onClick={() => handleInputChange(value.slice(0, -1), property)}>
+      <Button icon={<MinusCircleOutlined />} onClick={() => handleInputChange(value.slice(0, -1), field)}>
         Remove
       </Button>
       {value.map((item, index) => (
@@ -101,7 +101,7 @@ export const ObjectArrayInput = ({
                 item={item}
                 each={each}
                 index={index}
-                property={property}
+                field={field}
                 handleInputChange={handleInputChange}
                 scenarios={scenarios}
                 rawData={rawData}
@@ -120,14 +120,14 @@ export const ObjectLengthDisplay = ({ show, value }: ObjectLengthDisplayProps) =
   return <div>{Object.keys(value).length}</div>;
 };
 
-export const BooleanInput = ({ show, value, property, handleInputChange }: BooleanInputProps) => {
+export const BooleanInput = ({ show, value, field, handleInputChange }: BooleanInputProps) => {
   if (!show) return null;
   return (
     <Flex gap="small" align="center" vertical>
       <label className="labelsmall">
         <Flex gap="small" align="center">
           <Radio.Group
-            onChange={(e) => handleInputChange(e.target.value, property)}
+            onChange={(e) => handleInputChange(e.target.value, field)}
             value={value === true ? true : value === false ? false : undefined}
           >
             <Flex gap="small" align="center">
@@ -141,57 +141,49 @@ export const BooleanInput = ({ show, value, property, handleInputChange }: Boole
               icon={<MinusCircleOutlined />}
               size="small"
               shape="circle"
-              onClick={() => handleInputChange(undefined, property)}
+              onClick={() => handleInputChange(undefined, field)}
             />
           </Tooltip>
         </Flex>
-        <span className="label-text">{parsePropertyName(property)}</span>
+        <span className="label-text">{parsePropertyName(field)}</span>
       </label>
     </Flex>
   );
 };
 
-export const SelectInput = ({ show, value, property, options, handleInputChange }: SelectInputProps) => {
+export const SelectInput = ({ show, value, field, options, handleInputChange }: SelectInputProps) => {
   if (!show) return null;
   return (
     <label className="labelsmall">
       <Flex gap="small" align="center">
         <Select
-          id={property}
+          id={field}
           options={options}
           defaultValue={value}
           style={{ width: 200 }}
-          onChange={(val) => handleInputChange(val, property)}
+          onChange={(val) => handleInputChange(val, field)}
         />
       </Flex>
-      <span className="label-text">{parsePropertyName(property)}</span>
+      <span className="label-text">{parsePropertyName(field)}</span>
     </label>
   );
 };
 
-export const DateInput = ({
-  show,
-  value,
-  property,
-  maximum,
-  minimum,
-  handleInputChange,
-  handleClear,
-}: DateInputProps) => {
+export const DateInput = ({ show, value, field, maximum, minimum, handleInputChange, handleClear }: DateInputProps) => {
   if (!show) return null;
   return (
     <label className="labelsmall">
       <Flex gap="small" align="center">
         <DatePicker
           allowClear={false}
-          id={property}
+          id={field}
           maxDate={maximum}
           minDate={minimum}
           defaultValue={value ? dayjs(value, "YYYY-MM-DD") : null}
           format="YYYY-MM-DD"
           onChange={(val) => {
             const formattedDate = val ? val.format("YYYY-MM-DD") : null;
-            handleInputChange(formattedDate, property);
+            handleInputChange(formattedDate, field);
           }}
           style={{ width: 200 }}
         />
@@ -201,11 +193,11 @@ export const DateInput = ({
             icon={<MinusCircleOutlined />}
             size="small"
             shape="circle"
-            onClick={() => handleClear(property)}
+            onClick={() => handleClear(field)}
           />
         </Tooltip>
       </Flex>
-      <span className="label-text">{parsePropertyName(property)}</span>
+      <span className="label-text">{parsePropertyName(field)}</span>
     </label>
   );
 };
@@ -213,14 +205,14 @@ export const DateInput = ({
 export const ReadOnlyArrayDisplay = ({
   show,
   value,
-  property,
+  field,
   scenarios,
   rawData,
   setRawData,
   ruleProperties,
 }: ReadOnlyArrayDisplayProps) => {
   if (!show) return null;
-  const customName = parsePropertyName(property);
+  const customName = parsePropertyName(field);
   return (
     <div>
       {value.map((item, index) => (
@@ -257,9 +249,9 @@ export const ReadOnlyStringDisplay = ({ show, value }: ReadOnlyProps) => {
   return <Tag color="blue">{value}</Tag>;
 };
 
-export const ReadOnlyNumberDisplay = ({ show, value, property }: ReadOnlyNumberDisplayProps) => {
+export const ReadOnlyNumberDisplay = ({ show, value, field }: ReadOnlyNumberDisplayProps) => {
   if (!show) return null;
-  if (property.toLowerCase().includes("amount")) {
+  if (field.toLowerCase().includes("amount")) {
     const formattedValue = dollarFormat(value);
     return <Tag color="green">${formattedValue}</Tag>;
   }
@@ -269,7 +261,7 @@ export const ReadOnlyNumberDisplay = ({ show, value, property }: ReadOnlyNumberD
 export const NumberInput = ({
   show,
   value,
-  property,
+  field,
   maximum,
   minimum,
   handleValueChange,
@@ -283,8 +275,8 @@ export const NumberInput = ({
           max={maximum}
           min={minimum}
           value={value}
-          onBlur={(e) => handleValueChange(e.target.value, property)}
-          onChange={(val) => handleInputChange(val, property)}
+          onBlur={(e) => handleValueChange(e.target.value, field)}
+          onChange={(val) => handleInputChange(val, field)}
         />
         <Tooltip title="Clear value">
           <Button
@@ -292,11 +284,11 @@ export const NumberInput = ({
             icon={<MinusCircleOutlined />}
             size="small"
             shape="circle"
-            onClick={() => handleInputChange(undefined, property)}
+            onClick={() => handleInputChange(undefined, field)}
           />
         </Tooltip>
       </Flex>
-      <span className="label-text">{parsePropertyName(property)}</span>
+      <span className="label-text">{parsePropertyName(field)}</span>
     </label>
   );
 };
@@ -304,7 +296,7 @@ export const NumberInput = ({
 export const TextInput = ({
   show,
   value,
-  property,
+  field,
   valuesArray,
   handleValueChange,
   handleInputChange,
@@ -315,12 +307,12 @@ export const TextInput = ({
     <label className="labelsmall">
       <Flex gap={"small"} align="center">
         <AutoComplete
-          id={property}
+          id={field}
           options={valuesArray}
           defaultValue={value}
-          onBlur={(e) => handleValueChange((e.target as HTMLInputElement).value, property)}
+          onBlur={(e) => handleValueChange((e.target as HTMLInputElement).value, field)}
           style={{ width: 200 }}
-          onChange={(val) => handleInputChange(val, property)}
+          onChange={(val) => handleInputChange(val, field)}
         />
         <Tooltip title="Clear value">
           <Button
@@ -328,11 +320,11 @@ export const TextInput = ({
             icon={<MinusCircleOutlined />}
             size="small"
             shape="circle"
-            onClick={() => handleClear(property)}
+            onClick={() => handleClear(field)}
           />
         </Tooltip>
       </Flex>
-      <span className="label-text">{parsePropertyName(property)}</span>
+      <span className="label-text">{parsePropertyName(field)}</span>
     </label>
   );
 };

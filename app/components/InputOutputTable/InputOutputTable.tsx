@@ -7,9 +7,9 @@ import { dollarFormat } from "@/app/utils/utils";
 
 const COLUMNS = [
   {
-    title: "Property",
-    dataIndex: "property",
-    key: "property",
+    title: "Field",
+    dataIndex: "field",
+    key: "field",
   },
   {
     title: "Value",
@@ -49,28 +49,28 @@ export default function InputOutputTable({
     setShowTable(!showTable);
   };
 
-  const handleClear = (property: any) => {
-    const inputElement = document.getElementById(property) as any;
+  const handleClear = (field: any) => {
+    const inputElement = document.getElementById(field) as any;
 
     if (inputElement) {
       inputElement.value = null;
       inputElement.dispatchEvent(new Event("input", { bubbles: true }));
     }
 
-    handleValueChange(null, property);
+    handleValueChange(null, field);
   };
 
-  const convertAndStyleValue = (value: any, property: string, editable: boolean) => {
+  const convertAndStyleValue = (value: any, field: string, editable: boolean) => {
     if (editable) {
       return (
         <label className="labelsmall">
           <Flex gap={"small"} align="center">
             <Input
-              id={property}
+              id={field}
               value={value ?? null}
-              onChange={(e) => handleInputChange(e, property)}
+              onChange={(e) => handleInputChange(e, field)}
               defaultValue={value ?? ""}
-              onBlur={(e) => handleValueChange(e, property)}
+              onBlur={(e) => handleValueChange(e, field)}
               onKeyDown={(e) => handleKeyDown(e)}
             />
             <Tooltip title="Clear value">
@@ -79,11 +79,11 @@ export default function InputOutputTable({
                 icon={<MinusCircleOutlined />}
                 size="small"
                 shape="circle"
-                onClick={() => handleClear(property)}
+                onClick={() => handleClear(field)}
               />
             </Tooltip>
           </Flex>
-          <span className="label-text">{property}</span>
+          <span className="label-text">{field}</span>
         </label>
       );
     }
@@ -92,7 +92,7 @@ export default function InputOutputTable({
       return value ? <Tag color="green">TRUE</Tag> : <Tag color="red">FALSE</Tag>;
     }
 
-    if (typeof value === "number" && property.toLowerCase().includes("amount")) {
+    if (typeof value === "number" && field.toLowerCase().includes("amount")) {
       const formattedValue = dollarFormat(value);
       return <Tag color="green">${formattedValue}</Tag>;
     }
@@ -102,7 +102,7 @@ export default function InputOutputTable({
 
   const handleValueChange = (
     e: FocusEvent<HTMLInputElement, Element> | React.ChangeEvent<HTMLInputElement> | null,
-    property: string
+    field: string
   ) => {
     const newValue = e?.target?.value || null;
     let queryValue: any = newValue;
@@ -115,7 +115,7 @@ export default function InputOutputTable({
       queryValue = Number(newValue);
     }
 
-    const updatedData = { ...rawData, [property]: queryValue };
+    const updatedData = { ...rawData, [field]: queryValue };
 
     if (typeof setRawData === "function") {
       setRawData(updatedData);
@@ -124,9 +124,9 @@ export default function InputOutputTable({
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | null, property: string) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | null, field: string) => {
     const newValue = e?.target?.value || "";
-    const updatedData = { ...rawData, [property]: newValue };
+    const updatedData = { ...rawData, [field]: newValue };
 
     if (typeof setRawData === "function") {
       setRawData(updatedData);
@@ -147,11 +147,11 @@ export default function InputOutputTable({
     if (rawData) {
       const propertyRuleMap = Object.values(rulemap || {}).flat();
       const newData = Object.entries(rawData)
-        .filter(([property]) => !PROPERTIES_TO_IGNORE.includes(property))
+        .filter(([field]) => !PROPERTIES_TO_IGNORE.includes(field))
         .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
-        .map(([property, value], index) => ({
-          property: propertyRuleMap?.find((item) => item.property === property)?.name || property,
-          value: convertAndStyleValue(value, property, editable),
+        .map(([field, value], index) => ({
+          field: propertyRuleMap?.find((item) => item.field === field)?.name || field,
+          value: convertAndStyleValue(value, field, editable),
           key: index,
         }));
       setDataSource(newData);

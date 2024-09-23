@@ -18,7 +18,7 @@ declare type InputOutputField = {
   dataType?: string;
   validationCriteria?: string;
   validationType?: string;
-  child_fields?: InputOutputField[];
+  childFields?: InputOutputField[];
 };
 
 interface RuleInputOutputFieldsComponent extends GraphNodeProps {
@@ -132,19 +132,19 @@ export default function RuleInputOutputFieldsComponent({
           input.validationType = klammData?.data_validation?.bre_validation_type?.value;
           // Check if data type is 'object-array'
           if (klammData?.data_type?.name === "object-array") {
-            input.child_fields =
+            input.childFields =
               klammData?.child_fields &&
               klammData?.child_fields.map((child) => ({
                 id: child.id,
                 name: child.name,
-                label: child.label,
+                field: child.label,
                 description: child.description,
                 dataType: child?.bre_data_type?.name,
                 validationCriteria: child?.bre_data_validation?.validation_criteria,
                 validationType: child?.bre_data_validation?.bre_validation_type?.value,
               }));
           } else {
-            input.child_fields = [];
+            input.childFields = [];
           }
         }
         return input;

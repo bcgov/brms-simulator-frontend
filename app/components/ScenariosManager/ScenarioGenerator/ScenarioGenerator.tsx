@@ -106,9 +106,9 @@ export default function ScenarioGenerator({
 
   // Update scenarioExpectedOutput on first render to display full rulemap possible results
   useEffect(() => {
-    const expectedOutputsMap = rulemap.resultOutputs.reduce<Record<string, null>>((acc, obj: { property?: string }) => {
-      if (obj?.property) {
-        acc[obj.property] = null;
+    const expectedOutputsMap = rulemap.resultOutputs.reduce<Record<string, null>>((acc, obj: { field?: string }) => {
+      if (obj?.field) {
+        acc[obj.field] = null;
       }
       return acc;
     }, {});

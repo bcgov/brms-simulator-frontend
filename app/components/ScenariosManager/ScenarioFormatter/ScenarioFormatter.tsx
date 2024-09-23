@@ -8,9 +8,9 @@ import { parseSchemaTemplate } from "../../InputStyler/InputStyler";
 
 const COLUMNS = [
   {
-    title: "Property",
-    dataIndex: "property",
-    key: "property",
+    title: "Field",
+    dataIndex: "field",
+    key: "field",
   },
   {
     title: "Value",
@@ -52,28 +52,28 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
       let updatedRawData = rawData;
       if (editable) {
         const ruleMapInputs = rulemap?.inputs.reduce((obj: Record<string, any>, item: any) => {
-          obj[item.property] = null;
+          obj[item.field] = null;
           return obj;
         }, {});
         updatedRawData = { ...ruleMapInputs, ...rawData };
       }
       const propertyRuleMap = Object.values(rulemap || {}).flat();
       const newData = Object.entries(updatedRawData)
-        .filter(([property]) => !PROPERTIES_TO_IGNORE.includes(property))
+        .filter(([field]) => !PROPERTIES_TO_IGNORE.includes(field))
         .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
-        .map(([property, value], index) => ({
-          property:
-            propertyRuleMap?.find((item) => item.property === property)?.name ||
-            parseSchemaTemplate(property)?.arrayName ||
-            property,
+        .map(([field, value], index) => ({
+          field:
+            propertyRuleMap?.find((item) => item.field === field)?.name ||
+            parseSchemaTemplate(field)?.arrayName ||
+            field,
           value: InputStyler(
             value,
-            property,
+            field,
             editable,
             scenarios,
             updatedRawData,
             setRawData,
-            rulemap?.inputs.find((item) => item.property === property)
+            rulemap?.inputs.find((item) => item.field === field)
           ),
           key: index,
         }));
