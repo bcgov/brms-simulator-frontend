@@ -114,7 +114,7 @@ export const getFieldValidation = (validationCriteria: string, validationType: s
         validationCriteria
           .replace(/[\[\]]/g, "")
           .split(",")
-          .map((value) => ({ value: value, type: typeof value }));
+          .map((value) => ({ value: value.trim(), type: typeof value }));
       options.push({ value: null, type: null, label: "No Value" }); // Add null as the last option
       validationRules["options"] = options;
       break;
