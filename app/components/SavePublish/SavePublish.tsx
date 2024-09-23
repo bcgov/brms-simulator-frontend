@@ -1,21 +1,23 @@
 import React, { useState } from "react";
-import { Modal, Button, Flex, message, App } from "antd";
+import { Modal, Button, Flex, App } from "antd";
 import { SaveOutlined, UploadOutlined } from "@ant-design/icons";
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { updateRuleData } from "@/app/utils/api";
 import { sendRuleForReview } from "@/app/utils/githubApi";
 import NewReviewForm from "./NewReviewForm";
+import SavePublishWarnings from "./SavePublishWarnings";
 import styles from "./SavePublish.module.css";
 
 interface SavePublishProps {
   ruleInfo: RuleInfo;
-  ruleContent: object;
+  ruleContent: { nodes: []; edges: [] };
   setHasSaved: () => void;
 }
 
 export default function SavePublish({ ruleInfo, ruleContent, setHasSaved }: SavePublishProps) {
   const { _id: ruleId, goRulesJSONFilename: filePath, reviewBranch } = ruleInfo;
 
+  const { message } = App.useApp();
   const [openNewReviewModal, setOpenNewReviewModal] = useState(false);
   const [currReviewBranch, setCurrReviewBranch] = useState(reviewBranch);
   const [isSaving, setIsSaving] = useState(false);
@@ -97,6 +99,7 @@ export default function SavePublish({ ruleInfo, ruleContent, setHasSaved }: Save
           Send for Review <UploadOutlined />
         </Button>
       </Flex>
+      <SavePublishWarnings filePath={filePath} ruleContent={ruleContent} isSaving={isSaving} />
     </>
   );
 }
