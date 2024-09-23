@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import type { ReactFlowInstance } from "reactflow";
 import "@gorules/jdm-editor/dist/style.css";
 import { Spin } from "antd";
-import { ApartmentOutlined, PlayCircleOutlined, LoginOutlined, LogoutOutlined } from "@ant-design/icons";
+import { ApartmentOutlined, PlayCircleOutlined, LoginOutlined, LogoutOutlined, BookOutlined } from "@ant-design/icons";
 import {
   JdmConfigProvider,
   DecisionGraph,
@@ -11,6 +11,7 @@ import {
   DecisionGraphType,
   DecisionGraphRef,
   Simulation,
+  createJdmNode,
   CustomNodeSpecification,
 } from "@gorules/jdm-editor";
 import { SchemaSelectProps, PanelType } from "@/app/types/jdm-editor";
@@ -20,6 +21,7 @@ import { getScenariosByFilename } from "@/app/utils/api";
 import LinkRuleComponent from "./subcomponents/LinkRuleComponent";
 import SimulatorPanel from "./subcomponents/SimulatorPanel";
 import RuleInputOutputFieldsComponent from "./subcomponents/RuleInputOutputFieldsComponent";
+import NotesComponent from "./subcomponents/NotesComponent";
 
 interface RuleViewerEditorProps {
   jsonFilename: string;
@@ -222,6 +224,36 @@ export default function RuleViewerEditor({
     [contextToSimulate, runSimulation, setContextToSimulate]
   );
 
+  const customNodes: CustomNodeSpecification<any, any>[] = useMemo(
+    () => [
+      // Custom notes node
+      createJdmNode({
+        kind: "noteNode",
+        group: "Markup",
+        displayName: "Note",
+        icon: <BookOutlined />,
+        color: "grey",
+        generateNode: ({ index }) => ({
+          name: "Note",
+          kind: "noteNode",
+          config: {
+            value: "",
+          },
+        }),
+        renderNode: ({ specification, id, selected, data }) => (
+          <NotesComponent
+            specification={specification}
+            id={id}
+            isSelected={selected}
+            name={data?.name}
+            isEditable={isEditable}
+          />
+        ),
+      }),
+    ],
+    []
+  );
+
   if (!ruleContent || !additionalComponents || !panels) {
     return (
       <Spin tip="Loading graph..." size="large" className="spinner">
@@ -241,6 +273,7 @@ export default function RuleViewerEditor({
         onReactFlowInit={reactFlowInit}
         panels={panels}
         components={additionalComponents}
+        customNodes={customNodes}
         onChange={(updatedGraphValue) => updateRuleContent(updatedGraphValue)}
         disabled={!isEditable}
         inputsSchema={inputsSchema}
