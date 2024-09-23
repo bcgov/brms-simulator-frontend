@@ -175,7 +175,7 @@ export const DateInput = ({ show, value, field, maximum, minimum, handleInputCha
     <label className="labelsmall">
       <Flex gap="small" align="center">
         <DatePicker
-          allowClear={false}
+          allowClear={true}
           id={field}
           maxDate={maximum}
           minDate={minimum}
@@ -187,15 +187,6 @@ export const DateInput = ({ show, value, field, maximum, minimum, handleInputCha
           }}
           style={{ width: 200 }}
         />
-        <Tooltip title="Clear value">
-          <Button
-            type="dashed"
-            icon={<MinusCircleOutlined />}
-            size="small"
-            shape="circle"
-            onClick={() => handleClear(field)}
-          />
-        </Tooltip>
       </Flex>
       <span className="label-text">{parsePropertyName(field)}</span>
     </label>

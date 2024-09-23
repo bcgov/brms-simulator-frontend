@@ -16,7 +16,7 @@ interface ScenariosManagerProps {
   ruleContent: DecisionGraphType;
   rulemap: RuleMap;
   scenarios?: Scenario[];
-  isEditing: string | boolean;
+  isEditing: boolean;
   showAllScenarioTabs?: boolean;
   createRuleMap: (array: any[], preExistingContext?: Record<string, any>) => RuleMap;
   simulationContext?: Record<string, any>;
@@ -77,7 +77,7 @@ export default function ScenariosManager({
         resultsOfSimulation={resultsOfSimulation}
         runSimulation={runSimulation}
         rulemap={rulemap}
-        editing={isEditing === "draft" || isEditing === "inreview"}
+        editing={isEditing}
         setActiveTabKey={setActiveTabKey}
         scenariosManagerTabs={ScenariosManagerTabs}
         setResetTrigger={setResetTrigger}
@@ -98,7 +98,7 @@ export default function ScenariosManager({
         ruleId={ruleId}
         jsonFile={jsonFile}
         rulemap={rulemap}
-        editing={isEditing === "draft" || isEditing === "inreview"}
+        editing={isEditing}
         scenarioName={scenarioName}
         setScenarioName={setScenarioName}
         setActiveTabKey={setActiveTabKey}

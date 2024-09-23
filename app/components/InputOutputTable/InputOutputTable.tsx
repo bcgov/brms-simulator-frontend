@@ -49,15 +49,28 @@ export default function InputOutputTable({
     setShowTable(!showTable);
   };
 
-  const handleClear = (field: any) => {
-    const inputElement = document.getElementById(field) as any;
-
-    if (inputElement) {
-      inputElement.value = null;
-      inputElement.dispatchEvent(new Event("input", { bubbles: true }));
+  const updateRawData = (field: string, value: any, setRawData: Function | undefined) => {
+    const updatedData = { ...rawData, [field]: value };
+    if (typeof setRawData === "function") {
+      setRawData(updatedData);
+    } else {
+      console.error("setRawData is not a function or is undefined");
     }
+  };
 
-    handleValueChange(null, field);
+  const parseValue = (newValue: string | null): any => {
+    if (newValue?.toLowerCase() === "true") return true;
+    if (newValue?.toLowerCase() === "false") return false;
+    if (newValue && !isNaN(Number(newValue))) return Number(newValue);
+    return newValue;
+  };
+
+  const updateFieldValue = (field: string, value: string | null) => {
+    updateRawData(field, value, setRawData);
+  };
+
+  const handleClear = (field: string) => {
+    updateFieldValue(field, null);
   };
 
   const convertAndStyleValue = (value: any, field: string, editable: boolean) => {
@@ -105,34 +118,13 @@ export default function InputOutputTable({
     field: string
   ) => {
     const newValue = e?.target?.value || null;
-    let queryValue: any = newValue;
-
-    if (newValue?.toLowerCase() === "true") {
-      queryValue = true;
-    } else if (newValue?.toLowerCase() === "false") {
-      queryValue = false;
-    } else if (newValue && !isNaN(Number(newValue))) {
-      queryValue = Number(newValue);
-    }
-
-    const updatedData = { ...rawData, [field]: queryValue };
-
-    if (typeof setRawData === "function") {
-      setRawData(updatedData);
-    } else {
-      console.error("setRawData is not a function or is undefined");
-    }
+    const queryValue = parseValue(newValue);
+    updateFieldValue(field, queryValue);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | null, field: string) => {
     const newValue = e?.target?.value || "";
-    const updatedData = { ...rawData, [field]: newValue };
-
-    if (typeof setRawData === "function") {
-      setRawData(updatedData);
-    } else {
-      console.error("setRawData is not a function or is undefined");
-    }
+    updateFieldValue(field, newValue);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

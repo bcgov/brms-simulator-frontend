@@ -79,26 +79,26 @@ export default function InputStyler(
   setRawData: any,
   ruleProperties: any
 ) {
-  const handleValueChange = (value: any, field: string) => {
-    let queryValue: any = value;
-    if (typeof value === "string") {
-      if (value === "") queryValue = "";
-      else if (value.toLowerCase() === "true") {
-        queryValue = true;
-      } else if (value.toLowerCase() === "false") {
-        queryValue = false;
-      } else if (!isNaN(Number(value))) {
-        queryValue = Number(value);
-      }
-    }
-
-    const updatedData = { ...rawData, [field]: queryValue };
-
+  const updateFieldValue = (field: string, value: any) => {
+    console.log(field, value, "this is input change");
+    const updatedData = { ...rawData, [field]: value };
     if (typeof setRawData === "function") {
       setRawData(updatedData);
     } else {
       console.error("setRawData is not a function or is undefined");
     }
+  };
+
+  const handleValueChange = (value: any, field: string) => {
+    let queryValue: any = value;
+    if (typeof value === "string") {
+      if (value === "") queryValue = "";
+      else if (value.toLowerCase() === "true") queryValue = true;
+      else if (value.toLowerCase() === "false") queryValue = false;
+      else if (!isNaN(Number(value))) queryValue = Number(value);
+    }
+
+    updateFieldValue(field, queryValue);
   };
 
   const handleClear = (field: any) => {
@@ -112,11 +112,8 @@ export default function InputStyler(
     handleValueChange(null, field);
   };
 
-  const handleInputChange = (val: any, field: string) => {
-    const updatedData = { ...rawData, [field]: val };
-    if (typeof setRawData === "function") {
-      setRawData(updatedData);
-    }
+  const handleInputChange = (value: any, field: string) => {
+    updateFieldValue(field, value);
   };
 
   const valuesArray = getAutoCompleteOptions(field, scenarios);
@@ -144,65 +141,71 @@ export default function InputStyler(
         />
       );
     }
-    return (
-      <>
-        {" "}
-        {validationRules?.type ? (
-          <>
-            <ObjectLengthDisplay
-              show={typeof value === "object" && value !== null && !Array.isArray(field) && field !== null}
-              value={value || []}
-            />
-            <BooleanInput
-              show={validationRules?.type === "true-false"}
-              value={value}
-              field={field}
-              handleInputChange={handleInputChange}
-            />
-            <SelectInput
-              show={validationRules?.type === "select"}
-              value={value}
-              field={field}
-              options={validationRules?.options}
-              handleInputChange={handleInputChange}
-            />
-            <TextInput
-              show={validationRules?.type === "text"}
-              value={value}
-              field={field}
-              valuesArray={valuesArray}
-              handleValueChange={handleValueChange}
-              handleInputChange={handleInputChange}
-              handleClear={handleClear}
-            />
-            <NumberInput
-              show={validationRules?.type === "number"}
-              value={value}
-              field={field}
-              maximum={validationRules?.range ? validationRules?.range.max : validationRules?.max}
-              minimum={validationRules?.range ? validationRules?.range.min : validationRules?.min}
-              handleValueChange={handleValueChange}
-              handleInputChange={handleInputChange}
-            />
-            <DateInput
-              show={validationRules?.type === "date"}
-              value={value}
-              field={field}
-              maximum={validationRules?.range ? validationRules?.range.max : validationRules?.max}
-              minimum={validationRules?.range ? validationRules?.range.min : validationRules?.min}
-              handleInputChange={handleInputChange}
-              handleClear={handleClear}
-            />
-          </>
-        ) : (
+    switch (validationRules?.type) {
+      case "true-false":
+        return (
+          <BooleanInput
+            show={validationRules?.type === "true-false"}
+            value={value}
+            field={field}
+            handleInputChange={handleInputChange}
+          />
+        );
+      case "select":
+        return (
+          <SelectInput
+            show={validationRules?.type === "select"}
+            value={value}
+            field={field}
+            options={validationRules?.options}
+            handleInputChange={handleInputChange}
+          />
+        );
+      case "text":
+        return (
+          <TextInput
+            show={validationRules?.type === "text"}
+            value={value}
+            field={field}
+            valuesArray={valuesArray}
+            handleValueChange={handleValueChange}
+            handleInputChange={handleInputChange}
+            handleClear={handleClear}
+          />
+        );
+      case "number":
+        return (
+          <NumberInput
+            show={validationRules?.type === "number"}
+            value={value}
+            field={field}
+            maximum={validationRules?.range ? validationRules?.range.max : validationRules?.max}
+            minimum={validationRules?.range ? validationRules?.range.min : validationRules?.min}
+            handleValueChange={handleValueChange}
+            handleInputChange={handleInputChange}
+          />
+        );
+      case "date":
+        return (
+          <DateInput
+            show={validationRules?.type === "date"}
+            value={value}
+            field={field}
+            maximum={validationRules?.range ? validationRules?.range.max : validationRules?.max}
+            minimum={validationRules?.range ? validationRules?.range.min : validationRules?.min}
+            handleInputChange={handleInputChange}
+            handleClear={handleClear}
+          />
+        );
+      default:
+        return (
           <DefaultInput
             show={value === null || value === undefined}
             field={field}
             handleValueChange={handleValueChange}
           />
-        )}
-      </>
-    );
+        );
+    }
   } else {
     return (
       <>

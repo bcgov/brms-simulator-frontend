@@ -65,8 +65,12 @@ export const getFieldValidation = (validationCriteria: string, validationType: s
   }
 
   switch (validationType) {
-    case "=": // Data equal to
+    case "==": // Data equal to
       validationRules["equals"] = validationCriteria;
+      break;
+
+    case "!=": // Data not equal to
+      validationRules["doesnotmatch"] = validationCriteria;
       break;
 
     case "regex": // Text Pattern (regex)

@@ -28,7 +28,7 @@ export default function RuleManager({
   ruleInfo,
   scenarios,
   initialRuleContent = DEFAULT_RULE_CONTENT,
-  editing = true,
+  editing = false,
   showAllScenarioTabs = true,
 }: RuleManagerProps) {
   const { _id: ruleId, goRulesJSONFilename: jsonFile } = ruleInfo;
@@ -53,6 +53,8 @@ export default function RuleManager({
   const [simulationContext, setSimulationContext] = useState<Record<string, any>>();
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
   const { setHasUnsavedChanges } = useLeaveScreenPopup();
+  const canEditGraph = editing === "draft" || editing === true;
+  const canEditScenarios = editing === "draft" || editing === "inreview" || editing === true;
 
   const updateRuleContent = (updatedRuleContent: DecisionGraphType) => {
     if (ruleContent !== updatedRuleContent) {
@@ -137,7 +139,7 @@ export default function RuleManager({
   return (
     <Flex gap="large" vertical>
       <div className={styles.rulesWrapper}>
-        {editing === "draft" && (
+        {canEditGraph && (
           <SavePublish ruleInfo={ruleInfo} ruleContent={ruleContent} setHasSaved={() => setHasUnsavedChanges(false)} />
         )}
         {isLoading && (
@@ -153,7 +155,7 @@ export default function RuleManager({
           setContextToSimulate={setSimulationContext}
           simulation={simulation}
           runSimulation={runSimulation}
-          isEditable={editing === "draft"}
+          isEditable={canEditGraph}
           setLoadingComplete={() => setIsLoading(false)}
         />
       </div>
@@ -164,7 +166,7 @@ export default function RuleManager({
           ruleContent={ruleContent}
           rulemap={rulemap}
           scenarios={scenarios}
-          isEditing={editing}
+          isEditing={canEditScenarios}
           showAllScenarioTabs={showAllScenarioTabs}
           createRuleMap={createRuleMap}
           setSimulationContext={setSimulationContext}
