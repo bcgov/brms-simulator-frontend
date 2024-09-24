@@ -198,6 +198,24 @@ export const getRuleRunSchema = async (ruleResponse: unknown) => {
 };
 
 /**
+ * Genererates a rule map from just the rule content
+ * @param ruleContent The rule decision graph to evaluate.
+ * @returns The rule map.
+ * @throws If an error occurs while retrieving the rule data.
+ */
+export const generateSchemaFromRuleContent = async (ruleContent: DecisionGraphType): Promise<RuleMap> => {
+  try {
+    const { data } = await axiosAPIInstance.post("/rulemap/generateFromRuleContent", {
+      ruleContent,
+    });
+    return data;
+  } catch (error) {
+    console.error(`Error getting rule data: ${error}`);
+    throw error;
+  }
+};
+
+/**
  * Retrieves the scenarios for a rule from the API based on the provided filename
  * @param goRulesJSONFilename The name of the rule data to retrieve.
  * @returns The scenarios for the rule.
