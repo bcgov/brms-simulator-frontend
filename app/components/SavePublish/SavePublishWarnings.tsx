@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Tag, App, FloatButton } from "antd";
 import { WarningFilled } from "@ant-design/icons";
-import { getRuleMap, generateSchemaFromRuleContent, updateRuleData } from "@/app/utils/api";
+import { DecisionGraphType } from "@gorules/jdm-editor";
+import { getRuleMap, generateSchemaFromRuleContent } from "@/app/utils/api";
 import styles from "./SavePublish.module.css";
 
 interface SavePublishProps {
   filePath: string;
-  ruleContent: { nodes: []; edges: [] };
+  ruleContent: DecisionGraphType;
   isSaving: boolean;
 }
 

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Modal, Button, Flex, App } from "antd";
 import { SaveOutlined, UploadOutlined } from "@ant-design/icons";
+import { DecisionGraphType } from "@gorules/jdm-editor";
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { updateRuleData } from "@/app/utils/api";
 import { sendRuleForReview } from "@/app/utils/githubApi";
@@ -10,7 +11,7 @@ import styles from "./SavePublish.module.css";
 
 interface SavePublishProps {
   ruleInfo: RuleInfo;
-  ruleContent: { nodes: []; edges: [] };
+  ruleContent: DecisionGraphType;
   setHasSaved: () => void;
 }
 
