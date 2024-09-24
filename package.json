@@ -2,6 +2,11 @@
   "name": "bre-frontend",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+   "node": "20.16.0",
+   "npm": "10.8.1"  
+  },
+  "engine-strict": true,
   "scripts": {
     "dev": "next dev -p 8080",
     "build": "next build",
