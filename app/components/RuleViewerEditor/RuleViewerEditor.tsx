@@ -251,6 +251,7 @@ export default function RuleViewerEditor({
         ),
       }),
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 

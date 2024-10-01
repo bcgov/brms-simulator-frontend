@@ -1,11 +1,11 @@
 "use client";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import Image from "next/image";
 import { Alert, Button } from "antd";
 
-export default function NoOrgAccess() {
+function NoOrgAccessComponent() {
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get("returnUrl");
 
@@ -22,8 +22,8 @@ export default function NoOrgAccess() {
           <div>
             <p>Your account has no organization authorization.</p>
             <p>
-              Hit the "Re-Login" button below and then make sure to hit the "Authorize" button shown below before
-              continuing.
+              Hit the &quot;Re-Login&quot; button below and then make sure to hit the &quot;Authorize&quot; button shown
+              below before continuing.
             </p>
             <div>
               <Image src="/images/github-authorize-screen.png" alt="GitHub Authorize Screen" width={500} height={370} />
@@ -38,5 +38,13 @@ export default function NoOrgAccess() {
         showIcon
       />
     </div>
+  );
+}
+
+export default function NoOrgAccess() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <NoOrgAccessComponent />
+    </Suspense>
   );
 }

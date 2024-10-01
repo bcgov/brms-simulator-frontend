@@ -9,7 +9,7 @@ export interface GithubAuthContextType {
 
 const GithubAuthContext = createContext<GithubAuthContextType | undefined>(undefined);
 
-export const GithubAuthProvider: React.FC<{ authInfo?: GithubAuthContextType; children: React.ReactNode }> = ({
+export const GithubAuthProvider: React.FC<{ authInfo: GithubAuthContextType | null; children: React.ReactNode }> = ({
   authInfo,
   children,
 }) => {

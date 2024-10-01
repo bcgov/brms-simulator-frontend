@@ -17,12 +17,10 @@ export default async function Rule({
   // Get version of rule to use
   const { version } = searchParams;
 
-  let githubAuthInfo: GithubAuthContextType | undefined;
-  if (version === RULE_VERSION.draft) {
-    // Ensure user is first logged into github so they can save what they edit
-    // If they are not, redirect them to the oauth flow
-    githubAuthInfo = (await useGithubAuth(`rule/${ruleId}?version=${version}`)) as GithubAuthContextType;
-  }
+  // Ensure user is first logged into github so they can save what they edit
+  // If they are not, redirect them to the oauth flow
+  const oAuthRequired = version === RULE_VERSION.draft; // only require oauth if editing a draft
+  const githubAuthInfo = await useGithubAuth(`rule/${ruleId}?version=${version}`, oAuthRequired);
 
   // Get rule details and json content for the rule id
   const { ruleInfo, ruleContent } = await getRuleDataForVersion(ruleId, version);

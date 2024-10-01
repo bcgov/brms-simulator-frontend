@@ -79,6 +79,7 @@ export default function SavePublishWarnings({ filePath, ruleContent, isSaving }:
 
   useEffect(() => {
     getMisconnectedFields();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ruleContent]);
 
   useEffect(() => {
@@ -91,6 +92,7 @@ export default function SavePublishWarnings({ filePath, ruleContent, isSaving }:
     if (misconnectedFieldsPanelOpen) {
       warnOfMisconnectedFields();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [misconnectedFields, misconnectedFieldsPanelOpen]);
 
   return (
