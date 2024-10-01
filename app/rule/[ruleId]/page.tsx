@@ -4,7 +4,7 @@ import RuleManager from "@/app/components/RuleManager";
 import { Scenario } from "@/app/types/scenario";
 import getRuleDataForVersion from "@/app/hooks/getRuleDataForVersion";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
-import { GithubAuthProvider } from "@/app/components/GithubAuthProvider";
+import { GithubAuthProvider, GithubAuthContextType } from "@/app/components/GithubAuthProvider";
 import useGithubAuth from "@/app/hooks/useGithubAuth";
 
 export default async function Rule({
@@ -17,9 +17,12 @@ export default async function Rule({
   // Get version of rule to use
   const { version } = searchParams;
 
-  // Ensure user is first logged into github so they can save what they edit
-  // If they are not, redirect them to the oauth flow
-  const { githubAuthToken, githubAuthUsername } = await useGithubAuth(`rule/${ruleId}`);
+  let githubAuthInfo: GithubAuthContextType | undefined;
+  if (version === RULE_VERSION.draft) {
+    // Ensure user is first logged into github so they can save what they edit
+    // If they are not, redirect them to the oauth flow
+    githubAuthInfo = (await useGithubAuth(`rule/${ruleId}?version=${version}`)) as GithubAuthContextType;
+  }
 
   // Get rule details and json content for the rule id
   const { ruleInfo, ruleContent } = await getRuleDataForVersion(ruleId, version);
@@ -32,7 +35,7 @@ export default async function Rule({
   const scenarios: Scenario[] = await getScenariosByFilename(ruleInfo.goRulesJSONFilename);
 
   return (
-    <GithubAuthProvider authInfo={{ githubAuthToken, githubAuthUsername }}>
+    <GithubAuthProvider authInfo={githubAuthInfo}>
       <RuleHeader ruleInfo={ruleInfo} version={version} />
       <RuleManager ruleInfo={ruleInfo} initialRuleContent={ruleContent} scenarios={scenarios} editing={version} />
     </GithubAuthProvider>
