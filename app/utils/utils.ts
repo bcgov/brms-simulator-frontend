@@ -136,3 +136,16 @@ export const getFieldValidation = (validationCriteria: string, validationType: s
 
   return validationRules;
 };
+
+/**
+ * Generates a descriptive name for a scenario based on its properties
+ * @param obj The object representing the scenario
+ * @returns A string representing the descriptive name
+ */
+
+export const generateDescriptiveName = (obj: Record<string, any>): string => {
+  return Object.entries(obj)
+    .filter(([key, value]) => value !== null && key !== "rulemap")
+    .map(([key, value]) => `${key}_${value}`)
+    .join("_");
+};

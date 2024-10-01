@@ -39,11 +39,11 @@ export const ChildFieldInput = ({
   rawData,
   value,
 }: ChildFieldInputProps) => (
-  <div key={each.field}>
+  <div key={each.name}>
     {each.label}
     {InputStyler(
-      item[each.name],
-      `${field}[${index}].${each.name}`,
+      item[each.field],
+      `${field}[${index}].${each.field}`,
       true,
       scenarios,
       rawData,
@@ -51,7 +51,7 @@ export const ChildFieldInput = ({
         const updatedArray = [...value];
         updatedArray[index] = {
           ...updatedArray[index],
-          [each.name]: newData[`${field}[${index}].${each.name}`],
+          [each.field]: newData[`${field}[${index}].${each.field}`],
         };
         handleInputChange?.(updatedArray, field);
       },

@@ -80,7 +80,6 @@ export default function InputStyler(
   ruleProperties: any
 ) {
   const updateFieldValue = (field: string, value: any) => {
-    console.log(field, value, "this is input change");
     const updatedData = { ...rawData, [field]: value };
     if (typeof setRawData === "function") {
       setRawData(updatedData);

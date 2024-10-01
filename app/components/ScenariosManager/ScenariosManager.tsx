@@ -9,6 +9,7 @@ import ScenarioGenerator from "./ScenarioGenerator";
 import ScenarioResults from "./ScenarioResults";
 import ScenarioCSV from "./ScenarioCSV";
 import styles from "./ScenariosManager.module.css";
+import IsolationTester from "./IsolationTester";
 
 interface ScenariosManagerProps {
   ruleId: string;
@@ -44,6 +45,7 @@ export default function ScenariosManager({
     InputsTab = "2",
     ResultsTab = "3",
     CSVTab = "4",
+    IsolationTesterTab = "5",
   }
 
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
@@ -123,6 +125,23 @@ export default function ScenariosManager({
     </Flex>
   );
 
+  const isolationTestTab = (
+    <Flex gap="small">
+      <IsolationTester
+        scenarios={activeScenarios}
+        simulationContext={simulationContext}
+        setSimulationContext={setSimulationContext}
+        resultsOfSimulation={resultsOfSimulation}
+        resetTrigger={resetTrigger}
+        jsonFile={jsonFile}
+        rulemap={rulemap}
+        scenarioName={scenarioName}
+        ruleContent={ruleContent}
+        ruleVersion={isEditing}
+      />
+    </Flex>
+  );
+
   const items: TabsProps["items"] = [
     {
       key: ScenariosManagerTabs.ScenariosTab,
@@ -146,6 +165,12 @@ export default function ScenariosManager({
       key: ScenariosManagerTabs.CSVTab,
       label: "CSV Tests",
       children: csvTab,
+      disabled: !showAllScenarioTabs,
+    },
+    {
+      key: ScenariosManagerTabs.IsolationTesterTab,
+      label: "Isolation Tester",
+      children: isolationTestTab,
       disabled: !showAllScenarioTabs,
     },
   ];
