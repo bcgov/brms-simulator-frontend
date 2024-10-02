@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { GithubAuthProvider } from "@/app/components/GithubAuthProvider";
 import useGithubAuth from "@/app/hooks/useGithubAuth";
 import NewRule from "./NewRule";
@@ -13,3 +14,7 @@ export default async function NewRuleWrapper() {
     </GithubAuthProvider>
   );
 }
+
+export const metadata: Metadata = {
+  title: "New Rule",
+};
