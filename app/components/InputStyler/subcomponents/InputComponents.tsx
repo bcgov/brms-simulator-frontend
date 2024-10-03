@@ -76,8 +76,8 @@ export const ObjectArrayInput = ({
 
   const customName = parsedPropertyName.charAt(0).toUpperCase() + parsedPropertyName.slice(1);
   const childFields = ruleProperties?.childFields || [];
-  const childFieldMap = childFields.reduce((acc: { [x: string]: null }, field: { name: string | number }) => {
-    acc[field.name] = null;
+  const childFieldMap = childFields.reduce((acc: { [x: string]: null }, field: { field: string | number }) => {
+    acc[field.field] = null;
     return acc;
   }, {});
 
@@ -95,9 +95,9 @@ export const ObjectArrayInput = ({
             {customName} {index + 1}
           </h4>
           <label className="labelsmall">
-            {childFields.map((each: { name: any }) => (
+            {childFields.map((each: { field: any }) => (
               <ChildFieldInput
-                key={`child-field-${each.name ?? null}-${index}`}
+                key={`child-field-${each.field ?? null}-${index}`}
                 item={item}
                 each={each}
                 index={index}
@@ -151,7 +151,7 @@ export const BooleanInput = ({ show, value, field, handleInputChange }: BooleanI
   );
 };
 
-export const SelectInput = ({ show, value, field, options, handleInputChange }: SelectInputProps) => {
+export const SelectInput = ({ show, value, field, options, handleInputChange, multiple }: SelectInputProps) => {
   if (!show) return null;
   return (
     <label className="labelsmall">
@@ -162,6 +162,7 @@ export const SelectInput = ({ show, value, field, options, handleInputChange }: 
           defaultValue={value}
           style={{ width: 200 }}
           onChange={(val) => handleInputChange(val, field)}
+          mode={multiple ? "multiple" : undefined}
         />
       </Flex>
       <span className="label-text">{parsePropertyName(field)}</span>
@@ -237,7 +238,7 @@ export const ReadOnlyBooleanDisplay = ({ show, value }: ReadOnlyProps) => {
 
 export const ReadOnlyStringDisplay = ({ show, value }: ReadOnlyProps) => {
   if (!show) return null;
-  return <Tag color="blue">{value}</Tag>;
+  return value.toString();
 };
 
 export const ReadOnlyNumberDisplay = ({ show, value, field }: ReadOnlyNumberDisplayProps) => {

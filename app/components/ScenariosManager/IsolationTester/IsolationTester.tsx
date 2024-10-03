@@ -112,7 +112,7 @@ export default function IsolationTester({
               these inputs.
             </li>
             <li>
-              Enter the number of scenarios you would like to generate here (there is a maximum of 1000):{" "}
+              Enter the maximum number of scenarios you would like to generate (there is a maximum of 1000):{" "}
               <InputNumber
                 value={testScenarioCount}
                 onChange={(value) => setTestScenarioCount(value)}

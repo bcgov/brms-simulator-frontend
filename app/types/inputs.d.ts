@@ -41,6 +41,7 @@ export interface SelectInputProps extends InputProps {
   value: any;
   options: any[];
   handleInputChange: (value: any, field: string) => void;
+  multiple?: boolean;
 }
 
 export interface DateInputProps extends InputProps {

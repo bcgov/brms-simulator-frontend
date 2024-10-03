@@ -431,9 +431,17 @@ export const getCSVTests = async (
       }
     );
 
-    const scenarioName = simulationContext ? `${generateDescriptiveName(simulationContext)}` : "";
+    let filename = "";
 
-    const filename = `${(scenarioName + goRulesJSONFilename).replace(/\.json$/, ".csv")}`;
+    const scenarioName = simulationContext ? `${generateDescriptiveName(simulationContext)}` : "";
+    const MAX_FILENAME_LENGTH = 250;
+
+    if (`${scenarioName + goRulesJSONFilename}`.length > MAX_FILENAME_LENGTH && simulationContext) {
+      filename = `${(generateDescriptiveName(simulationContext, 5) + goRulesJSONFilename).replace(/\.json$/, ".csv")}`;
+    } else {
+      filename = `${(scenarioName + goRulesJSONFilename).replace(/\.json$/, ".csv")}`;
+    }
+
     downloadFileBlob(response.data, "text/csv", filename);
 
     return "CSV downloaded successfully";

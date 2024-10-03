@@ -139,6 +139,9 @@ export default function ScenariosManager({
         ruleContent={ruleContent}
         ruleVersion={isEditing}
       />
+      <Button onClick={handleReset} size="large" type="primary">
+        Reset ↻
+      </Button>
     </Flex>
   );
 

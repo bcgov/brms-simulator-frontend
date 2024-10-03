@@ -160,6 +160,17 @@ export default function InputStyler(
             handleInputChange={handleInputChange}
           />
         );
+      case "multiselect":
+        return (
+          <SelectInput
+            show={validationRules?.type === "multiselect"}
+            value={value}
+            field={field}
+            options={validationRules?.options}
+            handleInputChange={handleInputChange}
+            multiple
+          />
+        );
       case "text":
         return (
           <TextInput
@@ -206,6 +217,12 @@ export default function InputStyler(
         );
     }
   } else {
+    const allObjects = Array.isArray(value) && value.every((item) => typeof item === "object" && item !== null);
+    if (Array.isArray(value) && !allObjects) {
+      const stringValue = value.filter((item) => typeof item !== "object" || item === null).join(", ");
+      return <ReadOnlyStringDisplay show value={stringValue} />;
+    }
+
     return (
       <>
         <ReadOnlyArrayDisplay

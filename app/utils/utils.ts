@@ -108,8 +108,13 @@ export const getFieldValidation = (validationCriteria: string, validationType: s
       break;
 
     case "[=text]": // Text Options
+    case "[=texts]": // Text Multiselect Options
+
     case "[=num]": // Number Options
+    case "[=nums]": // Number Multiselect Options
+
     case "[=date]": // Date Options
+    case "[=dates]": // Date Multiselect Options
       const options: { value: string | number | Date | null; type: string | null | undefined; label?: string }[] =
         validationCriteria
           .replace(/[\[\]]/g, "")
@@ -124,14 +129,10 @@ export const getFieldValidation = (validationCriteria: string, validationType: s
   }
 
   // Enforce proper type-based validation
-  if (validationRules["options"] && validationRules?.["options"].length > 0) {
-    validationRules["type"] = "select";
-  } else if (dataType === "number-input") {
-    validationRules["type"] = "number";
-  } else if (dataType === "date") {
-    validationRules["type"] = "date";
+  if (validationRules?.options?.length > 0) {
+    validationRules["type"] = ["[=texts]", "[=dates]", "[=nums]"].includes(validationType) ? "multiselect" : "select";
   } else {
-    validationRules["type"] = "text";
+    validationRules["type"] = dataType === "number-input" ? "number" : dataType === "date" ? "date" : "text";
   }
 
   return validationRules;
@@ -140,12 +141,16 @@ export const getFieldValidation = (validationCriteria: string, validationType: s
 /**
  * Generates a descriptive name for a scenario based on its properties
  * @param obj The object representing the scenario
+ * @param maxLength The maximum length allowed for individual key-value pairs
  * @returns A string representing the descriptive name
  */
-
-export const generateDescriptiveName = (obj: Record<string, any>): string => {
+export const generateDescriptiveName = (obj: Record<string, any>, maxLength: number = 20): string => {
   return Object.entries(obj)
     .filter(([key, value]) => value !== null && key !== "rulemap")
-    .map(([key, value]) => `${key}_${value}`)
+    .map(([key, value]) => {
+      if (typeof value === "object") return generateDescriptiveName(value, maxLength);
+      const truncatedKey = String(key).length > maxLength ? String(key).slice(0, maxLength) : key;
+      return `${truncatedKey}_${value}`;
+    })
     .join("_");
 };
