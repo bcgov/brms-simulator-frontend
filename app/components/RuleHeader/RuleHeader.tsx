@@ -23,9 +23,9 @@ export default function RuleHeader({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const { title, goRulesJSONFilename } = ruleInfo;
-    setSavedTitle(title || goRulesJSONFilename);
-    setCurrTitle(title || goRulesJSONFilename);
+    const { title, filepath } = ruleInfo;
+    setSavedTitle(title || filepath);
+    setCurrTitle(title || filepath);
   }, [ruleInfo]);
 
   useEffect(() => {
@@ -100,7 +100,7 @@ export default function RuleHeader({
                 currTitle
               )}
             </h1>
-            <p className={styles.titleFilePath}>{ruleInfo.goRulesJSONFilename}</p>
+            <p className={styles.titleFilePath}>{ruleInfo.filepath}</p>
           </Flex>
           {isEditingTitle && (
             <button className={styles.editButton} onClick={isEditingTitle ? doneEditingTitle : startEditingTitle}>

@@ -5,8 +5,9 @@ export interface RuleDraft {
 
 export interface RuleInfoBasic {
   _id: string;
+  name: string;
   title?: string;
-  goRulesJSONFilename: string;
+  filepath: string;
 }
 
 export interface RuleInfo extends RuleInfoBasic {
