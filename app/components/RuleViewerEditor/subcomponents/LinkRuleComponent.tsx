@@ -16,7 +16,7 @@ interface LinkRuleComponent extends GraphNodeProps {
 export default function LinkRuleComponent({ specification, id, isSelected, name, isEditable }: LinkRuleComponent) {
   const { updateNode } = useDecisionGraphActions();
   const node = useDecisionGraphState((state) => (state.decisionGraph?.nodes || []).find((n) => n.id === id));
-  const goRulesJSONFilename = node?.content?.key;
+  const filepath = node?.content?.key;
 
   const [openRuleDrawer, setOpenRuleDrawer] = useState(false);
   const [ruleOptions, setRuleOptions] = useState<DefaultOptionType[]>([]);
@@ -30,9 +30,9 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
     const getRuleOptions = async () => {
       const ruleData = await getAllRuleData();
       setRuleOptions(
-        ruleData.map(({ title, goRulesJSONFilename }) => ({
-          label: title || goRulesJSONFilename,
-          value: goRulesJSONFilename,
+        ruleData.map(({ title, filepath }) => ({
+          label: title || filepath,
+          value: filepath,
         }))
       );
     };
@@ -42,10 +42,10 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
   }, [openRuleDrawer]);
 
   useEffect(() => {
-    if (goRulesJSONFilename) {
-      updateRuleContent(goRulesJSONFilename);
+    if (filepath) {
+      updateRuleContent(filepath);
     }
-  }, [goRulesJSONFilename]);
+  }, [filepath]);
 
   const showRuleDrawer = () => {
     setOpenRuleDrawer(true);
@@ -67,7 +67,7 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
   return (
     <GraphNode id={id} specification={specification} name={name} isSelected={isSelected}>
       <Button onClick={showRuleDrawer}>
-        {goRulesJSONFilename ? getShortFilenameOnly(goRulesJSONFilename) : "Add rule"}
+        {filepath ? getShortFilenameOnly(filepath) : "Add rule"}
         <EditOutlined />
       </Button>
       <Drawer title={name} onClose={closeRuleDrawer} open={openRuleDrawer} width="80%">
@@ -83,14 +83,14 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
                 }
                 options={ruleOptions}
                 onChange={onChangeSelection}
-                value={goRulesJSONFilename}
+                value={filepath}
                 className={styles.ruleSelect}
               />
               <Button onClick={closeRuleDrawer}>Done</Button>
             </Flex>
-            {goRulesJSONFilename && (
+            {filepath && (
               <RuleManager
-                ruleInfo={{ _id: id, goRulesJSONFilename }}
+                ruleInfo={{ _id: id, filepath }}
                 initialRuleContent={selectedRuleContent}
                 editing={false}
                 showAllScenarioTabs={false}

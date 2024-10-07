@@ -5,8 +5,15 @@ const GITHUB_REPO_URL = "https://api.github.com/repos/bcgov/brms-rules";
 const GITHUB_REPO_OWNER = "bcgov";
 const GITHUB_BASE_BRANCH = "dev";
 
+export enum AuthFailureReasons {
+  NO_OAUTH = "No OAuth token",
+  NOT_VALID = "OAuth token not valid",
+  NO_ORG_ACCESS = "OAuth token gives no org access",
+}
+
 let githubAuthUsername = "";
 let axiosGithubInstance: AxiosInstance;
+
 export const initializeGithubAxiosInstance = async (oauthToken?: string, oauthUsername?: string) => {
   if (!oauthToken) {
     throw new Error("No oauth token to initialize");
@@ -19,14 +26,28 @@ export const initializeGithubAxiosInstance = async (oauthToken?: string, oauthUs
   }
 };
 
-export const isGithubAuthTokenValid = async (oauthToken: string): Promise<boolean> => {
+export const isGithubAuthTokenValid = async (oauthToken?: string): Promise<{ valid: boolean; reason?: string }> => {
+  if (!oauthToken) {
+    return { valid: false, reason: AuthFailureReasons.NO_OAUTH };
+  }
+  // Check that the oauth token is legit
   const url = "https://api.github.com/user";
   const response = await fetch(url, {
     headers: {
       Authorization: `token ${oauthToken}`,
     },
   });
-  return response.ok;
+  if (!response.ok) {
+    return { valid: false, reason: AuthFailureReasons.NOT_VALID };
+  }
+  initializeGithubAxiosInstance(oauthToken, githubAuthUsername);
+  // Check that the user has authorized the organization (bcgov) properly
+  try {
+    await axiosGithubInstance.get(`${GITHUB_REPO_URL}/git/ref/heads/${GITHUB_BASE_BRANCH}`);
+  } catch (error) {
+    return { valid: false, reason: AuthFailureReasons.NO_ORG_ACCESS };
+  }
+  return { valid: true };
 };
 
 export const generateBranchName = (filePath: string) => {

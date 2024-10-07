@@ -67,7 +67,7 @@ export default function ScenarioGenerator({
     const newScenario: Scenario = {
       title: scenarioName,
       ruleID: ruleId,
-      goRulesJSONFilename: jsonFile,
+      filepath: jsonFile,
       variables,
       expectedResults,
     };

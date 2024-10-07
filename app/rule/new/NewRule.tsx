@@ -13,11 +13,11 @@ export default function NewRule() {
   const [ruleInfo, setRuleInfo] = useState<RuleInfo>({
     _id: "",
     title: "New rule",
-    goRulesJSONFilename: "",
+    filepath: "",
   });
 
   useEffect(() => {
-    setOpenNewRuleModal(!ruleInfo.goRulesJSONFilename);
+    setOpenNewRuleModal(!ruleInfo.filepath);
   }, [ruleInfo]);
 
   const createNewRule = async (newRuleInfo: Partial<RuleInfo>) => {
@@ -43,7 +43,7 @@ export default function NewRule() {
           </Form.Item>
           <Form.Item
             label="File path/name"
-            name="goRulesJSONFilename"
+            name="filepath"
             tooltip="example: my-rule.json or my-path/my-rule.json"
             rules={[
               {
@@ -72,9 +72,7 @@ export default function NewRule() {
         </Form>
       </Modal>
       <RuleHeader ruleInfo={ruleInfo} version={RULE_VERSION.draft} />
-      {ruleInfo.goRulesJSONFilename && (
-        <RuleManager ruleInfo={ruleInfo} initialRuleContent={DEFAULT_RULE_CONTENT} editing />
-      )}
+      {ruleInfo.filepath && <RuleManager ruleInfo={ruleInfo} initialRuleContent={DEFAULT_RULE_CONTENT} editing />}
     </>
   );
 }

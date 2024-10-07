@@ -25,7 +25,7 @@ export default function Home() {
     getRules();
   }, []);
 
-  const mappedRules = rules.map(({ _id, title, goRulesJSONFilename, reviewBranch, isPublished }) => {
+  const mappedRules = rules.map(({ _id, title, filepath, reviewBranch, isPublished }) => {
     const ruleLink = `/rule/${_id}`;
     const draftLink = `${ruleLink}?version=draft`;
     return {
@@ -33,7 +33,7 @@ export default function Home() {
       titleLink: (
         <b>
           <a href={isPublished ? ruleLink : draftLink} className={styles.mainLink}>
-            {title || goRulesJSONFilename}
+            {title || filepath}
           </a>
         </b>
       ),

@@ -10,8 +10,11 @@ import styles from "./styles/layout.module.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "BRMS Simulation System MVP (SDPR)",
-  description: "System for simulating results for SDPR Business Rules",
+  title: {
+    template: "%s | Business Rules Management App (SDPR)",
+    default: "Business Rules Management App (SDPR)",
+  },
+  description: "System for creating and simulating results for SDPR Business Rules",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

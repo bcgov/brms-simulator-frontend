@@ -16,7 +16,7 @@ interface SavePublishProps {
 }
 
 export default function SavePublish({ ruleInfo, ruleContent, setHasSaved }: SavePublishProps) {
-  const { _id: ruleId, goRulesJSONFilename: filePath, reviewBranch } = ruleInfo;
+  const { _id: ruleId, filepath: filePath, reviewBranch } = ruleInfo;
 
   const { message } = App.useApp();
   const [openNewReviewModal, setOpenNewReviewModal] = useState(false);

@@ -79,6 +79,7 @@ export default function SavePublishWarnings({ filePath, ruleContent, isSaving }:
 
   useEffect(() => {
     getMisconnectedFields();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ruleContent]);
 
   useEffect(() => {
@@ -89,8 +90,15 @@ export default function SavePublishWarnings({ filePath, ruleContent, isSaving }:
 
   useEffect(() => {
     if (misconnectedFieldsPanelOpen) {
-      warnOfMisconnectedFields();
+      if (misconnectedFields.length > 0) {
+        warnOfMisconnectedFields();
+      } else {
+        // Remove notification if there are no warnings
+        notification.destroy("klamm-warning");
+        setMisconnectedFieldsPanelOpen(false);
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [misconnectedFields, misconnectedFieldsPanelOpen]);
 
   return (
