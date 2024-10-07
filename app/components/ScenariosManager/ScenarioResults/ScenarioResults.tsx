@@ -280,9 +280,9 @@ export default function ScenarioResults({ scenarios, jsonFile, ruleContent }: Sc
     return resultStatus;
   };
 
-  const updateScenarioResults = async (goRulesJSONFilename: string) => {
+  const updateScenarioResults = async (filepath: string) => {
     try {
-      const results = await runDecisionsForScenarios(goRulesJSONFilename, ruleContent);
+      const results = await runDecisionsForScenarios(filepath, ruleContent);
       // Loop through object and check if data.result is an array
       for (const key in results) {
         if (Array.isArray(results[key].result)) {

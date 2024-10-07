@@ -31,7 +31,7 @@ export default function RuleManager({
   editing = false,
   showAllScenarioTabs = true,
 }: RuleManagerProps) {
-  const { _id: ruleId, goRulesJSONFilename: jsonFile } = ruleInfo;
+  const { _id: ruleId, filepath: jsonFile } = ruleInfo;
   const createRuleMap = (array: any[] = [], preExistingContext?: Record<string, any>) => {
     return array.reduce(
       (acc, obj) => {

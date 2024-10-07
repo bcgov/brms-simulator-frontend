@@ -5,7 +5,7 @@ import RuleManager from "@/app/components/RuleManager";
 import { Scenario } from "@/app/types/scenario";
 import getRuleDataForVersion from "@/app/hooks/getRuleDataForVersion";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
-import { GithubAuthProvider, GithubAuthContextType } from "@/app/components/GithubAuthProvider";
+import { GithubAuthProvider } from "@/app/components/GithubAuthProvider";
 import useGithubAuth from "@/app/hooks/useGithubAuth";
 
 export let metadata: Metadata;
@@ -36,7 +36,7 @@ export default async function Rule({
   metadata = { title: ruleInfo.title };
 
   // Get scenario information
-  const scenarios: Scenario[] = await getScenariosByFilename(ruleInfo.goRulesJSONFilename);
+  const scenarios: Scenario[] = await getScenariosByFilename(ruleInfo.filepath);
 
   return (
     <GithubAuthProvider authInfo={githubAuthInfo}>

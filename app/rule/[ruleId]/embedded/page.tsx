@@ -12,7 +12,7 @@ export default async function Rule({ params: { ruleId } }: { params: { ruleId: s
     return <h1>Rule not found</h1>;
   }
   // Get scenario information
-  const scenarios: Scenario[] = await getScenariosByFilename(ruleInfo.goRulesJSONFilename);
+  const scenarios: Scenario[] = await getScenariosByFilename(ruleInfo.filepath);
 
   return (
     <RuleManager
