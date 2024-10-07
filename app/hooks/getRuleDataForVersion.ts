@@ -24,10 +24,10 @@ export default async function getRuleDataForVersion(ruleId: string, version?: st
         if (!ruleInfo.reviewBranch) {
           throw new Error("No branch in review");
         }
-        ruleContent = await getFileAsJsonIfAlreadyExists(ruleInfo.reviewBranch, ruleInfo.goRulesJSONFilename);
+        ruleContent = await getFileAsJsonIfAlreadyExists(ruleInfo.reviewBranch, ruleInfo.filepath);
         break;
       default:
-        ruleContent = await getDocument(ruleInfo.goRulesJSONFilename);
+        ruleContent = await getDocument(ruleInfo.filepath);
     }
   } catch (error) {
     console.error("Error fetching rule content:", error);
@@ -37,8 +37,8 @@ export default async function getRuleDataForVersion(ruleId: string, version?: st
 }
 
 async function getPublishedRuleContentOrDefault(ruleInfo: RuleInfo) {
-  if (ruleInfo.goRulesJSONFilename) {
-    return await getDocument(ruleInfo.goRulesJSONFilename);
+  if (ruleInfo.filepath) {
+    return await getDocument(ruleInfo.filepath);
   }
   return DEFAULT_RULE_CONTENT;
 }

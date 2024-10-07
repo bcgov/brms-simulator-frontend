@@ -14,7 +14,6 @@ env:
 jobs:
   build_image:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -47,13 +46,11 @@ jobs:
   deploy:
     needs: build_image
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Authenticate and set context for OpenShift
         uses: redhat-actions/oc-login@v1
-
         with:
           openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
           namespace: ${{ github.ref == 'refs/heads/main' && secrets.OPENSHIFT_PROD_NAMESPACE  || secrets.OPENSHIFT_DEV_NAMESPACE  }}

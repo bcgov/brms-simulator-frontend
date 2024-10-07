@@ -19,7 +19,7 @@ jest.mock("next/navigation", () => ({
 }));
 
 describe("RuleHeader - doneEditingTitle", () => {
-  const ruleInfoMock = { _id: "1", title: "Original Title", goRulesJSONFilename: "filename.json" };
+  const ruleInfoMock = { _id: "1", title: "Original Title", filepath: "filename.json" };
 
   it("updates title on success", async () => {
     api.updateRuleData.mockResolvedValue({}); // Mock success

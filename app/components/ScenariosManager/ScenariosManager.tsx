@@ -6,7 +6,7 @@ import { Scenario } from "@/app/types/scenario";
 import { RuleMap } from "@/app/types/rulemap";
 import ScenarioViewer from "./ScenarioViewer";
 import ScenarioGenerator from "./ScenarioGenerator";
-import ScenarioTester from "./ScenarioTester";
+import ScenarioResults from "./ScenarioResults";
 import ScenarioCSV from "./ScenarioCSV";
 import styles from "./ScenariosManager.module.css";
 
@@ -39,14 +39,28 @@ export default function ScenariosManager({
   runSimulation,
   resultsOfSimulation,
 }: ScenariosManagerProps) {
+  enum ScenariosManagerTabs {
+    ScenariosTab = "1",
+    InputsTab = "2",
+    ResultsTab = "3",
+    CSVTab = "4",
+  }
+
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
+  const [activeTabKey, setActiveTabKey] = useState<string>(
+    showAllScenarioTabs ? ScenariosManagerTabs.InputsTab : ScenariosManagerTabs.ScenariosTab
+  );
+  const [scenarioName, setScenarioName] = useState<string>("");
+  const [activeScenarios, setActiveScenarios] = useState<Scenario[]>(scenarios ? scenarios : []);
 
   const handleTabChange = (key: string) => {
+    setActiveTabKey(key);
     handleReset();
   };
 
   const handleReset = () => {
     setSimulationContext({});
+    setScenarioName("");
     setTimeout(() => {
       const ruleMapInputs = createRuleMap(rulemap?.inputs);
       setSimulationContext(ruleMapInputs);
@@ -54,23 +68,28 @@ export default function ScenariosManager({
     setResetTrigger((prev) => !prev);
   };
 
-  const scenarioTab = scenarios && rulemap && (
+  const scenariosTab = scenarios && rulemap && (
     <Flex gap="small" vertical>
       <ScenarioViewer
-        scenarios={scenarios}
+        scenarios={activeScenarios}
+        jsonFile={jsonFile}
         setSimulationContext={setSimulationContext}
         resultsOfSimulation={resultsOfSimulation}
         runSimulation={runSimulation}
         rulemap={rulemap}
         editing={isEditing}
+        setActiveTabKey={setActiveTabKey}
+        scenariosManagerTabs={ScenariosManagerTabs}
+        setResetTrigger={setResetTrigger}
+        setScenarioName={setScenarioName}
       />
     </Flex>
   );
 
-  const scenarioGeneratorTab = scenarios && rulemap && ruleId && (
+  const inputsTab = scenarios && rulemap && ruleId && (
     <Flex gap="small " className={styles.scenarioGeneratorTab}>
       <ScenarioGenerator
-        scenarios={scenarios}
+        scenarios={activeScenarios}
         simulationContext={simulationContext}
         setSimulationContext={setSimulationContext}
         resultsOfSimulation={resultsOfSimulation}
@@ -80,6 +99,11 @@ export default function ScenariosManager({
         jsonFile={jsonFile}
         rulemap={rulemap}
         editing={isEditing}
+        scenarioName={scenarioName}
+        setScenarioName={setScenarioName}
+        setActiveTabKey={setActiveTabKey}
+        scenariosManagerTabs={ScenariosManagerTabs}
+        setActiveScenarios={setActiveScenarios}
       />
       <Button onClick={handleReset} size="large" type="primary">
         Reset ↻
@@ -87,41 +111,41 @@ export default function ScenariosManager({
     </Flex>
   );
 
-  const scenarioTestsTab = (
+  const resultsTab = (
     <Flex gap="small">
-      <ScenarioTester jsonFile={jsonFile} ruleContent={ruleContent} />
+      <ScenarioResults scenarios={activeScenarios} jsonFile={jsonFile} ruleContent={ruleContent} />
     </Flex>
   );
 
-  const csvScenarioTestsTab = (
+  const csvTab = (
     <Flex gap="small">
-      <ScenarioCSV jsonFile={jsonFile} ruleContent={ruleContent} />
+      <ScenarioCSV jsonFile={jsonFile} ruleContent={ruleContent} ruleVersion={isEditing} />
     </Flex>
   );
 
   const items: TabsProps["items"] = [
     {
-      key: "1",
+      key: ScenariosManagerTabs.ScenariosTab,
       label: "Simulate scenarios",
-      children: scenarioTab,
+      children: scenariosTab,
       disabled: false,
     },
     {
-      key: "2",
+      key: ScenariosManagerTabs.InputsTab,
       label: "Simulate manual inputs",
-      children: scenarioGeneratorTab,
+      children: inputsTab,
       disabled: false,
     },
     {
-      key: "3",
+      key: ScenariosManagerTabs.ResultsTab,
       label: "Scenario Results",
-      children: scenarioTestsTab,
+      children: resultsTab,
       disabled: !showAllScenarioTabs,
     },
     {
-      key: "4",
+      key: ScenariosManagerTabs.CSVTab,
       label: "CSV Tests",
-      children: csvScenarioTestsTab,
+      children: csvTab,
       disabled: !showAllScenarioTabs,
     },
   ];
@@ -133,7 +157,8 @@ export default function ScenariosManager({
       <Flex gap="middle" justify="space-between">
         <Tabs
           className={styles.tabs}
-          defaultActiveKey={showAllScenarioTabs ? "3" : "1"}
+          activeKey={activeTabKey}
+          defaultActiveKey={showAllScenarioTabs ? ScenariosManagerTabs.InputsTab : ScenariosManagerTabs.ScenariosTab}
           items={filteredItems}
           onChange={handleTabChange}
         ></Tabs>

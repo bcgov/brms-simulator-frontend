@@ -55,7 +55,7 @@ export default function Admin() {
         } else if (
           initialRule._id !== rule._id ||
           initialRule.title !== rule.title ||
-          initialRule.goRulesJSONFilename !== rule.goRulesJSONFilename
+          initialRule.filepath !== rule.filepath
         ) {
           return { rule, action: ACTION_STATUS.UPDATE };
         }
@@ -112,9 +112,9 @@ export default function Admin() {
       width: "220px",
     },
     {
-      title: "GoRules JSON Filename",
-      dataIndex: "goRulesJSONFilename",
-      render: renderInputField("goRulesJSONFilename"),
+      title: "Filepath",
+      dataIndex: "filepath",
+      render: renderInputField("filepath"),
     },
     {
       dataIndex: "delete",

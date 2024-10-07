@@ -5,6 +5,7 @@ import { EditOutlined } from "@ant-design/icons";
 import { GraphNode, useDecisionGraphActions, useDecisionGraphState } from "@gorules/jdm-editor";
 import type { DecisionGraphType, GraphNodeProps } from "@gorules/jdm-editor";
 import { getAllRuleData, getDocument } from "@/app/utils/api";
+import { getShortFilenameOnly } from "@/app/utils/utils";
 import RuleManager from "../../RuleManager";
 import styles from "./LinkRuleComponent.module.css";
 
@@ -15,7 +16,7 @@ interface LinkRuleComponent extends GraphNodeProps {
 export default function LinkRuleComponent({ specification, id, isSelected, name, isEditable }: LinkRuleComponent) {
   const { updateNode } = useDecisionGraphActions();
   const node = useDecisionGraphState((state) => (state.decisionGraph?.nodes || []).find((n) => n.id === id));
-  const goRulesJSONFilename = node?.content?.key;
+  const filepath = node?.content?.key;
 
   const [openRuleDrawer, setOpenRuleDrawer] = useState(false);
   const [ruleOptions, setRuleOptions] = useState<DefaultOptionType[]>([]);
@@ -29,9 +30,9 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
     const getRuleOptions = async () => {
       const ruleData = await getAllRuleData();
       setRuleOptions(
-        ruleData.map(({ title, goRulesJSONFilename }) => ({
-          label: title || goRulesJSONFilename,
-          value: goRulesJSONFilename,
+        ruleData.map(({ title, filepath }) => ({
+          label: title || filepath,
+          value: filepath,
         }))
       );
     };
@@ -41,10 +42,10 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
   }, [openRuleDrawer]);
 
   useEffect(() => {
-    if (goRulesJSONFilename) {
-      updateRuleContent(goRulesJSONFilename);
+    if (filepath) {
+      updateRuleContent(filepath);
     }
-  }, [goRulesJSONFilename]);
+  }, [filepath]);
 
   const showRuleDrawer = () => {
     setOpenRuleDrawer(true);
@@ -63,16 +64,10 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
     updateRuleContent(updatedJsonFilename);
   };
 
-  const getShortFilenameOnly = (filepath: string, maxLength: number = 25) => {
-    const filepathSections = filepath.split("/");
-    const filename = filepathSections[filepathSections.length - 1];
-    return filename.length > maxLength ? `${filename.substring(0, maxLength - 3)}...` : filename;
-  };
-
   return (
     <GraphNode id={id} specification={specification} name={name} isSelected={isSelected}>
       <Button onClick={showRuleDrawer}>
-        {goRulesJSONFilename ? getShortFilenameOnly(goRulesJSONFilename) : "Add rule"}
+        {filepath ? getShortFilenameOnly(filepath) : "Add rule"}
         <EditOutlined />
       </Button>
       <Drawer title={name} onClose={closeRuleDrawer} open={openRuleDrawer} width="80%">
@@ -88,14 +83,14 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
                 }
                 options={ruleOptions}
                 onChange={onChangeSelection}
-                value={goRulesJSONFilename}
+                value={filepath}
                 className={styles.ruleSelect}
               />
               <Button onClick={closeRuleDrawer}>Done</Button>
             </Flex>
-            {goRulesJSONFilename && (
+            {filepath && (
               <RuleManager
-                ruleInfo={{ _id: id, goRulesJSONFilename }}
+                ruleInfo={{ _id: id, filepath }}
                 initialRuleContent={selectedRuleContent}
                 editing={false}
                 showAllScenarioTabs={false}

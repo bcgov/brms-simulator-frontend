@@ -1,13 +1,15 @@
 import { useState, useEffect, FocusEvent } from "react";
-import { Table, Tag, Input, Button } from "antd";
+import { Table, Tag, Input, Button, Tooltip, Flex } from "antd";
+import { MinusCircleOutlined } from "@ant-design/icons";
 import { RuleMap } from "@/app/types/rulemap";
 import styles from "./InputOutputTable.module.css";
+import { dollarFormat } from "@/app/utils/utils";
 
 const COLUMNS = [
   {
-    title: "Property",
-    dataIndex: "property",
-    key: "property",
+    title: "Field",
+    dataIndex: "field",
+    key: "field",
   },
   {
     title: "Value",
@@ -47,16 +49,54 @@ export default function InputOutputTable({
     setShowTable(!showTable);
   };
 
-  const convertAndStyleValue = (value: any, property: string, editable: boolean) => {
+  const updateRawData = (field: string, value: any, setRawData: Function | undefined) => {
+    const updatedData = { ...rawData, [field]: value };
+    if (typeof setRawData === "function") {
+      setRawData(updatedData);
+    } else {
+      console.error("setRawData is not a function or is undefined");
+    }
+  };
+
+  const parseValue = (newValue: string | null): any => {
+    if (newValue?.toLowerCase() === "true") return true;
+    if (newValue?.toLowerCase() === "false") return false;
+    if (newValue && !isNaN(Number(newValue))) return Number(newValue);
+    return newValue;
+  };
+
+  const updateFieldValue = (field: string, value: string | null) => {
+    updateRawData(field, value, setRawData);
+  };
+
+  const handleClear = (field: string) => {
+    updateFieldValue(field, null);
+  };
+
+  const convertAndStyleValue = (value: any, field: string, editable: boolean) => {
     if (editable) {
       return (
         <label className="labelsmall">
-          <Input
-            defaultValue={value}
-            onBlur={(e) => handleValueChange(e, property)}
-            onKeyDown={(e) => handleKeyDown(e)}
-          />
-          <span className="label-text">{property}</span>
+          <Flex gap={"small"} align="center">
+            <Input
+              id={field}
+              value={value ?? null}
+              onChange={(e) => handleInputChange(e, field)}
+              defaultValue={value ?? ""}
+              onBlur={(e) => handleValueChange(e, field)}
+              onKeyDown={(e) => handleKeyDown(e)}
+            />
+            <Tooltip title="Clear value">
+              <Button
+                type="dashed"
+                icon={<MinusCircleOutlined />}
+                size="small"
+                shape="circle"
+                onClick={() => handleClear(field)}
+              />
+            </Tooltip>
+          </Flex>
+          <span className="label-text">{field}</span>
         </label>
       );
     }
@@ -65,33 +105,26 @@ export default function InputOutputTable({
       return value ? <Tag color="green">TRUE</Tag> : <Tag color="red">FALSE</Tag>;
     }
 
-    if (typeof value === "number" && property.toLowerCase().includes("amount")) {
-      return `$${value}`;
+    if (typeof value === "number" && field.toLowerCase().includes("amount")) {
+      const formattedValue = dollarFormat(value);
+      return <Tag color="green">${formattedValue}</Tag>;
     }
 
     return <b>{value}</b>;
   };
 
-  const handleValueChange = (e: FocusEvent<HTMLInputElement, Element>, property: string) => {
-    if (!e.target) return;
-    const newValue = (e.target as HTMLInputElement).value;
-    let queryValue: any = newValue;
+  const handleValueChange = (
+    e: FocusEvent<HTMLInputElement, Element> | React.ChangeEvent<HTMLInputElement> | null,
+    field: string
+  ) => {
+    const newValue = e?.target?.value || null;
+    const queryValue = parseValue(newValue);
+    updateFieldValue(field, queryValue);
+  };
 
-    if (newValue.toLowerCase() === "true") {
-      queryValue = true;
-    } else if (newValue.toLowerCase() === "false") {
-      queryValue = false;
-    } else if (!isNaN(Number(newValue))) {
-      queryValue = Number(newValue);
-    }
-
-    const updatedData = { ...rawData, [property]: queryValue } || {};
-
-    if (typeof setRawData === "function") {
-      setRawData(updatedData);
-    } else {
-      console.error("setRawData is not a function or is undefined");
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | null, field: string) => {
+    const newValue = e?.target?.value || "";
+    updateFieldValue(field, newValue);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -106,11 +139,11 @@ export default function InputOutputTable({
     if (rawData) {
       const propertyRuleMap = Object.values(rulemap || {}).flat();
       const newData = Object.entries(rawData)
-        .filter(([property]) => !PROPERTIES_TO_IGNORE.includes(property))
+        .filter(([field]) => !PROPERTIES_TO_IGNORE.includes(field))
         .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
-        .map(([property, value], index) => ({
-          property: propertyRuleMap?.find((item) => item.property === property)?.name || property,
-          value: convertAndStyleValue(value, property, editable),
+        .map(([field, value], index) => ({
+          field: propertyRuleMap?.find((item) => item.field === field)?.name || field,
+          value: convertAndStyleValue(value, field, editable),
           key: index,
         }));
       setDataSource(newData);
