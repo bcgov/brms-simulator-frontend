@@ -217,6 +217,8 @@ export default function InputStyler(
         );
     }
   } else {
+    //Check if all the items in an array are objects. If not, display as a string
+    // This is used to specifically generate the multiselect values without rendering nested objects
     const allObjects = Array.isArray(value) && value.every((item) => typeof item === "object" && item !== null);
     if (Array.isArray(value) && !allObjects) {
       const stringValue = value.filter((item) => typeof item !== "object" || item === null).join(", ");

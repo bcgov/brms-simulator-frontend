@@ -3,7 +3,7 @@ import axios from "axios";
 import { RuleDraft, RuleInfo } from "../types/ruleInfo";
 import { RuleMap } from "../types/rulemap";
 import { KlammBREField } from "../types/klamm";
-import { downloadFileBlob, generateDescriptiveName } from "./utils";
+import { downloadFileBlob, generateDescriptiveName, getShortFilenameOnly } from "./utils";
 import { valueType } from "antd/es/statistic/utils";
 
 const axiosAPIInstance = axios.create({
@@ -429,16 +429,9 @@ export const getCSVTests = async (
       }
     );
 
-    let filename = "";
-
     const scenarioName = simulationContext ? `${generateDescriptiveName(simulationContext)}` : "";
-    const MAX_FILENAME_LENGTH = 250;
 
-    if (`${scenarioName + filepath}`.length > MAX_FILENAME_LENGTH && simulationContext) {
-      filename = `${(generateDescriptiveName(simulationContext, 5) + filepath).replace(/\.json$/, ".csv")}`;
-    } else {
-      filename = `${(scenarioName + filepath).replace(/\.json$/, ".csv")}`;
-    }
+    const filename = `${(scenarioName + getShortFilenameOnly(filepath)).slice(0, 250)}.csv`;
 
     downloadFileBlob(response.data, "text/csv", filename);
 

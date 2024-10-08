@@ -10,32 +10,25 @@ import { valueType } from "antd/es/statistic/utils";
 
 interface IsolationTesterProps {
   scenarios: Scenario[];
-  resultsOfSimulation: Record<string, any> | null | undefined;
   simulationContext?: Record<string, any>;
   setSimulationContext: (data: any) => void;
   resetTrigger: boolean;
   jsonFile: string;
   rulemap: RuleMap;
-  scenarioName?: string;
   ruleContent?: DecisionGraphType;
   ruleVersion?: string | boolean;
 }
 
 export default function IsolationTester({
   scenarios,
-  resultsOfSimulation,
   simulationContext,
   setSimulationContext,
   resetTrigger,
   jsonFile,
   rulemap,
-  scenarioName,
   ruleContent,
   ruleVersion,
 }: IsolationTesterProps) {
-  const [simulationRun, setSimulationRun] = useState(false);
-  const [scenarioExpectedOutput, setScenarioExpectedOutput] = useState({});
-  const [editingScenario, setEditingScenario] = useState(scenarioName && scenarioName.length > 0 ? true : false);
   const [testScenarioCount, setTestScenarioCount] = useState<valueType | null>(10);
 
   const handleCSVTests = async () => {
@@ -50,25 +43,10 @@ export default function IsolationTester({
   };
 
   useEffect(() => {
-    setSimulationRun(false);
-    setScenarioExpectedOutput(resultsOfSimulation ?? {});
     const editScenario = { ...simulationContext, rulemap: true };
     setSimulationContext(editScenario);
-    setEditingScenario(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetTrigger]);
-
-  useEffect(() => {
-    const expectedOutputsMap = rulemap.resultOutputs.reduce<Record<string, null>>((acc, obj: { field?: string }) => {
-      if (obj?.field) {
-        acc[obj.field] = null;
-      }
-      return acc;
-    }, {});
-    setScenarioExpectedOutput(expectedOutputsMap);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <Flex gap={"small"}>

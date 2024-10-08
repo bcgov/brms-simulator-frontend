@@ -131,11 +131,9 @@ export default function ScenariosManager({
         scenarios={activeScenarios}
         simulationContext={simulationContext}
         setSimulationContext={setSimulationContext}
-        resultsOfSimulation={resultsOfSimulation}
         resetTrigger={resetTrigger}
         jsonFile={jsonFile}
         rulemap={rulemap}
-        scenarioName={scenarioName}
         ruleContent={ruleContent}
         ruleVersion={isEditing}
       />
