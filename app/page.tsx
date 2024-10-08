@@ -3,7 +3,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button, Flex, Spin, Table } from "antd";
 import type { Breakpoint } from "antd";
-import { EyeOutlined, EditOutlined, CheckCircleOutlined, DownSquareOutlined } from "@ant-design/icons";
+import {
+  EyeOutlined,
+  EditOutlined,
+  CheckCircleOutlined,
+  CheckCircleFilled,
+  DownSquareOutlined,
+} from "@ant-design/icons";
 import { RuleInfo } from "./types/ruleInfo";
 import { getAllRuleData } from "./utils/api";
 import styles from "./styles/home.module.css";
@@ -39,21 +45,13 @@ export default function Home() {
       ),
       versions: (
         <Flex gap="small" justify="end">
-          <Button
-            href={draftLink}
-            icon={<EditOutlined />}
-            type="dashed"
-            size="small"
-            danger
-            className={styles.draftBtn}
-          >
+          <Button href={draftLink} icon={<EditOutlined />} size="small" danger className={styles.draftBtn}>
             Draft
           </Button>
           {reviewBranch && (
             <Button
               href={`${ruleLink}?version=inReview`}
               icon={<EyeOutlined />}
-              type="dashed"
               size="small"
               className={styles.inReviewBtn}
             >
@@ -63,14 +61,23 @@ export default function Home() {
           {isPublished && (
             <>
               <Button
-                href={ruleLink}
+                href={`${ruleLink}?version=inDev`}
                 icon={<CheckCircleOutlined />}
-                type="dashed"
                 size="small"
-                className={styles.publishedBtn}
+                className={styles.inDevBtn}
               >
-                Published
+                In Dev
               </Button>
+              {process.env.NEXT_PUBLIC_IN_PRODUCTION === "true" && (
+                <Button
+                  href={`${ruleLink}?version=inProduction`}
+                  icon={<CheckCircleFilled />}
+                  size="small"
+                  className={styles.inProductionBtn}
+                >
+                  In Production
+                </Button>
+              )}
               <Button
                 href={`${ruleLink}/embedded`}
                 icon={<DownSquareOutlined />}
@@ -112,7 +119,13 @@ export default function Home() {
           <div className="content" />
         </Spin>
       ) : (
-        <Table columns={columns} dataSource={mappedRules} showHeader={false} pagination={{ pageSize: 15 }} />
+        <Table
+          columns={columns}
+          dataSource={mappedRules}
+          showHeader={false}
+          tableLayout="fixed"
+          pagination={{ pageSize: 15 }}
+        />
       )}
     </>
   );

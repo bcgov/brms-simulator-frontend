@@ -1,5 +1,7 @@
 export enum RULE_VERSION {
   draft = "draft",
   inReview = "inReview",
-  published = "published",
+  inDev = "inDev",
+  inProduction = "inProduction",
+  embedded = "embedded",
 }

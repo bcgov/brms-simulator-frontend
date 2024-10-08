@@ -26,6 +26,19 @@ export default async function getRuleDataForVersion(ruleId: string, version?: st
         }
         ruleContent = await getFileAsJsonIfAlreadyExists(ruleInfo.reviewBranch, ruleInfo.filepath);
         break;
+      case RULE_VERSION.inDev:
+        if (process.env.NEXT_PUBLIC_IN_PRODUCTION === "true") {
+          // If production version of app, get version from dev branch
+          ruleContent = await getFileAsJsonIfAlreadyExists("dev", ruleInfo.filepath);
+          break;
+        }
+      case RULE_VERSION.inProduction:
+        if (process.env.NEXT_PUBLIC_IN_PRODUCTION !== "true") {
+          // If dev version of app, get released version from main branch
+          ruleContent = await getFileAsJsonIfAlreadyExists("main", ruleInfo.filepath);
+          break;
+        }
+      case RULE_VERSION.embedded:
       default:
         ruleContent = await getDocument(ruleInfo.filepath);
     }

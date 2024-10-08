@@ -23,14 +23,21 @@
   color: orange !important;
   border-color: orange !important;
 }
-.publishedBtn {
+.inDevBtn {
+  color: purple !important;
+  border-color: purple !important;
+}
+.inProductionBtn {
   color: #389e0d !important;
   border-color: #389e0d !important;
+}
+.draftBtn:hover, .inDevBtn:hover, .inReviewBtn:hover, .inProductionBtn:hover {
+  border-style: inset;
 }
 .embeddedBtn {
   color: #666 !important;
   border-color: #666 !important;
 }
-.draftBtn:hover, .inReviewBtn:hover, .publishedBtn:hover, .embeddedBtn:hover {
-  border: 1px solid;
+.embeddedBtn:hover {
+  border: 1px solid !important;
 }
