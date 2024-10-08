@@ -3,3 +3,14 @@
   min-height: 400px;
   margin: auto;
 }
+
+.alertBanner {
+  width: 100%;
+  background: purple;
+  margin: -8px 0 8px -8px;
+  width: calc(100% + 16px);
+  border-radius: 0;
+  padding: 4px;
+  color: white;
+  text-align: center;
+}

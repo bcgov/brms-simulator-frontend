@@ -38,7 +38,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            "NEXT_PUBLIC_SERVER_URL=${{ github.ref == 'refs/heads/main' && secrets.NEXT_PUBLIC_SERVER_URL_PROD || secrets.NEXT_PUBLIC_SERVER_URL_DEV  }}"
+            NEXT_PUBLIC_SERVER_URL=${{ github.ref == 'refs/heads/main' && secrets.NEXT_PUBLIC_SERVER_URL_PROD || secrets.NEXT_PUBLIC_SERVER_URL_DEV  }}
+            NEXT_PUBLIC_IN_PRODUCTION=${{ github.ref == 'refs/heads/main' && 'true' || 'false'  }}
 
     outputs:
       image_tag: ${{ steps.meta.outputs.tags }}
