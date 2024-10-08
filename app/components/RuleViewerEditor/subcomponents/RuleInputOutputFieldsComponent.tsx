@@ -136,8 +136,8 @@ export default function RuleInputOutputFieldsComponent({
               klammData?.child_fields &&
               klammData?.child_fields.map((child) => ({
                 id: child.id,
-                name: child.name,
-                field: child.label,
+                name: child.label,
+                field: child.name,
                 description: child.description,
                 dataType: child?.bre_data_type?.name,
                 validationCriteria: child?.bre_data_validation?.validation_criteria,

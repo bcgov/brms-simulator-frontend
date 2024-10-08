@@ -34,13 +34,22 @@ export default function ScenarioResults({ scenarios, jsonFile, ruleContent }: Sc
   const hasError = useRef(false);
   const { isMobile, isTablet } = useResponsiveSize();
 
+  const styleArray = (arr: any[]): string | number => {
+    const allObjects = arr.every((item) => typeof item === "object" && item !== null);
+    if (allObjects) {
+      return arr.length;
+    } else {
+      return arr.filter((item) => typeof item !== "object" || item === null).join(", ");
+    }
+  };
+
   const applyConditionalStyling = (value: any, field: string): React.ReactNode => {
     if (value === null || value === undefined) {
       return null;
     }
 
     if (Array.isArray(value)) {
-      return value.length > 0 ? value.length : null;
+      return styleArray(value);
     }
 
     if (typeof value === "boolean" && field === "resultMatch") {

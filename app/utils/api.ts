@@ -3,7 +3,8 @@ import axios from "axios";
 import { RuleDraft, RuleInfo } from "../types/ruleInfo";
 import { RuleMap } from "../types/rulemap";
 import { KlammBREField } from "../types/klamm";
-import { downloadFileBlob } from "./utils";
+import { downloadFileBlob, generateDescriptiveName, getShortFilenameOnly } from "./utils";
+import { valueType } from "antd/es/statistic/utils";
 
 const axiosAPIInstance = axios.create({
   // For server side calls, need full URL, otherwise can just use /api
@@ -399,5 +400,44 @@ export const getBREFieldFromName = async (fieldName: string): Promise<KlammBREFi
   } catch (error) {
     console.error(`Error getting rule data: ${error}`);
     throw error;
+  }
+};
+
+/**
+ * Generate CSV Tests for scenarios
+ * @param filepath The filename for the JSON rule.
+ * @param filepath The filename for the JSON rule.
+ * @param ruleContent The rule decision graph to evaluate.
+ * @returns The processed CSV content as a string.
+ * @throws If an error occurs during file upload or processing.
+ */
+
+export const getCSVTests = async (
+  filepath: string,
+  ruleVersion: string,
+  ruleContent?: DecisionGraphType,
+  simulationContext?: Record<string, any>,
+  testScenarioCount?: valueType | number | null
+): Promise<string> => {
+  try {
+    const response = await axiosAPIInstance.post(
+      "/scenario/test",
+      { filepath, ruleContent, simulationContext, testScenarioCount },
+      {
+        responseType: "blob",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    const scenarioName = simulationContext ? `${generateDescriptiveName(simulationContext)}` : "";
+
+    const filename = `${(scenarioName + getShortFilenameOnly(filepath)).slice(0, 250)}.csv`;
+
+    downloadFileBlob(response.data, "text/csv", filename);
+
+    return "CSV downloaded successfully";
+  } catch (error) {
+    console.error(`Error getting CSV for rule run: ${error}`);
+    throw new Error("Error getting CSV for rule run");
   }
 };
