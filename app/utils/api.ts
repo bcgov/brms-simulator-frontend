@@ -1,10 +1,11 @@
 import { DecisionGraphType } from "@gorules/jdm-editor";
 import axios from "axios";
-import { RuleDraft, RuleInfo } from "../types/ruleInfo";
+import { RuleDataResponse, RuleDraft, RuleInfo } from "../types/ruleInfo";
 import { RuleMap } from "../types/rulemap";
 import { KlammBREField } from "../types/klamm";
 import { downloadFileBlob, generateDescriptiveName, getShortFilenameOnly } from "./utils";
 import { valueType } from "antd/es/statistic/utils";
+import { RuleQuery } from "../types/rulequery";
 
 const axiosAPIInstance = axios.create({
   // For server side calls, need full URL, otherwise can just use /api
@@ -51,9 +52,9 @@ export const getRuleDraft = async (ruleId: string): Promise<RuleDraft> => {
  * @returns The rule data list.
  * @throws If an error occurs while fetching the rule data.
  */
-export const getAllRuleData = async (): Promise<RuleInfo[]> => {
+export const getAllRuleData = async (params: RuleQuery): Promise<RuleDataResponse> => {
   try {
-    const { data } = await axiosAPIInstance.get("/ruleData/list");
+    const { data } = await axiosAPIInstance.get<RuleDataResponse>("/ruleData/list", { params });
     return data;
   } catch (error) {
     console.error(`Error fetching rule data: ${error}`);

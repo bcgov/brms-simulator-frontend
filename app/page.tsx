@@ -1,95 +1,94 @@
 "use client";
-import { useState, useEffect, useMemo, Fragment } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Button, Flex, Spin, Table, Input, Tag } from "antd";
 import type { Breakpoint, TablePaginationConfig, TableColumnsType } from "antd";
-import type { FilterValue, SorterResult } from "antd/es/table/interface";
+import type { ColumnFilterItem, FilterValue, SorterResult } from "antd/es/table/interface";
 import { EyeOutlined, EditOutlined, CheckCircleOutlined, DownSquareOutlined } from "@ant-design/icons";
 import { RuleInfo } from "./types/ruleInfo";
 import { getAllRuleData } from "./utils/api";
 import styles from "./styles/home.module.css";
 
+interface TableParams {
+  pagination?: TablePaginationConfig;
+  sortField?: string;
+  sortOrder?: string;
+  filters?: Record<string, FilterValue | null>;
+  searchTerm?: string;
+}
+
 export default function Home() {
   const [rules, setRules] = useState<RuleInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredInfo, setFilteredInfo] = useState<Record<string, FilterValue | null>>({});
-  const [pagination, setPagination] = useState<TablePaginationConfig>({
-    current: 1,
-    pageSize: 15,
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<ColumnFilterItem[]>([]);
+  const [tableParams, setTableParams] = useState<TableParams>({
+    pagination: {
+      current: 1,
+      pageSize: 15,
+      total: 0,
+    },
+    filters: {},
+    searchTerm: "",
   });
 
-  useEffect(() => {
-    const getRules = async () => {
-      try {
-        const ruleData = await getAllRuleData();
-        setRules(ruleData);
-        setIsLoading(false);
-      } catch (error) {
-        console.error(`Error loading rules: ${error}`);
-      }
-    };
-    getRules();
-  }, []);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Update this to match your API structure
+      const response = await getAllRuleData({
+        page: tableParams.pagination?.current || 1,
+        pageSize: tableParams.pagination?.pageSize,
+        sortField: tableParams.sortField,
+        sortOrder: tableParams.sortOrder,
+        filters: tableParams.filters,
+        searchTerm: tableParams.searchTerm,
+      });
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    setPagination((prev) => ({ ...prev, current: 1 }));
+      setRules(response.data);
+      setCategories(response.categories.map((category: string) => ({ text: category, value: category })));
+      setTableParams({
+        ...tableParams,
+        pagination: {
+          ...tableParams.pagination,
+          total: response.total, // Assuming your API returns the total count
+        },
+      });
+    } catch (error) {
+      console.error(`Error loading rules: ${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(
+    () => {
+      fetchData();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(tableParams)]
+  );
+
+  const handleSearch = (value: string) => {
+    setTableParams({
+      ...tableParams,
+      searchTerm: value,
+      pagination: { ...tableParams.pagination, current: 1 },
+    });
   };
 
   const formatFilePathTags = (filepath: string) => {
     const parts = filepath.split("/");
     return parts.map((part, index) => (
-      <Fragment key={index}>{index < parts.length - 1 && <Tag color="blue">{part}</Tag>}</Fragment>
+      <React.Fragment key={index}>{index < parts.length - 1 && <Tag color="blue">{part}</Tag>}</React.Fragment>
     ));
   };
-
-  // Generate filters for filepaths based on the full filepath of each rule
-  const getFilepathFilters = useMemo(() => {
-    const directories = new Set<string>();
-
-    rules.forEach((rule) => {
-      const parts = rule.filepath.split("/");
-      let currentPath = "";
-
-      parts.forEach((part, index) => {
-        if (index < parts.length - 1) {
-          currentPath += (currentPath ? "/" : "") + part;
-          directories.add(currentPath);
-        }
-      });
-    });
-
-    return Array.from(directories).map((path) => ({
-      text: path.split("/").pop() || "",
-      value: path,
-    }));
-  }, [rules]);
-
-  // Filter rules based on search terms and filepath filters
-  const filteredRules = useMemo(() => {
-    let result = rules;
-    if (searchTerm) {
-      result = result.filter(
-        (rule) =>
-          rule?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          rule.filepath.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    if (filteredInfo.filepath) {
-      const filepathFilters = filteredInfo.filepath as string[];
-      result = result.filter((rule) => filepathFilters.some((path) => rule.filepath.startsWith(path)));
-    }
-
-    return result;
-  }, [rules, searchTerm, filteredInfo]);
 
   const columns: TableColumnsType<RuleInfo> = [
     {
       title: "Rule",
       dataIndex: "title",
       key: "title",
-      sorter: (a, b) => (a.title || "").localeCompare(b.title || ""),
+      sorter: true,
       render: (_, record) => {
         const ruleLink = `/rule/${record._id}`;
         const draftLink = `${ruleLink}?version=draft`;
@@ -106,12 +105,9 @@ export default function Home() {
       title: "Categories",
       dataIndex: "filepath",
       key: "filepath",
-      filters: getFilepathFilters,
-      filteredValue: filteredInfo.filepath || null,
-      onFilter: (value, record) => record.filepath.startsWith(value as string),
-      filterMode: "tree",
-      filterSearch: true,
-      sorter: (a, b) => a.filepath.localeCompare(b.filepath),
+      filters: categories,
+      filteredValue: tableParams.filters?.filepath || null,
+      sorter: true,
       render: (_, record) => <span>{formatFilePathTags(record.filepath)}</span>,
     },
     {
@@ -173,12 +169,21 @@ export default function Home() {
   ];
 
   const handleTableChange = (
-    newPagination: TablePaginationConfig,
+    pagination: TablePaginationConfig,
     filters: Record<string, FilterValue | null>,
     sorter: SorterResult<RuleInfo> | SorterResult<RuleInfo>[]
   ) => {
-    setPagination(newPagination);
-    setFilteredInfo(filters);
+    console.log(pagination, "this is pagination");
+    console.log(filters, "this is filters");
+    console.log(sorter, "this is sorter");
+    setTableParams({
+      pagination,
+      filters,
+      ...(!Array.isArray(sorter) && {
+        sortField: sorter.field as string,
+        sortOrder: sorter.order ? sorter.order : undefined,
+      }),
+    });
   };
 
   return (
@@ -194,20 +199,17 @@ export default function Home() {
           </Link>
         </Flex>
       </Flex>
-      <Input.Search placeholder="Search rules..." onChange={handleSearch} style={{ marginBottom: 16 }} allowClear />
-      {isLoading ? (
+      <Input.Search placeholder="Search rules..." onSearch={handleSearch} style={{ marginBottom: 16 }} allowClear />
+      {loading ? (
         <Spin tip="Loading rules..." className="spinner">
           <div className="content" />
         </Spin>
       ) : (
         <Table
           columns={columns}
-          dataSource={filteredRules}
-          pagination={{
-            ...pagination,
-            total: filteredRules.length,
-            showSizeChanger: true,
-          }}
+          dataSource={rules}
+          pagination={tableParams.pagination}
+          loading={loading}
           onChange={handleTableChange}
           rowKey="_id"
         />

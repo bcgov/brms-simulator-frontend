@@ -15,3 +15,9 @@ export interface RuleInfo extends RuleInfoBasic {
   reviewBranch?: string;
   isPublished?: boolean;
 }
+
+export interface RuleDataResponse {
+  data: RuleInfo[];
+  total: number;
+  categories: Array<string>;
+}
