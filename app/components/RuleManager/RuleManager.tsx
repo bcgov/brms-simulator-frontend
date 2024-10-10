@@ -54,7 +54,7 @@ export default function RuleManager({
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
   const { setHasUnsavedChanges } = useLeaveScreenPopup();
   const canEditGraph = editing === "draft" || editing === true;
-  const canEditScenarios = editing === "draft" || editing === "inreview" || editing === true;
+  const canEditScenarios = editing === "draft" || editing === "inReview" || editing === true;
 
   const updateRuleContent = (updatedRuleContent: DecisionGraphType) => {
     if (ruleContent !== updatedRuleContent) {

@@ -4,6 +4,7 @@ import { MinusCircleOutlined } from "@ant-design/icons";
 import { RuleMap } from "@/app/types/rulemap";
 import styles from "./InputOutputTable.module.css";
 import { dollarFormat } from "@/app/utils/utils";
+import FieldStyler from "../InputStyler/subcomponents/FieldStyler";
 
 const COLUMNS = [
   {
@@ -142,7 +143,10 @@ export default function InputOutputTable({
         .filter(([field]) => !PROPERTIES_TO_IGNORE.includes(field))
         .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
         .map(([field, value], index) => ({
-          field: propertyRuleMap?.find((item) => item.field === field)?.name || field,
+          field: FieldStyler(
+            propertyRuleMap?.find((item) => item.field === field)?.name || field,
+            propertyRuleMap?.find((item) => item.field === field)?.description
+          ),
           value: convertAndStyleValue(value, field, editable),
           key: index,
         }));

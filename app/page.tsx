@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button, Flex, Spin, Table, Input, Tag } from "antd";
 import type { Breakpoint, TablePaginationConfig, TableColumnsType } from "antd";
@@ -34,7 +34,6 @@ export default function Home() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Update this to match your API structure
       const response = await getAllRuleData({
         page: tableParams.pagination?.current || 1,
         pageSize: tableParams.pagination?.pageSize,
@@ -45,12 +44,12 @@ export default function Home() {
       });
 
       setRules(response.data);
-      setCategories(response.categories.map((category: string) => ({ text: category, value: category })));
+      setCategories(response.categories);
       setTableParams({
         ...tableParams,
         pagination: {
           ...tableParams.pagination,
-          total: response.total, // Assuming your API returns the total count
+          total: response.total,
         },
       });
     } catch (error) {
@@ -173,16 +172,24 @@ export default function Home() {
     filters: Record<string, FilterValue | null>,
     sorter: SorterResult<RuleInfo> | SorterResult<RuleInfo>[]
   ) => {
-    console.log(pagination, "this is pagination");
-    console.log(filters, "this is filters");
-    console.log(sorter, "this is sorter");
-    setTableParams({
+    setTableParams((prevParams) => ({
       pagination,
       filters,
+      searchTerm: prevParams.searchTerm,
       ...(!Array.isArray(sorter) && {
         sortField: sorter.field as string,
         sortOrder: sorter.order ? sorter.order : undefined,
       }),
+    }));
+  };
+
+  const clearAll = () => {
+    setTableParams({
+      pagination: { current: 1, pageSize: 15, total: 0 },
+      filters: {},
+      searchTerm: "",
+      sortField: "",
+      sortOrder: undefined,
     });
   };
 
@@ -199,7 +206,10 @@ export default function Home() {
           </Link>
         </Flex>
       </Flex>
-      <Input.Search placeholder="Search rules..." onSearch={handleSearch} style={{ marginBottom: 16 }} allowClear />
+      <Flex gap="small">
+        <Input.Search placeholder="Search rules..." onSearch={handleSearch} style={{ marginBottom: 16 }} allowClear />
+        <Button onClick={clearAll}>Reset Filters ↻</Button>
+      </Flex>
       {loading ? (
         <Spin tip="Loading rules..." className="spinner">
           <div className="content" />

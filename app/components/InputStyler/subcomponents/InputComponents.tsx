@@ -238,7 +238,20 @@ export const ReadOnlyBooleanDisplay = ({ show, value }: ReadOnlyProps) => {
 
 export const ReadOnlyStringDisplay = ({ show, value }: ReadOnlyProps) => {
   if (!show) return null;
-  return value.toString();
+  const stringList = value.split(",");
+  if (stringList.length > 1) {
+    return (
+      <>
+        {stringList.map((string: string, index: number) => (
+          <Tag color="blue" key={index}>
+            {string.trim()}
+          </Tag>
+        ))}
+      </>
+    );
+  }
+
+  return <Tag color="blue">{value}</Tag>;
 };
 
 export const ReadOnlyNumberDisplay = ({ show, value, field }: ReadOnlyNumberDisplayProps) => {

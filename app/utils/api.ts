@@ -52,7 +52,7 @@ export const getRuleDraft = async (ruleId: string): Promise<RuleDraft> => {
  * @returns The rule data list.
  * @throws If an error occurs while fetching the rule data.
  */
-export const getAllRuleData = async (params: RuleQuery): Promise<RuleDataResponse> => {
+export const getAllRuleData = async (params?: RuleQuery): Promise<RuleDataResponse> => {
   try {
     const { data } = await axiosAPIInstance.get<RuleDataResponse>("/ruleData/list", { params });
     return data;
@@ -302,6 +302,7 @@ export const runDecisionsForScenarios = async (filepath: string, ruleContent?: D
 /**
  * Downloads a CSV file containing scenarios for a rule run.
  * @param filepath The filename for the JSON rule.
+ * @param ruleVersion The version of the rule to run.
  * @param ruleContent The rule decision graph to evaluate.
  * @returns The processed CSV content as a string.
  * @throws If an error occurs during file upload or processing.
@@ -321,7 +322,7 @@ export const getCSVForRuleRun = async (
       }
     );
 
-    const filename = `${(ruleVersion + "_" + filepath).replace(/\.json$/, ".csv")}`;
+    const filename = `${filepath.replace(/\.json$/, ".csv")}`;
     downloadFileBlob(response.data, "text/csv", filename);
 
     return "CSV downloaded successfully";
@@ -407,8 +408,9 @@ export const getBREFieldFromName = async (fieldName: string): Promise<KlammBREFi
 /**
  * Generate CSV Tests for scenarios
  * @param filepath The filename for the JSON rule.
- * @param filepath The filename for the JSON rule.
  * @param ruleContent The rule decision graph to evaluate.
+ * @param simulationContext The simulation context to use for the tests.
+ * @param testScenarioCount The number of scenarios to generate.
  * @returns The processed CSV content as a string.
  * @throws If an error occurs during file upload or processing.
  */

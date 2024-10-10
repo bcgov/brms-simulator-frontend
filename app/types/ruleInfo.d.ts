@@ -16,8 +16,13 @@ export interface RuleInfo extends RuleInfoBasic {
   isPublished?: boolean;
 }
 
+export interface CategoryObject {
+  text: string;
+  value: string;
+}
+
 export interface RuleDataResponse {
   data: RuleInfo[];
   total: number;
-  categories: Array<string>;
+  categories: Array<CategoryObject>;
 }
