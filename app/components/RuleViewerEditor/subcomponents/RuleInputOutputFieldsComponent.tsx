@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button, List, Select, Spin, Tooltip } from "antd";
-import { DeleteOutlined } from "@ant-design/icons";
+import { Button, List, Select, Spin, Tooltip, message } from "antd";
+import { DeleteOutlined, SyncOutlined } from "@ant-design/icons";
 import type { DefaultOptionType } from "antd/es/select";
 import type { FlattenOptionData } from "rc-select/lib/interface";
 import { GraphNode, useDecisionGraphActions, useDecisionGraphState } from "@gorules/jdm-editor";
@@ -190,6 +190,53 @@ export default function RuleInputOutputFieldsComponent({
     );
   };
 
+  const refreshFromKlamm = async () => {
+    setIsLoading(true);
+    try {
+      const updatedFields = await Promise.all(
+        inputOutputFields.map(async (field) => {
+          if (field.field) {
+            const klammData: KlammBREField = await getBREFieldFromName(field.field);
+            return {
+              id: klammData.id,
+              field: klammData.name,
+              name: klammData.label,
+              description: klammData.description,
+              dataType: klammData?.data_type?.name,
+              validationCriteria: klammData?.data_validation?.validation_criteria,
+              validationType: klammData?.data_validation?.bre_validation_type?.value,
+              childFields:
+                klammData?.data_type?.name === "object-array"
+                  ? klammData?.child_fields?.map((child) => ({
+                      id: child.id,
+                      name: child.label,
+                      field: child.name,
+                      description: child.description,
+                      dataType: child?.bre_data_type?.name,
+                      validationCriteria: child?.bre_data_validation?.validation_criteria,
+                      validationType: child?.bre_data_validation?.bre_validation_type?.value,
+                    }))
+                  : [],
+            };
+          }
+          return field;
+        })
+      );
+
+      updateNode(id, (draft) => {
+        draft.content.fields = updatedFields;
+        return draft;
+      });
+
+      message.success("Fields refreshed successfully from Klamm");
+    } catch (error) {
+      console.error("Error refreshing fields from Klamm:", error);
+      message.error("Failed to refresh fields from Klamm");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <GraphNode
       id={id}
@@ -201,6 +248,16 @@ export default function RuleInputOutputFieldsComponent({
           ? [
               <Button key="add row" type="link" onClick={addInputField} disabled={!isEditable}>
                 Add {fieldsTypeLabel} +
+              </Button>,
+              <Button key="refresh fields" type="link" onClick={refreshFromKlamm} disabled={!isEditable || isLoading}>
+                {isLoading ? (
+                  <Spin size="small" />
+                ) : (
+                  <>
+                    <span>Refresh Klamm </span>
+                    <SyncOutlined />
+                  </>
+                )}
               </Button>,
             ]
           : []
