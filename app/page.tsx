@@ -106,6 +106,7 @@ export default function Home() {
       key: "filepath",
       filters: categories,
       filteredValue: tableParams.filters?.filepath || null,
+      filterSearch: true,
       sorter: true,
       render: (_, record) => <span>{formatFilePathTags(record.filepath)}</span>,
     },
