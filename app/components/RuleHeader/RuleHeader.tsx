@@ -2,7 +2,14 @@
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Button, Flex, Tag } from "antd";
-import { HomeOutlined, EyeOutlined, EditOutlined, CheckOutlined } from "@ant-design/icons";
+import {
+  HomeOutlined,
+  EyeOutlined,
+  EditOutlined,
+  CheckOutlined,
+  CheckCircleOutlined,
+  CheckCircleFilled,
+} from "@ant-design/icons";
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
 import { updateRuleData } from "@/app/utils/api";
@@ -10,7 +17,7 @@ import styles from "./RuleHeader.module.css";
 
 export default function RuleHeader({
   ruleInfo,
-  version = RULE_VERSION.published,
+  version = RULE_VERSION.inProduction,
 }: {
   ruleInfo: RuleInfo;
   version?: string;
@@ -55,7 +62,7 @@ export default function RuleHeader({
     }
   };
 
-  const switchVersion = (versionToSwitchTo: string) => {
+  const switchVersion = (versionToSwitchTo: RULE_VERSION) => {
     // Use window.locaiton.href instead of router.push so that we can detect page changes for "unsaved changes" popup
     window.location.href = `${pathname}?version=${versionToSwitchTo}&_=${new Date().getTime()}`;
   };
@@ -70,6 +77,8 @@ export default function RuleHeader({
     versionColor = "red";
   } else if (version === RULE_VERSION.inReview) {
     versionColor = "orange";
+  } else if (version === RULE_VERSION.inDev) {
+    versionColor = "purple";
   }
 
   if (currTitle === undefined) return null;
@@ -110,21 +119,32 @@ export default function RuleHeader({
           <Tag color={versionColor}>{formatVersionText(version)}</Tag>
         </Flex>
         <Flex gap="small" align="end">
-          {ruleInfo.isPublished && version !== RULE_VERSION.published && (
-            <Button onClick={() => switchVersion("published")} icon={<EyeOutlined />} type="dashed">
-              Published
-            </Button>
-          )}
           {version !== RULE_VERSION.draft && (
-            <Button onClick={() => switchVersion("draft")} icon={<EditOutlined />} type="dashed">
+            <Button onClick={() => switchVersion(RULE_VERSION.draft)} icon={<EditOutlined />} type="dashed">
               Draft
             </Button>
           )}
           {ruleInfo.reviewBranch && version !== RULE_VERSION.inReview && (
-            <Button onClick={() => switchVersion("inReview")} icon={<EyeOutlined />} type="dashed">
+            <Button onClick={() => switchVersion(RULE_VERSION.inReview)} icon={<EyeOutlined />} type="dashed">
               In Review
             </Button>
           )}
+          {version !== RULE_VERSION.inDev && ruleInfo.isPublished && (
+            <Button onClick={() => switchVersion(RULE_VERSION.inDev)} icon={<CheckCircleOutlined />} type="dashed">
+              In Dev
+            </Button>
+          )}
+          {version !== RULE_VERSION.inProduction &&
+            ruleInfo.isPublished &&
+            process.env.NEXT_PUBLIC_IN_PRODUCTION === "true" && (
+              <Button
+                onClick={() => switchVersion(RULE_VERSION.inProduction)}
+                icon={<CheckCircleFilled />}
+                type="dashed"
+              >
+                In Production
+              </Button>
+            )}
         </Flex>
       </Flex>
     </div>

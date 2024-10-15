@@ -4,6 +4,8 @@ FROM registry.access.redhat.com/ubi9/nodejs-20:latest
 # Set the environment variables
 ARG NEXT_PUBLIC_SERVER_URL
 ENV NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL}
+ARG NEXT_PUBLIC_IN_PRODUCTION
+ENV NEXT_PUBLIC_IN_PRODUCTION=${NEXT_PUBLIC_IN_PRODUCTION}
 
 # Create a non-root user and group named 'node'
 USER root
