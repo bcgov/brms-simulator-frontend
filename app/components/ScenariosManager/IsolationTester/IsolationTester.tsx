@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Flex, Button, message, InputNumber, Collapse } from "antd";
+import { Flex, Button, message, InputNumber, Collapse, Spin } from "antd";
 import { Scenario } from "@/app/types/scenario";
 import { getCSVTests } from "@/app/utils/api";
 import { RuleMap } from "@/app/types/rulemap";
@@ -30,15 +30,19 @@ export default function IsolationTester({
   ruleVersion,
 }: IsolationTesterProps) {
   const [testScenarioCount, setTestScenarioCount] = useState<valueType | null>(10);
+  const [loading, setLoading] = useState(false);
 
   const handleCSVTests = async () => {
     const ruleName = ruleVersion === "draft" ? "Draft" : ruleVersion === "inreview" ? "In Review" : "Published";
     try {
+      setLoading(true);
       const csvContent = await getCSVTests(jsonFile, ruleName, ruleContent, simulationContext, testScenarioCount);
       message.success(`Scenario Tests: ${csvContent}`);
     } catch (error) {
       message.error("Error downloading scenarios.");
       console.error("Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -102,9 +106,15 @@ export default function IsolationTester({
             </li>
             <li>
               Generate a CSV file with your created tests:{" "}
-              <Button onClick={handleCSVTests} size="large" type="primary">
-                Generate Tests
-              </Button>
+              {loading ? (
+                <Spin tip="Generating test scenarios..." className="spinner">
+                  <div className="content" />
+                </Spin>
+              ) : (
+                <Button onClick={handleCSVTests} size="large" type="primary">
+                  Generate Tests
+                </Button>
+              )}
             </li>
           </ol>
         </Flex>
