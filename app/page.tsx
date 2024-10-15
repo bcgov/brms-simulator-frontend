@@ -4,7 +4,13 @@ import Link from "next/link";
 import { Button, Flex, Spin, Table, Input, Tag } from "antd";
 import type { Breakpoint, TablePaginationConfig, TableColumnsType } from "antd";
 import type { ColumnFilterItem, FilterValue, SorterResult } from "antd/es/table/interface";
-import { EyeOutlined, EditOutlined, CheckCircleOutlined, DownSquareOutlined } from "@ant-design/icons";
+import {
+  EyeOutlined,
+  EditOutlined,
+  CheckCircleOutlined,
+  CheckCircleFilled,
+  DownSquareOutlined,
+} from "@ant-design/icons";
 import { RuleInfo } from "./types/ruleInfo";
 import { getAllRuleData } from "./utils/api";
 import styles from "./styles/home.module.css";
@@ -143,14 +149,23 @@ export default function Home() {
             {record.isPublished && (
               <>
                 <Button
-                  href={ruleLink}
+                  href={`${ruleLink}?version=inDev`}
                   icon={<CheckCircleOutlined />}
-                  type="dashed"
                   size="small"
-                  className={styles.publishedBtn}
+                  className={styles.inDevBtn}
                 >
-                  Published
+                  In Dev
                 </Button>
+                {process.env.NEXT_PUBLIC_IN_PRODUCTION === "true" && (
+                  <Button
+                    href={`${ruleLink}?version=inProduction`}
+                    icon={<CheckCircleFilled />}
+                    size="small"
+                    className={styles.inProductionBtn}
+                  >
+                    In Production
+                  </Button>
+                )}
                 <Button
                   href={`${ruleLink}/embedded`}
                   icon={<DownSquareOutlined />}
@@ -219,6 +234,7 @@ export default function Home() {
         <Table
           columns={columns}
           dataSource={rules}
+          tableLayout="fixed"
           pagination={tableParams.pagination}
           loading={loading}
           onChange={handleTableChange}
