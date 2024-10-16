@@ -80,7 +80,6 @@ export default function InputStyler(
   ruleProperties: any
 ) {
   const updateFieldValue = (field: string, value: any) => {
-    console.log(field, value, "this is input change");
     const updatedData = { ...rawData, [field]: value };
     if (typeof setRawData === "function") {
       setRawData(updatedData);
@@ -161,6 +160,17 @@ export default function InputStyler(
             handleInputChange={handleInputChange}
           />
         );
+      case "multiselect":
+        return (
+          <SelectInput
+            show={validationRules?.type === "multiselect"}
+            value={value}
+            field={field}
+            options={validationRules?.options}
+            handleInputChange={handleInputChange}
+            multiple
+          />
+        );
       case "text":
         return (
           <TextInput
@@ -207,6 +217,14 @@ export default function InputStyler(
         );
     }
   } else {
+    //Check if all the items in an array are objects. If not, display as a string
+    // This is used to specifically generate the multiselect values without rendering nested objects
+    const allObjects = Array.isArray(value) && value.every((item) => typeof item === "object" && item !== null);
+    if (Array.isArray(value) && !allObjects) {
+      const stringValue = value.filter((item) => typeof item !== "object" || item === null).join(", ");
+      return <ReadOnlyStringDisplay show value={stringValue} />;
+    }
+
     return (
       <>
         <ReadOnlyArrayDisplay
