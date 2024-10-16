@@ -103,6 +103,7 @@ export default function RuleManager({
     if (runContext) {
       console.info("Simulate:", runContext);
       try {
+        message.destroy();
         const data = await postDecision(ruleContent, runContext);
         console.info("Simulation Results:", data, data?.result);
         // Check if data.result is an array and throw error as object is required
@@ -114,7 +115,7 @@ export default function RuleManager({
         // Set the results of the simulation
         setResultsOfSimulation(data?.result);
       } catch (e: any) {
-        message.error("Error during simulation run: " + e);
+        message.error("Error during simulation run: " + e, 10);
         console.error("Error during simulation run:", e);
       }
     } else {
