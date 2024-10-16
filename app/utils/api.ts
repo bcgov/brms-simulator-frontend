@@ -1,10 +1,11 @@
 import { DecisionGraphType } from "@gorules/jdm-editor";
 import axios from "axios";
-import { RuleDraft, RuleInfo } from "../types/ruleInfo";
+import { RuleDataResponse, RuleDraft, RuleInfo } from "../types/ruleInfo";
 import { RuleMap } from "../types/rulemap";
 import { KlammBREField } from "../types/klamm";
 import { downloadFileBlob, generateDescriptiveName, getShortFilenameOnly } from "./utils";
 import { valueType } from "antd/es/statistic/utils";
+import { RuleQuery } from "../types/rulequery";
 
 const axiosAPIInstance = axios.create({
   // For server side calls, need full URL, otherwise can just use /api
@@ -51,9 +52,9 @@ export const getRuleDraft = async (ruleId: string): Promise<RuleDraft> => {
  * @returns The rule data list.
  * @throws If an error occurs while fetching the rule data.
  */
-export const getAllRuleData = async (): Promise<RuleInfo[]> => {
+export const getAllRuleData = async (params?: RuleQuery): Promise<RuleDataResponse> => {
   try {
-    const { data } = await axiosAPIInstance.get("/ruleData/list");
+    const { data } = await axiosAPIInstance.get<RuleDataResponse>("/ruleData/list", { params });
     return data;
   } catch (error) {
     console.error(`Error fetching rule data: ${error}`);
@@ -305,11 +306,7 @@ export const runDecisionsForScenarios = async (filepath: string, ruleContent?: D
  * @returns The processed CSV content as a string.
  * @throws If an error occurs during file upload or processing.
  */
-export const getCSVForRuleRun = async (
-  filepath: string,
-  ruleVersion: string,
-  ruleContent?: DecisionGraphType
-): Promise<string> => {
+export const getCSVForRuleRun = async (filepath: string, ruleContent?: DecisionGraphType): Promise<string> => {
   try {
     const response = await axiosAPIInstance.post(
       "/scenario/evaluation",
@@ -320,7 +317,7 @@ export const getCSVForRuleRun = async (
       }
     );
 
-    const filename = `${(ruleVersion + "_" + filepath).replace(/\.json$/, ".csv")}`;
+    const filename = `${filepath.replace(/\.json$/, ".csv")}`;
     downloadFileBlob(response.data, "text/csv", filename);
 
     return "CSV downloaded successfully";
@@ -406,15 +403,15 @@ export const getBREFieldFromName = async (fieldName: string): Promise<KlammBREFi
 /**
  * Generate CSV Tests for scenarios
  * @param filepath The filename for the JSON rule.
- * @param filepath The filename for the JSON rule.
  * @param ruleContent The rule decision graph to evaluate.
+ * @param simulationContext The simulation context to use for the tests.
+ * @param testScenarioCount The number of scenarios to generate.
  * @returns The processed CSV content as a string.
  * @throws If an error occurs during file upload or processing.
  */
 
 export const getCSVTests = async (
   filepath: string,
-  ruleVersion: string,
   ruleContent?: DecisionGraphType,
   simulationContext?: Record<string, any>,
   testScenarioCount?: valueType | number | null

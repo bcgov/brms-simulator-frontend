@@ -15,3 +15,14 @@ export interface RuleInfo extends RuleInfoBasic {
   reviewBranch?: string;
   isPublished?: boolean;
 }
+
+export interface CategoryObject {
+  text: string;
+  value: string;
+}
+
+export interface RuleDataResponse {
+  data: RuleInfo[];
+  total: number;
+  categories: Array<CategoryObject>;
+}

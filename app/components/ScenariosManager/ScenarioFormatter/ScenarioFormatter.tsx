@@ -5,6 +5,7 @@ import styles from "./ScenarioFormatter.module.css";
 import { RuleMap } from "@/app/types/rulemap";
 import InputStyler from "../../InputStyler/InputStyler";
 import { parseSchemaTemplate } from "../../InputStyler/InputStyler";
+import FieldStyler from "../../InputStyler/subcomponents/FieldStyler";
 
 const COLUMNS = [
   {
@@ -62,10 +63,13 @@ export default function ScenarioFormatter({ title, rawData, setRawData, scenario
         .filter(([field]) => !PROPERTIES_TO_IGNORE.includes(field))
         .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
         .map(([field, value], index) => ({
-          field:
+          field: FieldStyler(
             propertyRuleMap?.find((item) => item.field === field)?.name ||
-            parseSchemaTemplate(field)?.arrayName ||
-            field,
+              parseSchemaTemplate(field)?.arrayName ||
+              field,
+            propertyRuleMap?.find((item) => item.field === field)?.description
+          ),
+
           value: InputStyler(
             value,
             field,

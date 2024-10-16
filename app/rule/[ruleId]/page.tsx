@@ -8,15 +8,24 @@ import { RULE_VERSION } from "@/app/constants/ruleVersion";
 import { GithubAuthProvider } from "@/app/components/GithubAuthProvider";
 import useGithubAuth from "@/app/hooks/useGithubAuth";
 
-export let metadata: Metadata;
-
-export default async function Rule({
-  params: { ruleId },
-  searchParams,
-}: {
+type Props = {
   params: { ruleId: string };
   searchParams: { version?: string };
-}) {
+};
+
+// Update page title with rule name
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const { ruleId } = params;
+  const { version } = searchParams;
+
+  const { ruleInfo } = await getRuleDataForVersion(ruleId, version);
+
+  return {
+    title: ruleInfo.title,
+  };
+}
+
+export default async function Rule({ params: { ruleId }, searchParams }: Props) {
   // Get version of rule to use
   const { version } = searchParams;
 
@@ -31,9 +40,6 @@ export default async function Rule({
   if (!ruleInfo._id || !ruleContent) {
     return <h1>Rule not found</h1>;
   }
-
-  // Update page title with rule name
-  metadata = { title: ruleInfo.title };
 
   // Get scenario information
   const scenarios: Scenario[] = await getScenariosByFilename(ruleInfo.filepath);

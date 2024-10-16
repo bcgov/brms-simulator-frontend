@@ -30,7 +30,7 @@ export default function LinkRuleComponent({ specification, id, isSelected, name,
     const getRuleOptions = async () => {
       const ruleData = await getAllRuleData();
       setRuleOptions(
-        ruleData.map(({ title, filepath }) => ({
+        ruleData?.data.map(({ title, filepath }) => ({
           label: title || filepath,
           value: filepath,
         }))
