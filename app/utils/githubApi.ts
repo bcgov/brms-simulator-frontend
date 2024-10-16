@@ -12,7 +12,7 @@ export enum AuthFailureReasons {
 }
 
 let githubAuthUsername = "";
-let axiosGithubInstance: AxiosInstance;
+let axiosGithubInstance: AxiosInstance = axios.create();
 
 export const initializeGithubAxiosInstance = async (oauthToken?: string, oauthUsername?: string) => {
   if (!oauthToken) {
