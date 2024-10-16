@@ -16,7 +16,6 @@ interface IsolationTesterProps {
   jsonFile: string;
   rulemap: RuleMap;
   ruleContent?: DecisionGraphType;
-  ruleVersion?: string | boolean;
 }
 
 export default function IsolationTester({
@@ -27,16 +26,14 @@ export default function IsolationTester({
   jsonFile,
   rulemap,
   ruleContent,
-  ruleVersion,
 }: IsolationTesterProps) {
   const [testScenarioCount, setTestScenarioCount] = useState<valueType | null>(10);
   const [loading, setLoading] = useState(false);
 
   const handleCSVTests = async () => {
-    const ruleName = ruleVersion === "draft" ? "Draft" : ruleVersion === "inreview" ? "In Review" : "Published";
     try {
       setLoading(true);
-      const csvContent = await getCSVTests(jsonFile, ruleName, ruleContent, simulationContext, testScenarioCount);
+      const csvContent = await getCSVTests(jsonFile, ruleContent, simulationContext, testScenarioCount);
       message.success(`Scenario Tests: ${csvContent}`);
     } catch (error) {
       message.error("Error downloading scenarios.");

@@ -302,16 +302,11 @@ export const runDecisionsForScenarios = async (filepath: string, ruleContent?: D
 /**
  * Downloads a CSV file containing scenarios for a rule run.
  * @param filepath The filename for the JSON rule.
- * @param ruleVersion The version of the rule to run.
  * @param ruleContent The rule decision graph to evaluate.
  * @returns The processed CSV content as a string.
  * @throws If an error occurs during file upload or processing.
  */
-export const getCSVForRuleRun = async (
-  filepath: string,
-  ruleVersion: string,
-  ruleContent?: DecisionGraphType
-): Promise<string> => {
+export const getCSVForRuleRun = async (filepath: string, ruleContent?: DecisionGraphType): Promise<string> => {
   try {
     const response = await axiosAPIInstance.post(
       "/scenario/evaluation",
@@ -417,7 +412,6 @@ export const getBREFieldFromName = async (fieldName: string): Promise<KlammBREFi
 
 export const getCSVTests = async (
   filepath: string,
-  ruleVersion: string,
   ruleContent?: DecisionGraphType,
   simulationContext?: Record<string, any>,
   testScenarioCount?: valueType | number | null

@@ -121,7 +121,7 @@ export default function ScenariosManager({
 
   const csvTab = (
     <Flex gap="small">
-      <ScenarioCSV jsonFile={jsonFile} ruleContent={ruleContent} ruleVersion={isEditing} />
+      <ScenarioCSV jsonFile={jsonFile} ruleContent={ruleContent} />
     </Flex>
   );
 
@@ -135,7 +135,6 @@ export default function ScenariosManager({
         jsonFile={jsonFile}
         rulemap={rulemap}
         ruleContent={ruleContent}
-        ruleVersion={isEditing}
       />
       <Button onClick={handleReset} size="large" type="primary">
         Reset ↻

@@ -142,14 +142,14 @@ export default function InputOutputTable({
       const newData = Object.entries(rawData)
         .filter(([field]) => !PROPERTIES_TO_IGNORE.includes(field))
         .sort(([propertyA], [propertyB]) => propertyA.localeCompare(propertyB))
-        .map(([field, value], index) => ({
-          field: FieldStyler(
-            propertyRuleMap?.find((item) => item.field === field)?.name || field,
-            propertyRuleMap?.find((item) => item.field === field)?.description
-          ),
-          value: convertAndStyleValue(value, field, editable),
-          key: index,
-        }));
+        .map(([field, value], index) => {
+          const propertyRule = propertyRuleMap?.find((item) => item.field === field);
+          return {
+            field: FieldStyler(propertyRule?.name || field, propertyRule?.description),
+            value: convertAndStyleValue(value, field, editable),
+            key: index,
+          };
+        });
       setDataSource(newData);
       const newColumns = COLUMNS.filter((column) => showColumn(newData, column.dataIndex));
       setColumns(newColumns);

@@ -9,6 +9,7 @@ import { RuleMap } from "@/app/types/rulemap";
 import { Scenario } from "@/app/types/scenario";
 import useLeaveScreenPopup from "@/app/hooks/useLeaveScreenPopup";
 import { DEFAULT_RULE_CONTENT } from "@/app/constants/defaultRuleContent";
+import { RULE_VERSION } from "@/app/constants/ruleVersion";
 import SavePublish from "../SavePublish";
 import ScenariosManager from "../ScenariosManager";
 import styles from "./RuleManager.module.css";
@@ -53,8 +54,8 @@ export default function RuleManager({
   const [simulationContext, setSimulationContext] = useState<Record<string, any>>();
   const [resultsOfSimulation, setResultsOfSimulation] = useState<Record<string, any> | null>();
   const { setHasUnsavedChanges } = useLeaveScreenPopup();
-  const canEditGraph = editing === "draft" || editing === true;
-  const canEditScenarios = editing === "draft" || editing === "inReview" || editing === true;
+  const canEditGraph = editing === RULE_VERSION.draft || editing === true;
+  const canEditScenarios = editing === RULE_VERSION.draft || editing === RULE_VERSION.inReview || editing === true;
 
   const updateRuleContent = (updatedRuleContent: DecisionGraphType) => {
     if (ruleContent !== updatedRuleContent) {

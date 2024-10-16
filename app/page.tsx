@@ -83,9 +83,13 @@ export default function Home() {
 
   const formatFilePathTags = (filepath: string) => {
     const parts = filepath.split("/");
-    return parts.map((part, index) => (
-      <React.Fragment key={index}>{index < parts.length - 1 && <Tag color="blue">{part}</Tag>}</React.Fragment>
-    ));
+    return (
+      <Flex gap="small" align="center" wrap={true}>
+        {parts.map((part, index) => (
+          <React.Fragment key={index}>{index < parts.length - 1 && <Tag color="blue">{part}</Tag>}</React.Fragment>
+        ))}
+      </Flex>
+    );
   };
 
   const columns: TableColumnsType<RuleInfo> = [
@@ -114,12 +118,15 @@ export default function Home() {
       filteredValue: tableParams.filters?.filepath || null,
       filterSearch: true,
       sorter: true,
+      width: "25%",
+      responsive: ["lg" as Breakpoint],
       render: (_, record) => <span>{formatFilePathTags(record.filepath)}</span>,
     },
     {
       title: "Versions",
       key: "versions",
       responsive: ["md" as Breakpoint],
+      width: "auto",
       render: (_, record) => {
         const ruleLink = `/rule/${record._id}`;
         const draftLink = `${ruleLink}?version=draft`;

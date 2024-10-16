@@ -74,8 +74,8 @@ export default function Admin() {
   };
 
   const deleteRule = async (index: number) => {
-    const deletionIndex =
-      ((tableParams?.pagination?.current || 1) - 1) * (tableParams?.pagination?.pageSize || PAGE_SIZE) + index;
+    const { current, pageSize } = tableParams?.pagination || {};
+    const deletionIndex = ((current || 1) - 1) * (pageSize || PAGE_SIZE) + index;
     const newRules = [...rules.slice(0, deletionIndex), ...rules.slice(deletionIndex + 1, rules.length)];
     setRules(newRules);
   };
