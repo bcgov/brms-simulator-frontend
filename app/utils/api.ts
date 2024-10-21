@@ -112,8 +112,14 @@ export const postDecision = async (ruleContent: DecisionGraphType, context: unkn
     });
     return data;
   } catch (error) {
-    console.error(`Error simulating decision: ${error}`);
-    throw error;
+    if (axios.isAxiosError(error) && error.response) {
+      const errorMessage = error.response.data.message;
+      console.error(errorMessage);
+      throw new Error(errorMessage);
+    } else {
+      console.error(`Error simulating decision: ${error}`);
+      throw error;
+    }
   }
 };
 
