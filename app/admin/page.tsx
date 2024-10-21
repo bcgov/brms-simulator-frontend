@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Table, Input, Button, Flex } from "antd";
+import { Table, Input, Button, Flex, Tooltip } from "antd";
 import { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { FilterValue } from "antd/es/table/interface";
 import { HomeOutlined } from "@ant-design/icons";
@@ -13,8 +13,6 @@ enum ACTION_STATUS {
   UPDATE = "update",
   DELETE = "delete",
 }
-
-const PAGE_SIZE = 15;
 
 interface TableParams {
   pagination?: TablePaginationConfig;
@@ -73,10 +71,20 @@ export default function Admin() {
     setRules(newRules);
   };
 
-  const deleteRule = async (index: number) => {
-    const { current, pageSize } = tableParams?.pagination || {};
-    const deletionIndex = ((current || 1) - 1) * (pageSize || PAGE_SIZE) + index;
-    const newRules = [...rules.slice(0, deletionIndex), ...rules.slice(deletionIndex + 1, rules.length)];
+  const resetDraft = async (rule: RuleInfo) => {
+    setIsLoading(true);
+    try {
+      await updateRuleData(rule._id, rule);
+    } catch (error) {
+      console.error(`Error reseting draft for rule ${rule._id}: ${error}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteRule = (index: number) => {
+    const newRules = [...rules];
+    newRules.splice(index, 1);
     setRules(newRules);
   };
 
@@ -149,20 +157,38 @@ export default function Admin() {
     {
       dataIndex: "delete",
       width: "60px",
-      render: (value: string, _: RuleInfo, index: number) => (
-        <Button danger onClick={() => deleteRule(index)}>
-          Delete
-        </Button>
-      ),
+      render: (value: string, _: RuleInfo, index: number) => {
+        return (
+          <>
+            {_.isPublished ? (
+              <Tooltip title="To delete a published rule, please review the Github Rules Repo.">
+                <Button danger disabled={!_.ruleDraft} onClick={() => resetDraft(_)}>
+                  Reset Draft
+                </Button>
+              </Tooltip>
+            ) : (
+              <Tooltip title="Caution: Unpublished draft rules cannot be recovered once deleted.">
+                <Button danger onClick={() => deleteRule(index)}>
+                  Delete Rule{" "}
+                </Button>
+              </Tooltip>
+            )}
+          </>
+        );
+      },
     },
     {
       dataIndex: "view",
       width: "60px",
-      render: (_: string, { _id }: RuleInfo) => (
-        <Link href={`/rule/${_id}`}>
-          <Button>View</Button>
-        </Link>
-      ),
+      render: (_: string, { _id, isPublished }: RuleInfo) => {
+        const ruleLink = `/rule/${_id}`;
+        const draftLink = `${ruleLink}?version=draft`;
+        return (
+          <Link href={isPublished ? ruleLink : draftLink}>
+            <Button>View</Button>
+          </Link>
+        );
+      },
     },
   ];
 
