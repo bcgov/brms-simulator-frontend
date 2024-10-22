@@ -98,6 +98,8 @@ export default function Home() {
       dataIndex: "title",
       key: "title",
       sorter: true,
+      width: "35%",
+      minWidth: 350,
       render: (_, record) => {
         const ruleLink = `/rule/${record._id}`;
         const draftLink = `${ruleLink}?version=draft`;
@@ -131,7 +133,7 @@ export default function Home() {
         const ruleLink = `/rule/${record._id}`;
         const draftLink = `${ruleLink}?version=draft`;
         return (
-          <Flex gap="small" justify="end">
+          <Flex gap="small" justify="end" wrap="wrap">
             <Button
               href={draftLink}
               icon={<EditOutlined />}
@@ -170,13 +172,12 @@ export default function Home() {
                     size="small"
                     className={styles.inProductionBtn}
                   >
-                    In Production
+                    In Prod
                   </Button>
                 )}
                 <Button
                   href={`${ruleLink}/embedded`}
                   icon={<DownSquareOutlined />}
-                  type="dashed"
                   size="small"
                   className={styles.embeddedBtn}
                 >
