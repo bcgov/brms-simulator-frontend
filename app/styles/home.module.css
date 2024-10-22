@@ -31,13 +31,14 @@
   color: #389e0d !important;
   border-color: #389e0d !important;
 }
-.draftBtn:hover, .inDevBtn:hover, .inReviewBtn:hover, .inProductionBtn:hover {
-  border-style: inset;
-}
 .embeddedBtn {
   color: #666 !important;
-  border-color: #666 !important;
+  border-color: #d9d9d9 !important;
 }
 .embeddedBtn:hover {
   border: 1px solid !important;
+  border-color: #d9d9d9 !important;
+}
+.draftBtn:hover, .inDevBtn:hover, .inReviewBtn:hover, .inProductionBtn:hover, .embeddedBtn:hover {
+  border-style: inset;
 }
