@@ -43,7 +43,7 @@ export default function FieldStyler({ name, description = "", field }: FieldProp
   );
   const helpDialog = "View Description";
   return (
-    <label>
+    <label htmlFor={field ? field : name}>
       {name}
       {description && (
         <Tooltip title={helpDialog} placement="top">
