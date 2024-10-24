@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { headers, cookies } from "next/headers";
-import { isGithubAuthTokenValid, AuthFailureReasons } from "../utils/githubApi";
+import { isGithubAuthTokenValid, AuthFailureReasons } from "./githubApi";
 import { GithubAuthContextType } from "../components/GithubAuthProvider";
 
-export default async function useGithubAuth(
+export default async function getGithubAuth(
   redirectPath: string,
   required: boolean = true
 ): Promise<GithubAuthContextType | null> {
