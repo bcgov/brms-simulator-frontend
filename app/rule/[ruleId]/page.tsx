@@ -1,12 +1,12 @@
 import { Metadata } from "next";
+import { RULE_VERSION } from "@/app/constants/ruleVersion";
+import getGithubAuth from "@/app/utils/getGithubAuth";
+import getRuleDataForVersion from "@/app/hooks/getRuleDataForVersion";
+import { Scenario } from "@/app/types/scenario";
 import { getScenariosByFilename } from "@/app/utils/api";
+import { GithubAuthProvider } from "@/app/components/GithubAuthProvider";
 import RuleHeader from "@/app/components/RuleHeader";
 import RuleManager from "@/app/components/RuleManager";
-import { Scenario } from "@/app/types/scenario";
-import getRuleDataForVersion from "@/app/hooks/getRuleDataForVersion";
-import { RULE_VERSION } from "@/app/constants/ruleVersion";
-import { GithubAuthProvider } from "@/app/components/GithubAuthProvider";
-import useGithubAuth from "@/app/hooks/useGithubAuth";
 
 type Props = {
   params: { ruleId: string };
@@ -32,7 +32,7 @@ export default async function Rule({ params: { ruleId }, searchParams }: Props) 
   const oAuthRequired = version === RULE_VERSION.draft; // only require oauth if editing a draft
   // Ensure user is first logged into github so they can save what they edit
   // If they are not, redirect them to the oauth flow
-  const githubAuthInfo = await useGithubAuth(`rule/${ruleId}?version=${version}`, oAuthRequired);
+  const githubAuthInfo = await getGithubAuth(`rule/${ruleId}?version=${version}`, oAuthRequired);
 
   // Get rule details and json content for the rule id
   const { ruleInfo, ruleContent } = await getRuleDataForVersion(ruleId, version);

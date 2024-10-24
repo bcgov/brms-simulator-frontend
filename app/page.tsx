@@ -65,13 +65,10 @@ export default function Home() {
     }
   };
 
-  useEffect(
-    () => {
-      fetchData();
-    },
+  useEffect(() => {
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(tableParams)]
-  );
+  }, [JSON.stringify(tableParams)]);
 
   const handleSearch = (value: string) => {
     setTableParams({
