@@ -10,11 +10,13 @@ interface FieldProps {
 
 export default function FieldStyler({ name, description = "", field }: FieldProps) {
   const klammLink = `${process.env.NEXT_PUBLIC_KLAMM_URL}/fields/${field}`;
-  const formattedDescription = description.split("\n").map((text, index) => (
-    <p key={index} style={{ margin: "0" }}>
-      {text}
-    </p>
-  ));
+  const formattedDescription = description
+    ? description.split("\n").map((text, index) => (
+        <p key={index} style={{ margin: "0" }}>
+          {text}
+        </p>
+      ))
+    : null;
 
   const descriptionLink = (
     <>
