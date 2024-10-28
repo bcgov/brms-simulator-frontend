@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Table, Input, Button, Flex } from "antd";
-import { ColumnsType } from "antd/es/table";
+import { Table, Input, Button, Flex, Tooltip } from "antd";
+import { ColumnsType, TablePaginationConfig } from "antd/es/table";
+import { FilterValue } from "antd/es/table/interface";
 import { HomeOutlined } from "@ant-design/icons";
 import { RuleInfo, RuleInfoBasic } from "../types/ruleInfo";
 import { getAllRuleData, postRuleData, updateRuleData, deleteRuleData } from "../utils/api";
@@ -13,25 +14,56 @@ enum ACTION_STATUS {
   DELETE = "delete",
 }
 
-const PAGE_SIZE = 15;
+interface TableParams {
+  pagination?: TablePaginationConfig;
+  searchTerm?: string;
+}
 
 export default function Admin() {
   const [isLoading, setIsLoading] = useState(true);
   const [initialRules, setInitialRules] = useState<RuleInfo[]>([]);
   const [rules, setRules] = useState<RuleInfo[]>([]);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [tableParams, setTableParams] = useState<TableParams>({
+    pagination: {
+      current: 1,
+      pageSize: 15,
+      total: 0,
+    },
+    searchTerm: "",
+  });
 
   const getOrRefreshRuleList = async () => {
-    // Get rules that are already defined in the DB
-    const existingRules = await getAllRuleData();
-    setInitialRules(existingRules);
-    setRules(JSON.parse(JSON.stringify([...existingRules]))); // JSON.parse(JSON.stringify(data)) is a hacky way to deep copy the data - needed for comparison later
-    setIsLoading(false);
+    setIsLoading(true);
+    try {
+      const ruleData = await getAllRuleData({
+        page: tableParams.pagination?.current || 1,
+        pageSize: tableParams.pagination?.pageSize || 15,
+        searchTerm: tableParams.searchTerm || "",
+      });
+      const existingRules = ruleData?.data || [];
+      setInitialRules(existingRules);
+      setRules(JSON.parse(JSON.stringify([...existingRules])));
+      setTableParams({
+        ...tableParams,
+        pagination: {
+          ...tableParams.pagination,
+          total: ruleData?.total || 0,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  useEffect(() => {
-    getOrRefreshRuleList();
-  }, []);
+  useEffect(
+    () => {
+      getOrRefreshRuleList();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(tableParams)]
+  );
 
   const updateRule = (e: React.ChangeEvent<HTMLInputElement>, index: number, property: keyof RuleInfoBasic) => {
     const newRules = [...rules];
@@ -39,9 +71,20 @@ export default function Admin() {
     setRules(newRules);
   };
 
-  const deleteRule = async (index: number) => {
-    const deletionIndex = (currentPage - 1) * PAGE_SIZE + index;
-    const newRules = [...rules.slice(0, deletionIndex), ...rules.slice(deletionIndex + 1, rules.length)];
+  const resetDraft = async (rule: RuleInfo) => {
+    setIsLoading(true);
+    try {
+      await updateRuleData(rule._id, rule);
+    } catch (error) {
+      console.error(`Error reseting draft for rule ${rule._id}: ${error}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteRule = (index: number) => {
+    const newRules = [...rules];
+    newRules.splice(index, 1);
     setRules(newRules);
   };
 
@@ -65,11 +108,6 @@ export default function Admin() {
       .filter((initialRule) => !rules.find((rule) => rule._id === initialRule._id))
       .map((rule) => ({ rule, action: ACTION_STATUS.DELETE }));
     return [...updatedEntries, ...deletedEntries];
-  };
-
-  const updateCurrPage = (page: number, pageSize: number) => {
-    // Keep track of current page so we can delete via splice properly
-    setCurrentPage(page);
   };
 
   // Save all rule updates to the API/DB
@@ -119,22 +157,55 @@ export default function Admin() {
     {
       dataIndex: "delete",
       width: "60px",
-      render: (value: string, _: RuleInfo, index: number) => (
-        <Button danger onClick={() => deleteRule(index)}>
-          Delete
-        </Button>
-      ),
+      render: (value: string, _: RuleInfo, index: number) => {
+        return (
+          <>
+            {_.isPublished ? (
+              <Tooltip title="To delete a published rule, please review the Github Rules Repo.">
+                <Button danger disabled={!_.ruleDraft} onClick={() => resetDraft(_)}>
+                  Reset Draft
+                </Button>
+              </Tooltip>
+            ) : (
+              <Tooltip title="Caution: Unpublished draft rules cannot be recovered once deleted.">
+                <Button danger onClick={() => deleteRule(index)}>
+                  Delete Rule{" "}
+                </Button>
+              </Tooltip>
+            )}
+          </>
+        );
+      },
     },
     {
       dataIndex: "view",
       width: "60px",
-      render: (_: string, { _id }: RuleInfo) => (
-        <Link href={`/rule/${_id}`}>
-          <Button>View</Button>
-        </Link>
-      ),
+      render: (_: string, { _id, isPublished }: RuleInfo) => {
+        const ruleLink = `/rule/${_id}`;
+        const draftLink = `${ruleLink}?version=draft`;
+        return (
+          <Link href={isPublished ? ruleLink : draftLink}>
+            <Button>View</Button>
+          </Link>
+        );
+      },
     },
   ];
+
+  const handleTableChange = (pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>) => {
+    setTableParams((prevParams) => ({
+      pagination,
+      filters,
+      searchTerm: prevParams.searchTerm,
+    }));
+  };
+  const handleSearch = (value: string) => {
+    setTableParams({
+      ...tableParams,
+      searchTerm: value,
+      pagination: { ...tableParams.pagination, current: 1 },
+    });
+  };
 
   return (
     <>
@@ -149,12 +220,16 @@ export default function Admin() {
           </Button>
         )}
       </Flex>
+      <Input.Search placeholder="Search rules..." onSearch={handleSearch} style={{ marginBottom: 16 }} allowClear />
+
       {isLoading ? (
         <p>Loading...</p>
       ) : (
         <Table
           columns={columns}
-          pagination={{ pageSize: PAGE_SIZE, onChange: updateCurrPage }}
+          pagination={tableParams.pagination}
+          onChange={handleTableChange}
+          loading={isLoading}
           dataSource={rules.map((rule, key) => ({ key, ...rule }))}
         />
       )}

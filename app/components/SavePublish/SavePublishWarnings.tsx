@@ -28,6 +28,8 @@ export default function SavePublishWarnings({ filePath, ruleContent, isSaving }:
     const existingKlammInputs = inputOutputSchemaMap.inputs.map(({ field }) => field as string);
     const existingKlammOutputs = inputOutputSchemaMap.resultOutputs.map(({ field }) => field as string);
 
+    if (!ruleContent?.nodes || ruleContent.nodes.length < 2) return;
+
     // Get map the old way for comparrison
     const generatedSchemaMap = await generateSchemaFromRuleContent(ruleContent);
     const generatedInputs = generatedSchemaMap.inputs.map(({ field }) => field as string);
