@@ -13,6 +13,7 @@ import {
 } from "@ant-design/icons";
 import { RuleInfo } from "./types/ruleInfo";
 import { getAllRuleData } from "./utils/api";
+import { logError } from "./utils/logger";
 import styles from "./styles/home.module.css";
 
 interface TableParams {
@@ -59,7 +60,7 @@ export default function Home() {
         },
       });
     } catch (error) {
-      console.error(`Error loading rules: ${error}`);
+      logError(`Error loading rules: ${error}`);
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,7 @@ import { RULE_VERSION } from "../constants/ruleVersion";
 import { getFileAsJsonIfAlreadyExists } from "../utils/githubApi";
 import { getRuleDraft, getDocument, getRuleDataById } from "../utils/api";
 import { DEFAULT_RULE_CONTENT } from "../constants/defaultRuleContent";
+import { logError } from "@/app/utils/logger";
 
 export default async function getRuleDataForVersion(ruleId: string, version?: string) {
   // Get rule data
@@ -42,8 +43,8 @@ export default async function getRuleDataForVersion(ruleId: string, version?: st
       default:
         ruleContent = await getDocument(ruleInfo.filepath);
     }
-  } catch (error) {
-    console.error("Error fetching rule content:", error);
+  } catch (error: any) {
+    logError("Error fetching rule content:", error);
   }
 
   return { ruleInfo, ruleContent };

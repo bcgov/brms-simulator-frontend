@@ -4,6 +4,7 @@ import { MinusCircleOutlined } from "@ant-design/icons";
 import { RuleMap } from "@/app/types/rulemap";
 import styles from "./InputOutputTable.module.css";
 import { dollarFormat } from "@/app/utils/utils";
+import { logError } from "@/app/utils/logger";
 import FieldStyler from "../InputStyler/subcomponents/FieldStyler";
 
 const COLUMNS = [
@@ -55,7 +56,7 @@ export default function InputOutputTable({
     if (typeof setRawData === "function") {
       setRawData(updatedData);
     } else {
-      console.error("setRawData is not a function or is undefined");
+      logError("setRawData is not a function or is undefined");
     }
   };
 

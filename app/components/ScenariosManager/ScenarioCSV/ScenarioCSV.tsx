@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Button, Flex, Upload, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { DecisionGraphType } from "@gorules/jdm-editor";
-import styles from "./ScenarioCSV.module.css";
+import { logError } from "@/app/utils/logger";
 import { uploadCSVAndProcess, getCSVForRuleRun } from "@/app/utils/api";
+import styles from "./ScenarioCSV.module.css";
 
 interface ScenarioCSVProps {
   jsonFile: string;
@@ -22,9 +23,9 @@ export default function ScenarioCSV({ jsonFile, ruleContent }: ScenarioCSVProps)
     try {
       const csvContent = await uploadCSVAndProcess(file, jsonFile, ruleContent);
       message.success(`Scenarios Test: ${csvContent}`);
-    } catch (error) {
+    } catch (error: any) {
       message.error("Error processing scenarios.");
-      console.error("Error:", error);
+      logError("Error:", error);
     }
   };
 
@@ -32,9 +33,9 @@ export default function ScenarioCSV({ jsonFile, ruleContent }: ScenarioCSVProps)
     try {
       const csvContent = await getCSVForRuleRun(jsonFile, ruleContent);
       message.success(`Scenario Testing Template: ${csvContent}`);
-    } catch (error) {
+    } catch (error: any) {
       message.error("Error downloading scenarios.");
-      console.error("Error:", error);
+      logError("Error:", error);
     }
   };
 

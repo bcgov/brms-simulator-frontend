@@ -10,6 +10,7 @@ import { Scenario } from "@/app/types/scenario";
 import useLeaveScreenPopup from "@/app/hooks/useLeaveScreenPopup";
 import { DEFAULT_RULE_CONTENT } from "@/app/constants/defaultRuleContent";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
+import { logError } from "@/app/utils/logger";
 import SavePublish from "../SavePublish";
 import ScenariosManager from "../ScenariosManager";
 import styles from "./RuleManager.module.css";
@@ -116,7 +117,7 @@ export default function RuleManager({
         setResultsOfSimulation(data?.result);
       } catch (e: any) {
         message.error("Error during simulation run: " + e, 10);
-        console.error("Error during simulation run:", e);
+        logError("Error during simulation run:", e);
       }
     } else {
       // Reset the result if there is no contextToSimulate (used to reset the trace)

@@ -1,6 +1,7 @@
 "use client";
 import { Alert } from "antd";
 import React from "react";
+import { logError } from "@/app/utils/logger";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -19,8 +20,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, Error
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log to any new error reporting service here
-    console.error("Uncaught error:", error, errorInfo);
+    // logError(error.message, errorInfo);
   }
 
   render() {
