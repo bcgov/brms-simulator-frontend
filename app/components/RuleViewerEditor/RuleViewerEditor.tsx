@@ -17,7 +17,8 @@ import {
 import { SchemaSelectProps, PanelType } from "@/app/types/jdm-editor";
 import { Scenario, Variable } from "@/app/types/scenario";
 import { downloadFileBlob } from "@/app/utils/utils";
-import { getScenariosByFilename } from "@/app/utils/api";
+import { createRuleJSONWithScenarios, convertTestsToScenarios } from "@/app/utils/ruleScenariosFormat";
+import { createScenario, getScenariosByFilename } from "@/app/utils/api";
 import { logError } from "@/app/utils/logger";
 import LinkRuleComponent from "./subcomponents/LinkRuleComponent";
 import SimulatorPanel from "./subcomponents/SimulatorPanel";
@@ -79,24 +80,7 @@ export default function RuleViewerEditor({
 
   const handleScenarioInsertion = async () => {
     try {
-      const scenarios: Scenario[] = await getScenariosByFilename(jsonFilename);
-      const scenarioObject = {
-        tests: scenarios.map((scenario: Scenario) => ({
-          name: scenario.title || "Default name",
-          input: scenario.variables.reduce((obj: any, each: Variable) => {
-            obj[each.name] = each.value;
-            return obj;
-          }, {}),
-          output: scenario.expectedResults.reduce((obj, each) => {
-            obj[each.name] = each.value;
-            return obj;
-          }, {}),
-        })),
-      };
-      const updatedJSON = {
-        ...ruleContent,
-        ...scenarioObject,
-      };
+      const updatedJSON = await createRuleJSONWithScenarios(jsonFilename, ruleContent);
       return downloadJSON(updatedJSON, jsonFilename);
     } catch (error: any) {
       logError("Error fetching JSON:", error);
@@ -116,6 +100,39 @@ export default function RuleViewerEditor({
   };
 
   useEffect(() => {
+    const handleFileSelect = (event: any) => {
+      if (
+        decisionGraphRef.current &&
+        event.target?.accept === "application/json" &&
+        event.target.type === "file" &&
+        event.target.files.length > 0
+      ) {
+        const file = event.target.files[0];
+
+        // Parse contents of the uploaded file
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            if (e.target?.result) {
+              const fileContent = JSON.parse(e.target.result as string);
+              await handleFileUpload(event, fileContent);
+            }
+          } catch (error) {
+            console.error("Error parsing JSON file:", error);
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+
+    document.addEventListener("change", handleFileSelect, true);
+
+    return () => {
+      document.removeEventListener("change", handleFileSelect, true);
+    };
+  }, [decisionGraphRef, ruleContent]);
+
+  useEffect(() => {
     const clickHandler = (event: any) => {
       interceptJSONDownload(event);
     };
@@ -127,6 +144,32 @@ export default function RuleViewerEditor({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ruleContent]);
+
+  const getRuleIdFromPath = () => {
+    const match = window.location.pathname.match(/\/rule\/([^/]+)/);
+    return match?.[1] ?? null;
+  };
+
+  const handleFileUpload = async (_event: any, uploadedContent: { tests?: any[] }) => {
+    if (!uploadedContent?.tests) return;
+
+    try {
+      const [existingScenarios, scenarios] = await Promise.all([
+        getScenariosByFilename(jsonFilename),
+        Promise.resolve(convertTestsToScenarios(uploadedContent.tests)),
+      ]);
+
+      const existingTitles: Set<string> = new Set(existingScenarios.map((scenario: Scenario) => scenario.title));
+      const newScenarios = scenarios.filter((scenario) => !existingTitles.has(scenario.title));
+
+      const ruleId = getRuleIdFromPath();
+      await Promise.all(
+        newScenarios.map((scenario) => createScenario({ ...scenario, ruleID: ruleId, filepath: jsonFilename }))
+      );
+    } catch (error) {
+      console.error("Failed to process scenarios:", error);
+    }
+  };
 
   const additionalComponents: NodeSpecification[] = useMemo(
     () => [
