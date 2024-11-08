@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { Button, Flex, Popover, Tag, Tooltip } from "antd";
+import { Button, Flex, Tag, Tooltip } from "antd";
 import {
   HomeOutlined,
   EyeOutlined,
@@ -120,7 +120,8 @@ export default function RuleHeader({
           {ruleInfo.name &&
             process.env.NEXT_PUBLIC_KLAMM_URL &&
             version !== RULE_VERSION.inProduction &&
-            version !== RULE_VERSION.inDev && (
+            version !== RULE_VERSION.inDev &&
+            ruleInfo.isPublished && (
               <Tooltip title="View rule details in KLAMM">
                 {" "}
                 <Button
