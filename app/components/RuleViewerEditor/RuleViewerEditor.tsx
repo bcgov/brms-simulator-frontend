@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import type { ReactFlowInstance } from "reactflow";
 import "@gorules/jdm-editor/dist/style.css";
-import { Spin } from "antd";
+import { Spin, Modal } from "antd";
 import { ApartmentOutlined, PlayCircleOutlined, LoginOutlined, LogoutOutlined, BookOutlined } from "@ant-design/icons";
 import {
   JdmConfigProvider,
@@ -24,6 +24,7 @@ import LinkRuleComponent from "./subcomponents/LinkRuleComponent";
 import SimulatorPanel from "./subcomponents/SimulatorPanel";
 import RuleInputOutputFieldsComponent from "./subcomponents/RuleInputOutputFieldsComponent";
 import NotesComponent from "./subcomponents/NotesComponent";
+import ScenarioSelectionContent from "./subcomponents/ScenarioSelectionContent";
 
 interface RuleViewerEditorProps {
   jsonFilename: string;
@@ -35,6 +36,7 @@ interface RuleViewerEditorProps {
   runSimulation?: (results: unknown) => void;
   isEditable?: boolean;
   setLoadingComplete: () => void;
+  updateScenarios: () => void;
 }
 
 export default function RuleViewerEditor({
@@ -47,6 +49,7 @@ export default function RuleViewerEditor({
   runSimulation,
   isEditable = true,
   setLoadingComplete,
+  updateScenarios,
 }: RuleViewerEditorProps) {
   const decisionGraphRef: any = useRef<DecisionGraphRef>();
   const [reactFlowRef, setReactFlowRef] = useState<ReactFlowInstance>();
@@ -162,10 +165,39 @@ export default function RuleViewerEditor({
       const existingTitles: Set<string> = new Set(existingScenarios.map((scenario: Scenario) => scenario.title));
       const newScenarios = scenarios.filter((scenario) => !existingTitles.has(scenario.title));
 
-      const ruleId = getRuleIdFromPath();
-      await Promise.all(
-        newScenarios.map((scenario) => createScenario({ ...scenario, ruleID: ruleId, filepath: jsonFilename }))
-      );
+      if (newScenarios.length > 0) {
+        let selectedScenarios: Scenario[] = [];
+
+        Modal.confirm({
+          title: "Import Scenarios",
+          width: 600,
+          maskClosable: false,
+          closable: false,
+          centered: true,
+          content: (
+            <ScenarioSelectionContent
+              scenarios={newScenarios}
+              onComplete={(selected) => {
+                selectedScenarios = selected;
+              }}
+            />
+          ),
+          okText: "Import Selected",
+          cancelText: "Cancel",
+          onOk: async () => {
+            if (selectedScenarios.length > 0) {
+              const ruleId = getRuleIdFromPath();
+              await Promise.all(
+                selectedScenarios.map((scenario) =>
+                  createScenario({ ...scenario, ruleID: ruleId, filepath: jsonFilename })
+                )
+              ).then(() => {
+                updateScenarios();
+              });
+            }
+          },
+        });
+      }
     } catch (error) {
       console.error("Failed to process scenarios:", error);
     }

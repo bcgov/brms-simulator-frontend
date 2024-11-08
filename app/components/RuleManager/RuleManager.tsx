@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Flex, Spin, message } from "antd";
 import { Simulation, DecisionGraphType } from "@gorules/jdm-editor";
-import { postDecision, getRuleMap } from "../../utils/api";
+import { postDecision, getRuleMap, getScenariosByFilename } from "../../utils/api";
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { RuleMap } from "@/app/types/rulemap";
 import { Scenario } from "@/app/types/scenario";
@@ -20,7 +20,6 @@ const RuleViewerEditor = dynamic(() => import("../RuleViewerEditor"), { ssr: fal
 
 interface RuleManagerProps {
   ruleInfo: RuleInfo;
-  scenarios?: Scenario[];
   initialRuleContent?: DecisionGraphType;
   editing?: string | boolean;
   showAllScenarioTabs?: boolean;
@@ -28,7 +27,6 @@ interface RuleManagerProps {
 
 export default function RuleManager({
   ruleInfo,
-  scenarios,
   initialRuleContent = DEFAULT_RULE_CONTENT,
   editing = false,
   showAllScenarioTabs = true,
@@ -49,6 +47,7 @@ export default function RuleManager({
   };
 
   const [isLoading, setIsLoading] = useState(true);
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [ruleContent, setRuleContent] = useState<DecisionGraphType>();
   const [rulemap, setRulemap] = useState<RuleMap>();
   const [simulation, setSimulation] = useState<Simulation>();
@@ -65,8 +64,14 @@ export default function RuleManager({
     }
   };
 
+  const updateScenarios = async () => {
+    const updatedScenarios: Scenario[] = await getScenariosByFilename(jsonFile);
+    setScenarios(updatedScenarios);
+  };
+
   useEffect(() => {
     setRuleContent(initialRuleContent);
+    updateScenarios();
   }, [initialRuleContent]);
 
   useEffect(() => {
@@ -160,6 +165,7 @@ export default function RuleManager({
           runSimulation={runSimulation}
           isEditable={canEditGraph}
           setLoadingComplete={() => setIsLoading(false)}
+          updateScenarios={updateScenarios}
         />
       </div>
       {scenarios && rulemap && (
@@ -169,6 +175,7 @@ export default function RuleManager({
           ruleContent={ruleContent}
           rulemap={rulemap}
           scenarios={scenarios}
+          setScenarios={setScenarios}
           isEditing={canEditScenarios}
           showAllScenarioTabs={showAllScenarioTabs}
           createRuleMap={createRuleMap}
