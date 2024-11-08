@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Flex, Button, Popconfirm, message, Pagination } from "antd";
+import { Flex, Button, Popconfirm, message, Pagination, Input, Tooltip } from "antd";
 import type { PopconfirmProps } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import InputOutputTable from "@/app/components/InputOutputTable";
 import styles from "./ScenarioViewer.module.css";
 import { Scenario } from "@/app/types/scenario";
-import { deleteScenario, getScenariosByFilename } from "@/app/utils/api";
+import { deleteScenario, getScenariosByFilename, updateScenario } from "@/app/utils/api";
 import ScenarioFormatter from "../ScenarioFormatter";
 import { RuleMap } from "@/app/types/rulemap";
 
@@ -39,6 +39,8 @@ export default function ScenarioViewer({
   const [scenariosDisplay, setScenariosDisplay] = useState<Scenario[] | null>(scenarios);
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
   const [manageScenarios, setManageScenarios] = useState(false);
+  const [editingScenarioId, setEditingScenarioId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
 
   useEffect(() => {
     setScenariosDisplay(scenarios);
@@ -85,6 +87,49 @@ export default function ScenarioViewer({
     setActiveTabKey?.(scenariosManagerTabs.InputsTab);
   };
 
+  const handleStartEditing = (scenario: Scenario) => {
+    if (!manageScenarios) return;
+    setEditingScenarioId(scenario._id || null);
+    setEditingTitle(scenario.title);
+  };
+
+  const handleSaveTitle = async (scenario: Scenario) => {
+    if (!editingTitle.trim()) {
+      message.error("Scenario name cannot be empty");
+      return;
+    }
+
+    // Check if the name is unchanged
+    if (editingTitle === scenario.title) {
+      setEditingScenarioId(null);
+      return;
+    }
+
+    // Check if the name already exists in other scenarios
+    const nameExists = scenariosDisplay?.some(
+      (s) => s._id !== scenario._id && s.title.toLowerCase() === editingTitle.trim().toLowerCase()
+    );
+
+    if (nameExists) {
+      message.error("A scenario with this name already exists. Please choose a unique name.");
+      return;
+    }
+
+    try {
+      const updatedScenario = { ...scenario, title: editingTitle };
+      await updateScenario(updatedScenario, scenario._id || "");
+
+      setScenariosDisplay(
+        (scenariosDisplay || []).map((s) => (s._id === scenario._id ? { ...s, title: editingTitle } : s))
+      );
+
+      setEditingScenarioId(null);
+      message.success("Scenario name updated");
+    } catch (e) {
+      message.error("Error updating scenario name");
+    }
+  };
+
   const cancel: PopconfirmProps["onCancel"] = (e) => {
     console.log(e);
   };
@@ -116,7 +161,32 @@ export default function ScenarioViewer({
                   >
                     <Flex key={startIndex + index} gap={"small"} align="center" justify="space-between">
                       <span className={styles.listItem}>
-                        <span className={styles.listItemNumber}>{startIndex + index + 1}.</span> {scenario.title} {"  "}
+                        <span className={styles.listItemNumber}>{startIndex + index + 1}.</span>{" "}
+                        {editingScenarioId === scenario._id ? (
+                          <Input
+                            size="small"
+                            value={editingTitle}
+                            onChange={(e) => setEditingTitle(e.target.value)}
+                            onPressEnter={() => handleSaveTitle(scenario)}
+                            onBlur={() => handleSaveTitle(scenario)}
+                            onClick={(e) => e.stopPropagation()}
+                            autoFocus
+                          />
+                        ) : (
+                          <Tooltip title={manageScenarios ? "Click to edit scenario name" : null}>
+                            <span
+                              onClick={(e) => {
+                                if (manageScenarios) {
+                                  e.stopPropagation();
+                                  handleStartEditing(scenario);
+                                }
+                              }}
+                              style={{ cursor: manageScenarios ? "text" : "pointer" }}
+                            >
+                              {scenario.title}
+                            </span>
+                          </Tooltip>
+                        )}{" "}
                       </span>
                       {manageScenarios && (
                         <>

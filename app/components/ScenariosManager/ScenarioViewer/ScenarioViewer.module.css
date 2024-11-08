@@ -49,6 +49,15 @@
   justify-content: center;
 }
 
+.listItem span[role="button"] {
+  cursor: pointer;
+}
+
+.listItem :global(.ant-input) {
+  width: 200px;
+  margin: -4px 0;
+}
+
 .selectedScenarioDetails {
   min-width: 450px;
   max-width: 450px;
