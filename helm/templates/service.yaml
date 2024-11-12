@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: brms-frontend
+  name: brm-app
   labels:
-    app.kubernetes.io/name: brms-frontend
+    app.kubernetes.io/name: brm-app
 spec:
   selector:
-    app.kubernetes.io/name: brms-frontend
+    app.kubernetes.io/name: brm-app
   ports:
     - protocol: TCP
       port: 8080

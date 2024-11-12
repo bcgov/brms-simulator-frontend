@@ -1,4 +1,4 @@
 apiVersion: v2
-name: brms-frontend
-description: A Helm chart for deploying brms-frontend
+name: brm-app
+description: A Helm chart for deploying brm-app
 version: 0.1.0
