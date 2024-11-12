@@ -8,6 +8,7 @@ import type { GraphNodeProps } from "@gorules/jdm-editor";
 import { SchemaSelectProps } from "@/app/types/jdm-editor";
 import { KlammBREField } from "@/app/types/klamm";
 import { getBREFields, getBREFieldFromName } from "@/app/utils/api";
+import { logError } from "@/app/utils/logger";
 import styles from "./RuleInputOutputFieldsComponent.module.css";
 
 declare type InputOutputField = {
@@ -60,8 +61,8 @@ export default function RuleInputOutputFieldsComponent({
           setInputOutputOptions(newInputOutputOptions);
         }
         setIsLoading(false);
-      } catch (error) {
-        console.error("Error:", error);
+      } catch (error: any) {
+        logError("Error getting fields from Klamm:", error);
       }
     };
     // Before searching, first set the options to empty and isLoading to true while we wait
@@ -229,8 +230,8 @@ export default function RuleInputOutputFieldsComponent({
       });
 
       message.success("Fields refreshed successfully from Klamm");
-    } catch (error) {
-      console.error("Error refreshing fields from Klamm:", error);
+    } catch (error: any) {
+      logError("Error refreshing fields from Klamm:", error);
       message.error("Failed to refresh fields from Klamm");
     } finally {
       setIsLoading(false);

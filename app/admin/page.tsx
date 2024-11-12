@@ -5,6 +5,7 @@ import { Table, Input, Button, Flex, Tooltip } from "antd";
 import { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { FilterValue } from "antd/es/table/interface";
 import { HomeOutlined } from "@ant-design/icons";
+import { logError } from "@/app/utils/logger";
 import { RuleInfo, RuleInfoBasic } from "../types/ruleInfo";
 import { getAllRuleData, postRuleData, updateRuleData, deleteRuleData } from "../utils/api";
 
@@ -76,7 +77,7 @@ export default function Admin() {
     try {
       await updateRuleData(rule._id, rule);
     } catch (error) {
-      console.error(`Error reseting draft for rule ${rule._id}: ${error}`);
+      logError(`Error reseting draft for rule ${rule._id}: ${error}`);
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +128,7 @@ export default function Admin() {
             }
           }
         } catch (error) {
-          console.error(`Error performing action ${action} on rule ${rule._id}: ${error}`);
+          logError(`Error performing action ${action} on rule ${rule._id}: ${error}`);
         }
       })
     );
