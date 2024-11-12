@@ -5,6 +5,7 @@ import { DecisionGraphType } from "@gorules/jdm-editor";
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { updateRuleData } from "@/app/utils/api";
 import { sendRuleForReview } from "@/app/utils/githubApi";
+import { logError } from "@/app/utils/logger";
 import NewReviewForm from "./NewReviewForm";
 import SavePublishWarnings from "./SavePublishWarnings";
 import styles from "./SavePublish.module.css";
@@ -55,8 +56,8 @@ export default function SavePublish({ ruleInfo, ruleContent, setHasSaved }: Save
         setCurrReviewBranch(newReviewBranch);
       }
       message.success("Review updated/created");
-    } catch (e) {
-      console.error("Unable to update/create review");
+    } catch (e: any) {
+      logError("Unable to update/create review", e);
       message.error("Unable to update/create review");
     }
 

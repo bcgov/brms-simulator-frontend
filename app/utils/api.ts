@@ -6,6 +6,7 @@ import { KlammBREField } from "../types/klamm";
 import { downloadFileBlob, generateDescriptiveName, getShortFilenameOnly } from "./utils";
 import { valueType } from "antd/es/statistic/utils";
 import { RuleQuery } from "../types/rulequery";
+import { logError } from "@/app/utils/logger";
 
 const axiosAPIInstance = axios.create({
   // For server side calls, need full URL, otherwise can just use /api
@@ -26,7 +27,7 @@ export const getRuleDataById = async (ruleId: string): Promise<RuleInfo> => {
     const { data } = await axiosAPIInstance.get(`/ruleData/${ruleId}`);
     return data;
   } catch (error) {
-    console.error(`Error getting rule data: ${error}`);
+    logError(`Error getting rule data: ${error}`);
     throw error;
   }
 };
@@ -42,7 +43,7 @@ export const getRuleDraft = async (ruleId: string): Promise<RuleDraft> => {
     const { data } = await axiosAPIInstance.get(`/ruleData/draft/${ruleId}?_=${new Date().getTime()}`);
     return data;
   } catch (error) {
-    console.error(`Error getting rule data: ${error}`);
+    logError(`Error getting rule data: ${error}`);
     throw error;
   }
 };
@@ -57,7 +58,7 @@ export const getAllRuleData = async (params?: RuleQuery): Promise<RuleDataRespon
     const { data } = await axiosAPIInstance.get<RuleDataResponse>("/ruleData/list", { params });
     return data;
   } catch (error) {
-    console.error(`Error fetching rule data: ${error}`);
+    logError(`Error fetching rule data: ${error}`);
     throw error;
   }
 };
@@ -72,7 +73,7 @@ export const getAllRuleDocuments = async (): Promise<string[]> => {
     const { data } = await axiosAPIInstance.get("/documents/all");
     return data;
   } catch (error) {
-    console.error(`Error fetching rule data: ${error}`);
+    logError(`Error fetching rule data: ${error}`);
     throw error;
   }
 };
@@ -91,7 +92,7 @@ export const getDocument = async (jsonFilePath: string): Promise<DecisionGraphTy
     }
     return data;
   } catch (error) {
-    console.error(`Error getting the gorules document: ${error}`);
+    logError(`Error getting the gorules document: ${error}`);
     throw error;
   }
 };
@@ -114,10 +115,10 @@ export const postDecision = async (ruleContent: DecisionGraphType, context: unkn
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
       const errorMessage = error.response.data.message;
-      console.error(errorMessage);
+      logError(errorMessage);
       throw new Error(errorMessage);
     } else {
-      console.error(`Error simulating decision: ${error}`);
+      logError(`Error simulating decision: ${error}`);
       throw error;
     }
   }
@@ -134,7 +135,7 @@ export const postRuleData = async (newRuleData: unknown) => {
     const { data } = await axiosAPIInstance.post(`/ruleData`, newRuleData);
     return data;
   } catch (error) {
-    console.error(`Error posting rule data: ${error}`);
+    logError(`Error posting rule data: ${error}`);
     throw error;
   }
 };
@@ -151,7 +152,7 @@ export const updateRuleData = async (ruleId: string, updatedRuleData: unknown) =
     const { data } = await axiosAPIInstance.put(`/ruleData/${ruleId}`, updatedRuleData);
     return data;
   } catch (error) {
-    console.error(`Error updating rule: ${error}`);
+    logError(`Error updating rule: ${error}`);
     throw error;
   }
 };
@@ -167,7 +168,7 @@ export const deleteRuleData = async (ruleId: string) => {
     const { data } = await axiosAPIInstance.delete(`/ruleData/${ruleId}`);
     return data;
   } catch (error) {
-    console.error(`Error deleting rule: ${error}`);
+    logError(`Error deleting rule: ${error}`);
     throw error;
   }
 };
@@ -184,7 +185,7 @@ export const getRuleMap = async (filepath: string, ruleContent?: DecisionGraphTy
     const { data } = await axiosAPIInstance.post("/rulemap", { filepath, ruleContent });
     return data;
   } catch (error) {
-    console.error(`Error getting rule data: ${error}`);
+    logError(`Error getting rule data: ${error}`);
     throw error;
   }
 };
@@ -200,7 +201,7 @@ export const getRuleRunSchema = async (ruleResponse: unknown) => {
     const { data } = await axiosAPIInstance.post(`/rulemap/rulerunschema`, ruleResponse);
     return data;
   } catch (error) {
-    console.error(`Error posting output schema: ${error}`);
+    logError(`Error posting output schema: ${error}`);
     throw error;
   }
 };
@@ -218,7 +219,7 @@ export const generateSchemaFromRuleContent = async (ruleContent: DecisionGraphTy
     });
     return data;
   } catch (error) {
-    console.error(`Error getting rule data: ${error}`);
+    logError(`Error getting rule data: ${error}`);
     throw error;
   }
 };
@@ -234,7 +235,7 @@ export const getScenariosByFilename = async (filepath: string) => {
     const { data } = await axiosAPIInstance.post("/scenario/by-filename/", { filepath });
     return data;
   } catch (error) {
-    console.error(`Error posting output schema: ${error}`);
+    logError(`Error posting output schema: ${error}`);
     throw error;
   }
 };
@@ -250,7 +251,7 @@ export const createScenario = async (scenarioResponse: unknown) => {
     const { data } = await axiosAPIInstance.post(`/scenario`, scenarioResponse);
     return data;
   } catch (error) {
-    console.error(`Error posting output schema: ${error}`);
+    logError(`Error posting output schema: ${error}`);
     throw error;
   }
 };
@@ -267,7 +268,7 @@ export const updateScenario = async (scenarioResponse: unknown, scenarioID?: str
     const { data } = await axiosAPIInstance.put(`/scenario/${scenarioID}`, scenarioResponse);
     return data;
   } catch (error) {
-    console.error(`Error posting output schema: ${error}`);
+    logError(`Error posting output schema: ${error}`);
     throw error;
   }
 };
@@ -283,7 +284,7 @@ export const deleteScenario = async (scenarioId: string) => {
     const { data } = await axiosAPIInstance.delete(`/scenario/${scenarioId}`);
     return data;
   } catch (error) {
-    console.error(`Error deleting scenario: ${error}`);
+    logError(`Error deleting scenario: ${error}`);
     throw error;
   }
 };
@@ -300,7 +301,7 @@ export const runDecisionsForScenarios = async (filepath: string, ruleContent?: D
     const { data } = await axiosAPIInstance.post("/scenario/run-decisions", { filepath, ruleContent });
     return data;
   } catch (error) {
-    console.error(`Error running scenarios: ${error}`);
+    logError(`Error running scenarios: ${error}`);
     throw error;
   }
 };
@@ -328,7 +329,7 @@ export const getCSVForRuleRun = async (filepath: string, ruleContent?: DecisionG
 
     return "CSV downloaded successfully";
   } catch (error) {
-    console.error(`Error getting CSV for rule run: ${error}`);
+    logError(`Error getting CSV for rule run: ${error}`);
     throw new Error("Error getting CSV for rule run");
   }
 };
@@ -368,7 +369,7 @@ export const uploadCSVAndProcess = async (
 
     return "File processed successfully";
   } catch (error) {
-    console.error(`Error processing CSV file: ${error}`);
+    logError(`Error processing CSV file: ${error}`);
     throw new Error("Error processing CSV file");
   }
 };
@@ -386,7 +387,7 @@ export const getBREFields = async (searchText: string): Promise<KlammBREField[]>
     } = await axiosAPIInstance.get(`/klamm/brefields?searchText=${searchText}`);
     return data;
   } catch (error) {
-    console.error(`Error getting rule data: ${error}`);
+    logError(`Error getting rule data: ${error}`);
     throw error;
   }
 };
@@ -401,7 +402,7 @@ export const getBREFieldFromName = async (fieldName: string): Promise<KlammBREFi
     const { data } = await axiosAPIInstance.get(`/klamm/brefield/${fieldName}`);
     return data;
   } catch (error) {
-    console.error(`Error getting rule data: ${error}`);
+    logError(`Error getting rule data: ${error}`);
     throw error;
   }
 };
@@ -440,7 +441,7 @@ export const getCSVTests = async (
 
     return "CSV downloaded successfully";
   } catch (error) {
-    console.error(`Error getting CSV for rule run: ${error}`);
+    logError(`Error getting CSV for rule run: ${error}`);
     throw new Error("Error getting CSV for rule run");
   }
 };

@@ -3,6 +3,7 @@ import { Flex, Button, message, InputNumber, Collapse, Spin } from "antd";
 import { Scenario } from "@/app/types/scenario";
 import { getCSVTests } from "@/app/utils/api";
 import { RuleMap } from "@/app/types/rulemap";
+import { logError } from "@/app/utils/logger";
 import ScenarioFormatter from "../ScenarioFormatter";
 import styles from "./IsolationTester.module.css";
 import { DecisionGraphType } from "@gorules/jdm-editor";
@@ -35,9 +36,9 @@ export default function IsolationTester({
       setLoading(true);
       const csvContent = await getCSVTests(jsonFile, ruleContent, simulationContext, testScenarioCount);
       message.success(`Scenario Tests: ${csvContent}`);
-    } catch (error) {
+    } catch (error: any) {
       message.error("Error downloading scenarios.");
-      console.error("Error:", error);
+      logError("Error:", error);
     } finally {
       setLoading(false);
     }

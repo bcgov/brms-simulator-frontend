@@ -7,6 +7,7 @@ import RuleHeader from "@/app/components/RuleHeader";
 import RuleManager from "../../components/RuleManager";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
 import { postRuleData } from "@/app/utils/api";
+import { logError } from "@/app/utils/logger";
 
 export default function NewRule() {
   const [openNewRuleModal, setOpenNewRuleModal] = useState(false);
@@ -27,8 +28,8 @@ export default function NewRule() {
       message.success("New draft created");
       setRuleInfo(updatedRuleInfo);
       window.location.href = `/rule/${updatedRuleInfo._id}?version=draft`;
-    } catch (e) {
-      console.error("Error updating rule", e);
+    } catch (e: any) {
+      logError("Error updating rule", e);
       message.error("Unable to create new draft");
     }
   };

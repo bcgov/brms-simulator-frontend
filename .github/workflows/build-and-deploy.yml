@@ -66,4 +66,4 @@ jobs:
 
       - name: Run Helm
         run: |
-          helm upgrade --install brms-frontend ./helm --set image.tag=${{ needs.build_image.outputs.image_tag }}
+          helm upgrade --install brm-app ./helm --set image.tag=${{ needs.build_image.outputs.image_tag }}

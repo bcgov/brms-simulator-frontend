@@ -1,5 +1,6 @@
 import { Scenario } from "@/app/types/scenario";
 import { getFieldValidation } from "@/app/utils/utils";
+import { logError } from "@/app/utils/logger";
 import {
   DefaultInput,
   ObjectArrayInput,
@@ -84,7 +85,7 @@ export default function InputStyler(
     if (typeof setRawData === "function") {
       setRawData(updatedData);
     } else {
-      console.error("setRawData is not a function or is undefined");
+      logError("setRawData is not a function or is undefined");
     }
   };
 

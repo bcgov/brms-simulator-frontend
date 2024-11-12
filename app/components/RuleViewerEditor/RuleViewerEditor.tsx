@@ -18,6 +18,7 @@ import { SchemaSelectProps, PanelType } from "@/app/types/jdm-editor";
 import { Scenario, Variable } from "@/app/types/scenario";
 import { downloadFileBlob } from "@/app/utils/utils";
 import { getScenariosByFilename } from "@/app/utils/api";
+import { logError } from "@/app/utils/logger";
 import LinkRuleComponent from "./subcomponents/LinkRuleComponent";
 import SimulatorPanel from "./subcomponents/SimulatorPanel";
 import RuleInputOutputFieldsComponent from "./subcomponents/RuleInputOutputFieldsComponent";
@@ -97,8 +98,8 @@ export default function RuleViewerEditor({
         ...scenarioObject,
       };
       return downloadJSON(updatedJSON, jsonFilename);
-    } catch (error) {
-      console.error("Error fetching JSON:", error);
+    } catch (error: any) {
+      logError("Error fetching JSON:", error);
       throw error;
     }
   };
@@ -108,8 +109,8 @@ export default function RuleViewerEditor({
       event.preventDefault();
       try {
         await handleScenarioInsertion();
-      } catch (error) {
-        console.error("Error intercepting JSON download:", error);
+      } catch (error: any) {
+        logError("Error intercepting JSON download:", error);
       }
     }
   };

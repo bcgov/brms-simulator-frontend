@@ -7,6 +7,7 @@ import { createScenario, updateScenario } from "@/app/utils/api";
 import { RuleMap } from "@/app/types/rulemap";
 import ScenarioFormatter from "../ScenarioFormatter";
 import { getScenariosByFilename } from "@/app/utils/api";
+import { logError } from "@/app/utils/logger";
 import styles from "./ScenarioGenerator.module.css";
 
 interface ScenarioGeneratorProps {
@@ -81,8 +82,8 @@ export default function ScenarioGenerator({
       }
       updateScenarios();
       setActiveTabKey?.(scenariosManagerTabs.ScenariosTab);
-    } catch (error) {
-      console.error("Error creating scenario:", error);
+    } catch (error: any) {
+      logError("Error creating scenario:", error);
     }
   };
 

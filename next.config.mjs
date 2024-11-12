@@ -19,6 +19,10 @@ const nextConfig = {
       return [];
     }
   },
+  experimental: {
+    instrumentationHook: true,
+    serverComponentsExternalPackages: ["pino", "pino-pretty"],
+  },
 };
 
 export default nextConfig;

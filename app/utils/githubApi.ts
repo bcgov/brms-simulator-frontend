@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import { logError } from "./logger";
 import { getShortFilenameOnly } from "./utils";
 
 const GITHUB_REPO_URL = "https://api.github.com/repos/bcgov/brms-rules";
@@ -100,7 +101,7 @@ const createNewBranch = async (branchName: string, sha: string) => {
     });
     console.log(`New branch ${branchName} created`);
   } catch (error: any) {
-    console.error("Failed creating new branch", error);
+    logError("Failed creating new branch", error);
     throw error;
   }
 };
@@ -115,7 +116,7 @@ const getFileIfAlreadyExists = async (branchName: string, filePath: string) => {
     return getFileResponse.data;
   } catch (error: any) {
     if (error.response && error.response.status !== 404) {
-      console.error("Error getting file", error);
+      logError("Error getting file", error);
       throw error; // Rethrow if error is not due to the file not existing
     }
     return null;
@@ -144,7 +145,7 @@ const commitFileToBranch = async (branchName: string, filePath: string, ruleCont
     console.log("File updated");
     return file?.sha;
   } catch (error: any) {
-    console.error(`Failed to commit file ${filePath} to branch ${branchName}`, error);
+    logError(`Failed to commit file ${filePath} to branch ${branchName}`, error);
     throw error;
   }
 };
@@ -157,7 +158,7 @@ const doesPRExist = async (branchName: string): Promise<boolean> => {
     const openPrs = openPrsResponse.data;
     return openPrs.length > 0;
   } catch (error: any) {
-    console.error(`Failed checking if PR exists for ${branchName}`, error);
+    logError(`Failed checking if PR exists for ${branchName}`, error);
     throw error;
   }
 };
@@ -174,7 +175,7 @@ const createPR = async (branchName: string, prTitle: string, reviewDescription: 
     });
     console.log("Pull request created successfully:", prResponse.data.html_url);
   } catch (error: any) {
-    console.error(`Failed creating a PR for ${branchName}`, error);
+    logError(`Failed creating a PR for ${branchName}`, error);
     throw error;
   }
 };
@@ -190,7 +191,7 @@ export const getFileAsJsonIfAlreadyExists = async (branchName: string, filePath:
     }
     return JSON.parse(Buffer.from(file.content, "base64").toString("utf-8"));
   } catch (error: any) {
-    console.error(`Error getting ${filePath} as JSON for ${branchName}`, error);
+    logError(`Error getting ${filePath} as JSON for ${branchName}`, error);
     throw error;
   }
 };
@@ -214,8 +215,8 @@ export const sendRuleForReview = async (
     if (!prExists) {
       await createPR(branchName, commitMessage, reviewDescription);
     }
-  } catch (error) {
-    console.error("Error creating branch or committing file:", error);
+  } catch (error: any) {
+    logError("Error creating branch or committing file:", error);
     throw error;
   }
 };
