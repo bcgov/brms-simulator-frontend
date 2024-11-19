@@ -145,7 +145,7 @@ export default function RuleManager({
   }
 
   return (
-    <Flex gap="large" vertical>
+    <Flex gap="large" vertical className={styles.rootLayout}>
       <div className={styles.rulesWrapper}>
         {canEditGraph && (
           <SavePublish ruleInfo={ruleInfo} ruleContent={ruleContent} setHasSaved={() => setHasUnsavedChanges(false)} />

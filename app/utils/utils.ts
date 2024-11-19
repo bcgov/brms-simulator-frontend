@@ -1,4 +1,6 @@
 import dayjs from "dayjs";
+import { RULE_VERSION } from "@/app/constants/ruleVersion";
+
 /**
  * Downloads a file from a given data blob.
  *
@@ -153,4 +155,17 @@ export const generateDescriptiveName = (obj: Record<string, any>, maxLength: num
       return `${truncatedKey}_${value}`;
     })
     .join("_");
+};
+
+export const getVersionColor = (version?: string): string => {
+  switch (version) {
+    case RULE_VERSION.draft:
+      return "red";
+    case RULE_VERSION.inReview:
+      return "orange";
+    case RULE_VERSION.inDev:
+      return "purple";
+    default:
+      return "green";
+  }
 };

@@ -5,6 +5,8 @@ import getRuleDataForVersion from "@/app/hooks/getRuleDataForVersion";
 import { GithubAuthProvider } from "@/app/components/GithubAuthProvider";
 import RuleHeader from "@/app/components/RuleHeader";
 import RuleManager from "@/app/components/RuleManager";
+import { getVersionColor } from "@/app/utils/utils";
+import styles from "@/app/rule/rule.module.css";
 
 type Props = {
   params: { ruleId: string };
@@ -38,10 +40,16 @@ export default async function Rule({ params: { ruleId }, searchParams }: Props) 
     return <h1>Rule not found</h1>;
   }
 
+  const versionColor = getVersionColor(version?.toString());
+
   return (
     <GithubAuthProvider authInfo={githubAuthInfo}>
-      <RuleHeader ruleInfo={ruleInfo} version={version} />
-      <RuleManager ruleInfo={ruleInfo} initialRuleContent={ruleContent} editing={version} />
+      <div className={styles.rootLayout} style={{ background: versionColor }}>
+        <div className={styles.rulesWrapper}>
+          <RuleHeader ruleInfo={ruleInfo} version={version} />
+          <RuleManager ruleInfo={ruleInfo} initialRuleContent={ruleContent} editing={version} />
+        </div>
+      </div>
     </GithubAuthProvider>
   );
 }

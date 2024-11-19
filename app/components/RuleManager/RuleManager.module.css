@@ -2,3 +2,14 @@
   min-height: 500px;
   border: 1px solid #d9d9d9;
 }
+
+.rootLayout {
+  padding: 0;
+}
+
+@media (min-width: 768px) {
+  .rootLayout {
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+}

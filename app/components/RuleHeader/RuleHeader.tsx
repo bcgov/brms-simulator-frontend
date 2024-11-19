@@ -15,6 +15,7 @@ import { RuleInfo } from "@/app/types/ruleInfo";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
 import { updateRuleData } from "@/app/utils/api";
 import { getPRUrl } from "@/app/utils/githubApi";
+import { getVersionColor } from "@/app/utils/utils";
 import styles from "./RuleHeader.module.css";
 
 export default function RuleHeader({
@@ -86,19 +87,12 @@ export default function RuleHeader({
     return words.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
   };
 
-  let versionColor = "green";
-  if (version === RULE_VERSION.draft) {
-    versionColor = "red";
-  } else if (version === RULE_VERSION.inReview) {
-    versionColor = "orange";
-  } else if (version === RULE_VERSION.inDev) {
-    versionColor = "purple";
-  }
+  const versionColor = getVersionColor(version);
 
   if (currTitle === undefined) return null;
 
   return (
-    <div className={styles.headerContainer} style={{ background: versionColor }}>
+    <div className={styles.headerContainer}>
       <Flex justify="space-between" className={styles.headerWrapper}>
         <Flex gap="middle" align="center" flex={isEditingTitle ? "1" : "none"} className={styles.headerContent}>
           <a href="/" className={styles.homeButton}>
@@ -123,61 +117,75 @@ export default function RuleHeader({
                 currTitle
               )}
             </h1>
-            <p className={styles.titleFilePath}>{ruleInfo.filepath}</p>
+            <Flex gap="small" align="center">
+              <p className={styles.titleFilePath}>{ruleInfo.filepath}</p>
+              {ruleInfo.name &&
+                process.env.NEXT_PUBLIC_KLAMM_URL &&
+                version !== RULE_VERSION.inProduction &&
+                version !== RULE_VERSION.inDev &&
+                ruleInfo.isPublished && (
+                  <Tooltip title="View rule details in KLAMM">
+                    {" "}
+                    <Button
+                      type="link"
+                      icon={<InfoCircleOutlined />}
+                      onClick={() =>
+                        window.open(`${process.env.NEXT_PUBLIC_KLAMM_URL}/rules/${ruleInfo.name}`, "_blank")
+                      }
+                    ></Button>
+                  </Tooltip>
+                )}
+            </Flex>
           </Flex>
           {isEditingTitle && (
             <button className={styles.editButton} onClick={isEditingTitle ? doneEditingTitle : startEditingTitle}>
               <CheckOutlined />
             </button>
           )}
-          {ruleInfo.name &&
-            process.env.NEXT_PUBLIC_KLAMM_URL &&
-            version !== RULE_VERSION.inProduction &&
-            version !== RULE_VERSION.inDev &&
-            ruleInfo.isPublished && (
-              <Tooltip title="View rule details in KLAMM">
-                {" "}
-                <Button
-                  type="link"
-                  icon={<InfoCircleOutlined />}
-                  onClick={() => window.open(`${process.env.NEXT_PUBLIC_KLAMM_URL}/rules/${ruleInfo.name}`, "_blank")}
-                ></Button>
-              </Tooltip>
-            )}
-          <Tag color={versionColor}>{formatVersionText(version)}</Tag>
-          {ruleInfo.reviewBranch && version !== RULE_VERSION.inProduction && version !== RULE_VERSION.inDev && (
-            <Button type="link" onClick={() => prUrl && window.open(prUrl, "_blank")} disabled={!prUrl}>
-              View Pull Request
-            </Button>
-          )}
         </Flex>
         <Flex gap="small" align="end">
-          {version !== RULE_VERSION.draft && (
-            <Button onClick={() => switchVersion(RULE_VERSION.draft)} icon={<EditOutlined />} type="dashed">
-              Draft
-            </Button>
-          )}
-          {ruleInfo.reviewBranch && version !== RULE_VERSION.inReview && (
-            <Button onClick={() => switchVersion(RULE_VERSION.inReview)} icon={<EyeOutlined />} type="dashed">
-              In Review
-            </Button>
-          )}
-          {version !== RULE_VERSION.inDev && ruleInfo.isPublished && (
-            <Button onClick={() => switchVersion(RULE_VERSION.inDev)} icon={<CheckCircleOutlined />} type="dashed">
-              In Dev
-            </Button>
-          )}
-          {version !== RULE_VERSION.inProduction &&
-            ruleInfo.isPublished &&
-            process.env.NEXT_PUBLIC_IN_PRODUCTION === "true" && (
-              <Button
-                onClick={() => switchVersion(RULE_VERSION.inProduction)}
-                icon={<CheckCircleFilled />}
-                type="dashed"
-              >
-                In Production
-              </Button>
-            )}
+          <Flex gap="small" align="center" vertical>
+            <span className={styles.versionInfo}>
+              You are viewing the{" "}
+              <Tag style={{ margin: "0" }} color={versionColor}>
+                {formatVersionText(version).trim()}
+              </Tag>{" "}
+              version of this rule.
+            </span>
+            <Flex gap="small">
+              {ruleInfo.reviewBranch && version !== RULE_VERSION.inProduction && version !== RULE_VERSION.inDev && (
+                <Button type="link" onClick={() => prUrl && window.open(prUrl, "_blank")} disabled={!prUrl}>
+                  View Pull Request
+                </Button>
+              )}
+              {version !== RULE_VERSION.draft && (
+                <Button onClick={() => switchVersion(RULE_VERSION.draft)} icon={<EditOutlined />} type="dashed">
+                  Draft
+                </Button>
+              )}
+              {ruleInfo.reviewBranch && version !== RULE_VERSION.inReview && (
+                <Button onClick={() => switchVersion(RULE_VERSION.inReview)} icon={<EyeOutlined />} type="dashed">
+                  In Review
+                </Button>
+              )}
+              {version !== RULE_VERSION.inDev && ruleInfo.isPublished && (
+                <Button onClick={() => switchVersion(RULE_VERSION.inDev)} icon={<CheckCircleOutlined />} type="dashed">
+                  In Dev
+                </Button>
+              )}
+              {version !== RULE_VERSION.inProduction &&
+                ruleInfo.isPublished &&
+                process.env.NEXT_PUBLIC_IN_PRODUCTION === "true" && (
+                  <Button
+                    onClick={() => switchVersion(RULE_VERSION.inProduction)}
+                    icon={<CheckCircleFilled />}
+                    type="dashed"
+                  >
+                    In Production
+                  </Button>
+                )}
+            </Flex>
+          </Flex>
         </Flex>
       </Flex>
     </div>
