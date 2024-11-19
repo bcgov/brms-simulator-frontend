@@ -1,42 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
+import { Button, Select, Input, Flex } from "antd";
 import { CategoryObject } from "@/app/types/ruleInfo";
+import { Rule, RuleNode, RuleLink } from "@/app/types/rulemap";
+import styles from "@/app/components/RuleRelationsDisplay/RuleRelationsDisplay.module.css";
+import { GraphTraversal } from "@/app/utils/graphUtils";
 
-interface Rule {
-  id: number;
-  name: string;
-  label: string;
-  child_rules: Rule[];
-  parent_rules: Rule[];
-  description: string | null;
-  url: string | undefined;
-  filepath: string | undefined;
-}
-
-interface RuleNode extends d3.SimulationNodeDatum {
-  id: number;
-  name: string;
-  label: string;
-  radius: number;
-  isHighlighted?: boolean;
-  description: string | null;
-  url: string | undefined;
-  filepath: string | undefined;
-}
-
-interface RuleLink extends d3.SimulationLinkDatum<RuleNode> {
-  source: number;
-  target: number;
-}
-
-interface RuleGraphProps {
+export interface RuleGraphProps {
   rules: Rule[];
   categories: CategoryObject[];
   width?: number;
   height?: number;
 }
 
-export default function RuleRelationsGraph({ rules, categories, width = 1000, height = 400 }: RuleGraphProps) {
+export default function RuleRelationsGraph({ rules, categories, width = 1000, height = 1000 }: RuleGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width, height });
@@ -166,7 +143,7 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
     const nodes: RuleNode[] = Array.from(uniqueRules.values()).map((rule) => ({
       id: rule.id,
       name: rule.name,
-      label: rule.label,
+      label: rule.label ?? rule.name,
       radius: 8,
       description: rule.description || null,
       url: rule.url,
@@ -174,28 +151,24 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
     }));
 
     // Create links only between existing nodes
-    const links: RuleLink[] = [];
-    uniqueRules.forEach((rule) => {
-      if (rule.parent_rules) {
-        rule.parent_rules.forEach((parent) => {
-          if (uniqueRules.has(parent.id)) {
-            links.push({
-              source: parent.id,
-              target: rule.id,
-            });
-          }
-        });
-      }
-      if (rule.child_rules) {
-        rule.child_rules.forEach((child) => {
-          if (uniqueRules.has(child.id)) {
-            links.push({
-              source: rule.id,
-              target: child.id,
-            });
-          }
-        });
-      }
+    const links: RuleLink[] = Array.from(uniqueRules.values()).flatMap((rule) => {
+      const parentLinks =
+        rule.parent_rules
+          ?.filter((parent) => uniqueRules.has(parent.id))
+          .map((parent) => ({
+            source: parent.id,
+            target: rule.id,
+          })) || [];
+
+      const childLinks =
+        rule.child_rules
+          ?.filter((child) => uniqueRules.has(child.id))
+          .map((child) => ({
+            source: rule.id,
+            target: child.id,
+          })) || [];
+
+      return [...parentLinks, ...childLinks];
     });
 
     nodes.sort((a, b) => a.id - b.id);
@@ -273,70 +246,7 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
         d3.select(this).style("fill", "#0066cc");
       });
 
-    // Get all connected nodes
-    const getAllAncestors = (nodeId: number, visited = new Set<number>()): Set<number> => {
-      const ancestors = new Set<number>();
-      if (visited.has(nodeId)) return ancestors;
-      visited.add(nodeId);
-
-      links.forEach((link) => {
-        const sourceId = (link.source as any).id;
-        const targetId = (link.target as any).id;
-
-        if (targetId === nodeId) {
-          ancestors.add(sourceId);
-          const parentAncestors = getAllAncestors(sourceId, visited);
-          parentAncestors.forEach((id) => ancestors.add(id));
-        }
-      });
-
-      return ancestors;
-    };
-
-    const getAllDescendants = (nodeId: number, visited = new Set<number>()): Set<number> => {
-      const descendants = new Set<number>();
-      if (visited.has(nodeId)) return descendants;
-      visited.add(nodeId);
-
-      links.forEach((link) => {
-        const sourceId = (link.source as any).id;
-        const targetId = (link.target as any).id;
-
-        if (sourceId === nodeId) {
-          descendants.add(targetId);
-          const childDescendants = getAllDescendants(targetId, visited);
-          childDescendants.forEach((id) => descendants.add(id));
-        }
-      });
-
-      return descendants;
-    };
-
-    const getAncestorLinks = (nodeId: number): RuleLink[] => {
-      const ancestors = getAllAncestors(nodeId);
-      return links.filter((link) => {
-        const sourceId = (link.source as any).id;
-        const targetId = (link.target as any).id;
-        return (
-          (ancestors.has(sourceId) && ancestors.has(targetId)) ||
-          (ancestors.has(sourceId) && targetId === nodeId) ||
-          targetId === nodeId
-        );
-      });
-    };
-
-    const getDescendantLinks = (nodeId: number): RuleLink[] => {
-      const descendants = getAllDescendants(nodeId);
-      return links.filter((link) => {
-        const sourceId = (link.source as any).id;
-        const targetId = (link.target as any).id;
-        return (
-          (descendants.has(sourceId) && descendants.has(targetId)) ||
-          (descendants.has(targetId) && sourceId === nodeId) ||
-          sourceId === nodeId
-        );
-      });
-    };
+    const graphTraversal = new GraphTraversal(links);
 
     const highlightConnections = (nodeId: number | null) => {
       if (nodeId === null) {
@@ -345,20 +255,17 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
         return;
       }
 
-      const ancestors = getAllAncestors(nodeId);
-      const descendants = getAllDescendants(nodeId);
-      const ancestorLinks = getAncestorLinks(nodeId);
-      const descendantLinks = getDescendantLinks(nodeId);
+      const ancestors = graphTraversal.getAllAncestors(nodeId);
+      const descendants = graphTraversal.getAllDescendants(nodeId);
+      const ancestorLinks = graphTraversal.getAncestorLinks(nodeId);
+      const descendantLinks = graphTraversal.getDescendantLinks(nodeId);
 
-      nodeGroup
-        .selectAll("circle")
-        .attr("fill", (d: any) => {
-          if (d.id === nodeId) return "#ff7f50";
-          if (ancestors.has(d.id)) return "#4169e1";
-          if (descendants.has(d.id)) return "#32cd32";
-          return "#69b3a2";
-        })
-        .attr("r", (d: any) => (d.id === nodeId ? d.radius * 1.4 : d.radius));
+      nodeGroup.selectAll("circle").attr("fill", (d: any) => {
+        if (d.id === nodeId) return "#ff7f50";
+        if (ancestors.has(d.id)) return "#4169e1";
+        if (descendants.has(d.id)) return "#32cd32";
+        return "#69b3a2";
+      });
 
       // Update labels
       nodeGroup
@@ -369,13 +276,17 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
 
       // Update links
       link
-        .attr("stroke", (l: any) => {
-          if (ancestorLinks.includes(l)) return "#4169e1";
-          if (descendantLinks.includes(l)) return "#32cd32";
+        .attr("stroke", (line: any) => {
+          if (ancestorLinks.includes(line)) return "#4169e1";
+          if (descendantLinks.includes(line)) return "#32cd32";
           return "#999";
         })
-        .attr("stroke-opacity", (l: any) => (ancestorLinks.includes(l) || descendantLinks.includes(l) ? 1 : 0.2))
-        .attr("stroke-width", (l: any) => (ancestorLinks.includes(l) || descendantLinks.includes(l) ? "2" : "1"));
+        .attr("stroke-opacity", (line: any) =>
+          ancestorLinks.includes(line) || descendantLinks.includes(line) ? 1 : 0.2
+        )
+        .attr("stroke-width", (line: any) =>
+          ancestorLinks.includes(line) || descendantLinks.includes(line) ? "2" : "1"
+        );
 
       // Update opacity
       nodeGroup.style("opacity", (d: any) =>
@@ -394,9 +305,9 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
           matchingNodes.add(node.id);
 
           // Add all related rules
-          const ancestors = getAllAncestors(node.id);
+          const ancestors = graphTraversal.getAllAncestors(node.id);
           ancestors.forEach((id) => matchingNodes.add(id));
-          const descendants = getAllDescendants(node.id);
+          const descendants = graphTraversal.getAllDescendants(node.id);
           descendants.forEach((id) => matchingNodes.add(id));
         }
       });
@@ -410,8 +321,7 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
 
       nodeGroup
         .selectAll("circle")
-        .attr("fill", (d: any) => (d.name.toLowerCase().includes(searchPattern) ? "#ff7f50" : "#69b3a2"))
-        .attr("r", (d: any) => (d.name.toLowerCase().includes(searchPattern) ? d.radius * 1.4 : d.radius));
+        .attr("fill", (d: any) => (d.name.toLowerCase().includes(searchPattern) ? "#ff7f50" : "#69b3a2"));
 
       nodeGroup
         .selectAll("text")
@@ -452,23 +362,6 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
       setSelectedNodeId(null);
       highlightConnections(null);
     });
-
-    // Hover effects for nodes
-    nodeGroup
-      .select("circle")
-      .on("mouseover", function (event, d: any) {
-        if (d.id !== selectedNodeId) {
-          d3.select(this)
-            .transition()
-            .duration(200)
-            .attr("r", d.radius * 1.2);
-        }
-      })
-      .on("mouseout", function (event, d: any) {
-        if (d.id !== selectedNodeId) {
-          d3.select(this).transition().duration(200).attr("r", d.radius);
-        }
-      });
 
     // Drag functions combined with zoom
     function dragstarted(event: any) {
@@ -796,7 +689,6 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
           svg.transition().call(zoom.translateBy as any, 0, -10);
           break;
         case "ArrowDown":
-        // ...rest of the existing key handlers...
       }
     });
 
@@ -824,149 +716,96 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
     return () => {
       simulation.stop();
     };
-  }, [rules, dimensions, searchTerm, categoryFilter]); // Add dimensions to dependency array
+  }, [rules, dimensions, searchTerm, categoryFilter]);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        border: "1px solid #ccc",
-        borderRadius: "4px",
-        width: "100%",
-        height: "100%",
-        minHeight: "400px",
-        maxHeight: "80vh",
-      }}
-    >
-      <div
-        role="region"
+    <div ref={containerRef} className={styles.container}>
+      <Flex
+        gap="small"
+        vertical
         aria-label="Graph Controls"
-        style={{
-          padding: "8px",
-          border: "1px solid #ccc",
-          borderRadius: "4px",
-          position: "absolute",
-          backgroundColor: "rgba(255, 255, 255, 0.9)",
-          zIndex: 1,
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-          maxWidth: "300px",
-          transition: "all 0.3s ease",
-          maxHeight: isLegendMinimized ? "60px" : "500px",
-          overflow: "hidden",
-        }}
+        className={styles.controls}
+        style={{ maxHeight: isLegendMinimized ? "110px" : "500px" }}
       >
-        {/* Search section with minimize button */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", flex: 1, gap: "8px" }}>
-            <input
+        <Flex gap="small" align="center">
+          <Flex gap="small" align="center" wrap>
+            <Input
               type="text"
               placeholder="Search rules..."
               value={searchTerm}
+              className={styles.input}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ padding: "4px 8px", borderRadius: "4px", border: "1px solid #ccc", flex: 1 }}
               aria-label="Search rules"
             />
-            <select
+            <Select
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              style={{
-                padding: "4px 8px",
-                borderRadius: "4px",
-                border: "1px solid #ccc",
-                cursor: "pointer",
-              }}
+              onChange={(e) => setCategoryFilter(e)}
               aria-label="Filter by category"
+              placeholder="Filter by category"
+              className={styles.select}
+              options={[
+                { value: "", label: "All Categories" },
+                ...categories.map((cat) => ({ value: cat.value, label: cat.text })),
+              ]}
+            />
+            <Button
+              onClick={() => {
+                setSearchTerm("");
+                setCategoryFilter("");
+              }}
+              className={styles.button}
+              danger
             >
-              <option value="">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.text}
-                </option>
-              ))}
-            </select>
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                style={{ padding: "4px 8px", borderRadius: "4px", border: "1px solid #ccc", cursor: "pointer" }}
-              >
-                Clear
-              </button>
-            )}
-          </div>
-          <button
-            onClick={() => setIsLegendMinimized(!isLegendMinimized)}
-            style={{
-              padding: "4px 8px",
-              borderRadius: "4px",
-              border: "1px solid #ccc",
-              cursor: "pointer",
-              backgroundColor: "white",
-            }}
-            aria-label={isLegendMinimized ? "Show legend" : "Hide legend"}
-          >
-            {isLegendMinimized ? "+" : "−"}
-          </button>
-        </div>
-
-        {/* Collapsible sections */}
+              Clear
+            </Button>
+            <Button
+              onClick={() => setIsLegendMinimized(!isLegendMinimized)}
+              className={styles.button}
+              aria-label={isLegendMinimized ? "Show legend" : "Hide legend"}
+            >
+              {isLegendMinimized ? "+ Show Legend" : "- Hide Legend"}
+            </Button>
+          </Flex>
+        </Flex>
         <div
+          className={styles.collapsible}
           style={{
             opacity: isLegendMinimized ? 0 : 1,
-            transition: "opacity 0.2s ease",
             pointerEvents: isLegendMinimized ? "none" : "auto",
           }}
-        >
-          {/* Legend Section */}
-          <div style={{ borderTop: "1px solid #ccc", paddingTop: "8px", fontSize: "12px" }}>
-            <p style={{ margin: "0 0 8px 0", fontWeight: "bold" }}>Legend:</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <div style={{ width: "20px", height: "2px", backgroundColor: "#4169e1" }} />
-                <span>Parent Rules</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <div style={{ width: "20px", height: "2px", backgroundColor: "#32cd32" }} />
-                <span>Child Rules</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <div
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    backgroundColor: "#ff7f50",
-                    borderRadius: "50%",
-                  }}
-                />
-                <span>Selected Rule</span>
-              </div>
-            </div>
-          </div>
+        ></div>
+        <Flex vertical className={styles.legend}>
+          <p className={styles.legendTitle}>Legend:</p>
+          <Flex vertical gap="small">
+            <Flex align="center" className={styles.legendItem}>
+              <div className={styles.parentLine} />
+              <span>Parent Rules</span>
+            </Flex>
+            <Flex align="center" className={styles.legendItem}>
+              <div className={styles.childLine} />
+              <span>Child Rules</span>
+            </Flex>
+            <Flex align="center" className={styles.legendItem}>
+              <div className={styles.selectedDot} />
+              <span>Selected Rule</span>
+            </Flex>
+          </Flex>
+        </Flex>
 
-          {/* Interaction Help */}
-          <div style={{ borderTop: "1px solid #ccc", paddingTop: "8px", fontSize: "12px" }}>
-            <p style={{ margin: "0 0 4px 0", fontWeight: "bold" }}>Interactions:</p>
-            <ul style={{ margin: "0", paddingLeft: "20px" }}>
-              <li>Click a node to see all its relationships</li>
-              <li>Click node text to view rule details</li>
-              <li>Click background to reset view</li>
-            </ul>
-          </div>
+        <Flex vertical className={styles.legend}>
+          <p className={styles.legendTitle}>Interactions:</p>
+          <ul className={styles.helpList}>
+            <li>Click a node to see all its relationships</li>
+            <li>Click node text to view rule details</li>
+            <li>Click background to reset view</li>
+          </ul>
+        </Flex>
 
-          <p style={{ margin: 0, fontSize: "12px", borderTop: "1px solid #ccc", paddingTop: "8px" }}>
-            Use arrow keys to pan, + and - to zoom, Tab to navigate between nodes, Enter to open rule
-          </p>
-        </div>
-      </div>
-      <svg
-        ref={svgRef}
-        style={{
-          width: "100%",
-          height: "calc(100% - 60px)",
-          background: "#fff",
-        }}
-      />
+        <p className={styles.instructions}>
+          Use arrow keys to pan, + and - to zoom, Tab to navigate between nodes, Enter to open rule
+        </p>
+      </Flex>
+      <svg ref={svgRef} className={styles.svg} />
     </div>
   );
 }

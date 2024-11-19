@@ -18,7 +18,7 @@ export default function Map() {
     try {
       const maxRuleData = await getAllRuleData({
         page: 1,
-        pageSize: 1000,
+        pageSize: 5000,
         searchTerm: "",
       });
       const klammRuleData = await getBRERules();
