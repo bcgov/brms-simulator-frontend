@@ -14,6 +14,7 @@ import {
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
 import { updateRuleData } from "@/app/utils/api";
+import { getPRUrl } from "@/app/utils/githubApi";
 import styles from "./RuleHeader.module.css";
 
 export default function RuleHeader({
@@ -29,6 +30,18 @@ export default function RuleHeader({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [currTitle, setCurrTitle] = useState<string>();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [currReviewBranch, setCurrReviewBranch] = useState(ruleInfo.reviewBranch);
+  const [prUrl, setPrUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPRUrl = async () => {
+      if (currReviewBranch) {
+        const url = await getPRUrl(currReviewBranch);
+        setPrUrl(url);
+      }
+    };
+    fetchPRUrl();
+  }, [currReviewBranch]);
 
   useEffect(() => {
     const { title, filepath } = ruleInfo;
@@ -132,6 +145,11 @@ export default function RuleHeader({
               </Tooltip>
             )}
           <Tag color={versionColor}>{formatVersionText(version)}</Tag>
+          {ruleInfo.reviewBranch && version !== RULE_VERSION.inProduction && version !== RULE_VERSION.inDev && (
+            <Button type="link" onClick={() => prUrl && window.open(prUrl, "_blank")} disabled={!prUrl}>
+              View Pull Request
+            </Button>
+          )}
         </Flex>
         <Flex gap="small" align="end">
           {version !== RULE_VERSION.draft && (

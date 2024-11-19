@@ -180,6 +180,23 @@ const createPR = async (branchName: string, prTitle: string, reviewDescription: 
   }
 };
 
+// Get the PR URL for a branch if it exists
+export const getPRUrl = async (branchName: string): Promise<string | null> => {
+  if (!branchName) return null;
+  try {
+    const listPrsUrl = `${GITHUB_REPO_URL}/pulls?state=open&head=${GITHUB_REPO_OWNER}:${branchName}`;
+    const openPrsResponse = await axiosGithubInstance.get(listPrsUrl);
+    const openPrs = openPrsResponse.data;
+    if (openPrs.length > 0) {
+      return openPrs[0].html_url;
+    }
+    return null;
+  } catch (error: any) {
+    console.error(`Failed getting PR URL for ${branchName}`, error);
+    return null;
+  }
+};
+
 // Get json file from branch
 export const getFileAsJsonIfAlreadyExists = async (branchName: string, filePath: string) => {
   try {
