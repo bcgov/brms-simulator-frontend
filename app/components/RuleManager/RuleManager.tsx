@@ -147,8 +147,8 @@ export default function RuleManager({
   return (
     <Flex gap="large" vertical className={styles.rootLayout}>
       <div className={styles.rulesWrapper}>
-        {canEditGraph && (
-          <SavePublish ruleInfo={ruleInfo} ruleContent={ruleContent} setHasSaved={() => setHasUnsavedChanges(false)} />
+        {(canEditGraph || editing === RULE_VERSION.inReview) && (
+          <SavePublish ruleInfo={ruleInfo} ruleContent={ruleContent} version={editing} setHasSaved={() => setHasUnsavedChanges(false)} />
         )}
         {isLoading && (
           <Spin tip="Loading graph..." size="large" className="spinner">
