@@ -26,7 +26,10 @@ export default function VersionBar({ ruleInfo, version = RULE_VERSION.inProducti
       : undefined;
 
   const switchVersion = (versionToSwitchTo: RULE_VERSION) => {
-    window.location.href = `${pathname}?version=${versionToSwitchTo}&_=${new Date().getTime()}`;
+    const url = new URL(window.location.href);
+    url.searchParams.set("version", versionToSwitchTo);
+    url.searchParams.set("_", new Date().getTime().toString());
+    window.location.href = url.toString();
   };
 
   return (
