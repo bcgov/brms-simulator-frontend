@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Flex, Button, Tabs } from "antd";
 import type { TabsProps } from "antd";
 import { DecisionGraphType } from "@gorules/jdm-editor";
@@ -63,88 +63,91 @@ export default function ScenariosManager({
     });
   };
 
-  const handleReset = (callback?: () => void) => {
-    setSimulationContext({});
-    setScenarioName("");
-    const ruleMapInputs = createRuleMap(rulemap?.inputs);
-    setSimulationContext(ruleMapInputs);
-    setResetTrigger((prev) => !prev);
-    if (callback) callback();
-  };
-
-  const scenariosTab = scenarios && rulemap && (
-    <Flex gap="small" vertical>
-      <ScenarioViewer
-        scenarios={scenarios}
-        jsonFile={jsonFile}
-        setSimulationContext={setSimulationContext}
-        resultsOfSimulation={resultsOfSimulation}
-        runSimulation={runSimulation}
-        rulemap={rulemap}
-        editing={isEditing}
-        setActiveTabKey={setActiveTabKey}
-        scenariosManagerTabs={ScenariosManagerTabs}
-        setResetTrigger={setResetTrigger}
-        setScenarioName={setScenarioName}
-      />
-    </Flex>
-  );
-
-  const inputsTab = scenarios && rulemap && ruleId && (
-    <Flex gap="small " className={styles.scenarioGeneratorTab}>
-      <ScenarioGenerator
-        scenarios={scenarios}
-        simulationContext={simulationContext}
-        setSimulationContext={setSimulationContext}
-        resultsOfSimulation={resultsOfSimulation}
-        runSimulation={runSimulation}
-        resetTrigger={resetTrigger}
-        ruleId={ruleId}
-        jsonFile={jsonFile}
-        rulemap={rulemap}
-        editing={isEditing}
-        scenarioName={scenarioName}
-        setScenarioName={setScenarioName}
-        setActiveTabKey={setActiveTabKey}
-        scenariosManagerTabs={ScenariosManagerTabs}
-        setActiveScenarios={setScenarios}
-      />
-      <Button onClick={() => handleReset()} size="large" type="primary">
-        Reset ↻
-      </Button>
-    </Flex>
-  );
-
-  const resultsTab = (
-    <Flex gap="small">
-      <ScenarioResults scenarios={scenarios} jsonFile={jsonFile} ruleContent={ruleContent} />
-    </Flex>
-  );
-
-  const csvTab = (
-    <Flex gap="small">
-      <ScenarioCSV jsonFile={jsonFile} ruleContent={ruleContent} />
-    </Flex>
-  );
-
-  const isolationTestTab = (
-    <Flex gap="small">
-      <IsolationTester
-        scenarios={scenarios}
-        simulationContext={simulationContext}
-        setSimulationContext={setSimulationContext}
-        resetTrigger={resetTrigger}
-        jsonFile={jsonFile}
-        rulemap={rulemap}
-        ruleContent={ruleContent}
-      />
-      <Button onClick={() => handleReset()} size="large" type="primary">
-        Reset ↻
-      </Button>
-    </Flex>
+  const handleReset = useCallback(
+    (callback?: () => void) => {
+      setSimulationContext({});
+      setScenarioName("");
+      const ruleMapInputs = createRuleMap(rulemap?.inputs);
+      setSimulationContext(ruleMapInputs);
+      setResetTrigger((prev) => !prev);
+      if (callback) callback();
+    },
+    [createRuleMap, rulemap?.inputs, setSimulationContext, setScenarioName, setResetTrigger]
   );
 
   const filteredItems = useMemo(() => {
+    const scenariosTab = scenarios && rulemap && (
+      <Flex gap="small" vertical>
+        <ScenarioViewer
+          scenarios={scenarios}
+          jsonFile={jsonFile}
+          setSimulationContext={setSimulationContext}
+          resultsOfSimulation={resultsOfSimulation}
+          runSimulation={runSimulation}
+          rulemap={rulemap}
+          editing={isEditing}
+          setActiveTabKey={setActiveTabKey}
+          scenariosManagerTabs={ScenariosManagerTabs}
+          setResetTrigger={setResetTrigger}
+          setScenarioName={setScenarioName}
+        />
+      </Flex>
+    );
+
+    const inputsTab = scenarios && rulemap && ruleId && (
+      <Flex gap="small " className={styles.scenarioGeneratorTab}>
+        <ScenarioGenerator
+          scenarios={scenarios}
+          simulationContext={simulationContext}
+          setSimulationContext={setSimulationContext}
+          resultsOfSimulation={resultsOfSimulation}
+          runSimulation={runSimulation}
+          resetTrigger={resetTrigger}
+          ruleId={ruleId}
+          jsonFile={jsonFile}
+          rulemap={rulemap}
+          editing={isEditing}
+          scenarioName={scenarioName}
+          setScenarioName={setScenarioName}
+          setActiveTabKey={setActiveTabKey}
+          scenariosManagerTabs={ScenariosManagerTabs}
+          setActiveScenarios={setScenarios}
+        />
+        <Button onClick={() => handleReset()} size="large" type="primary">
+          Reset ↻
+        </Button>
+      </Flex>
+    );
+
+    const resultsTab = (
+      <Flex gap="small">
+        <ScenarioResults scenarios={scenarios} jsonFile={jsonFile} ruleContent={ruleContent} />
+      </Flex>
+    );
+
+    const csvTab = (
+      <Flex gap="small">
+        <ScenarioCSV jsonFile={jsonFile} ruleContent={ruleContent} />
+      </Flex>
+    );
+
+    const isolationTestTab = (
+      <Flex gap="small">
+        <IsolationTester
+          scenarios={scenarios}
+          simulationContext={simulationContext}
+          setSimulationContext={setSimulationContext}
+          resetTrigger={resetTrigger}
+          jsonFile={jsonFile}
+          rulemap={rulemap}
+          ruleContent={ruleContent}
+        />
+        <Button onClick={() => handleReset()} size="large" type="primary">
+          Reset ↻
+        </Button>
+      </Flex>
+    );
+
     const items: TabsProps["items"] = [
       {
         key: ScenariosManagerTabs.ScenariosTab,
@@ -179,7 +182,26 @@ export default function ScenariosManager({
     ];
 
     return showAllScenarioTabs ? items : items.filter((item) => !item.disabled);
-  }, [showAllScenarioTabs, scenariosTab, inputsTab, resultsTab, csvTab, isolationTestTab]);
+  }, [
+    showAllScenarioTabs,
+    scenarios,
+    rulemap,
+    ruleId,
+    jsonFile,
+    setSimulationContext,
+    resultsOfSimulation,
+    runSimulation,
+    isEditing,
+    setActiveTabKey,
+    setResetTrigger,
+    setScenarioName,
+    ruleContent,
+    simulationContext,
+    resetTrigger,
+    handleReset,
+    scenarioName,
+    setScenarios,
+  ]);
 
   return (
     <Flex justify="space-between" align="center" className={styles.contentSection}>

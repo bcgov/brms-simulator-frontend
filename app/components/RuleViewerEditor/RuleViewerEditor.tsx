@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import type { ReactFlowInstance } from "reactflow";
 import "@gorules/jdm-editor/dist/style.css";
 import { Spin, Modal } from "antd";
@@ -102,6 +102,59 @@ export default function RuleViewerEditor({
     }
   };
 
+  const handleFileUpload = useCallback(
+    async (_event: any, uploadedContent: { tests?: any[] }) => {
+      if (!uploadedContent?.tests) return;
+
+      try {
+        const [existingScenarios, scenarios] = await Promise.all([
+          getScenariosByFilename(jsonFilename),
+          Promise.resolve(convertTestsToScenarios(uploadedContent.tests)),
+        ]);
+
+        const existingTitles: Set<string> = new Set(existingScenarios.map((scenario: Scenario) => scenario.title));
+        const newScenarios = scenarios.filter((scenario) => !existingTitles.has(scenario.title));
+
+        if (newScenarios.length > 0) {
+          let selectedScenarios: Scenario[] = [];
+
+          Modal.confirm({
+            title: "Import Scenarios",
+            width: 600,
+            maskClosable: false,
+            closable: false,
+            centered: true,
+            content: (
+              <ScenarioSelectionContent
+                scenarios={newScenarios}
+                onComplete={(selected) => {
+                  selectedScenarios = selected;
+                }}
+              />
+            ),
+            okText: "Import Selected",
+            cancelText: "Cancel",
+            onOk: async () => {
+              if (selectedScenarios.length > 0) {
+                const ruleId = getRuleIdFromPath();
+                await Promise.all(
+                  selectedScenarios.map((scenario) =>
+                    createScenario({ ...scenario, ruleID: ruleId, filepath: jsonFilename })
+                  )
+                ).then(() => {
+                  updateScenarios();
+                });
+              }
+            },
+          });
+        }
+      } catch (error) {
+        console.error("Failed to process scenarios:", error);
+      }
+    },
+    [jsonFilename, updateScenarios]
+  );
+
   useEffect(() => {
     const handleFileSelect = (event: any) => {
       if (
@@ -133,7 +186,7 @@ export default function RuleViewerEditor({
     return () => {
       document.removeEventListener("change", handleFileSelect, true);
     };
-  }, [decisionGraphRef, ruleContent]);
+  }, [decisionGraphRef, handleFileUpload]);
 
   useEffect(() => {
     const clickHandler = (event: any) => {
@@ -151,56 +204,6 @@ export default function RuleViewerEditor({
   const getRuleIdFromPath = () => {
     const match = window.location.pathname.match(/\/rule\/([^/]+)/);
     return match?.[1] ?? null;
-  };
-
-  const handleFileUpload = async (_event: any, uploadedContent: { tests?: any[] }) => {
-    if (!uploadedContent?.tests) return;
-
-    try {
-      const [existingScenarios, scenarios] = await Promise.all([
-        getScenariosByFilename(jsonFilename),
-        Promise.resolve(convertTestsToScenarios(uploadedContent.tests)),
-      ]);
-
-      const existingTitles: Set<string> = new Set(existingScenarios.map((scenario: Scenario) => scenario.title));
-      const newScenarios = scenarios.filter((scenario) => !existingTitles.has(scenario.title));
-
-      if (newScenarios.length > 0) {
-        let selectedScenarios: Scenario[] = [];
-
-        Modal.confirm({
-          title: "Import Scenarios",
-          width: 600,
-          maskClosable: false,
-          closable: false,
-          centered: true,
-          content: (
-            <ScenarioSelectionContent
-              scenarios={newScenarios}
-              onComplete={(selected) => {
-                selectedScenarios = selected;
-              }}
-            />
-          ),
-          okText: "Import Selected",
-          cancelText: "Cancel",
-          onOk: async () => {
-            if (selectedScenarios.length > 0) {
-              const ruleId = getRuleIdFromPath();
-              await Promise.all(
-                selectedScenarios.map((scenario) =>
-                  createScenario({ ...scenario, ruleID: ruleId, filepath: jsonFilename })
-                )
-              ).then(() => {
-                updateScenarios();
-              });
-            }
-          },
-        });
-      }
-    } catch (error) {
-      console.error("Failed to process scenarios:", error);
-    }
   };
 
   const additionalComponents: NodeSpecification[] = useMemo(

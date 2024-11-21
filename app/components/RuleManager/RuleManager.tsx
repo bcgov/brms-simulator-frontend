@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Flex, Spin, message } from "antd";
 import { Simulation, DecisionGraphType } from "@gorules/jdm-editor";
@@ -66,15 +66,15 @@ export default function RuleManager({
     }
   };
 
-  const updateScenarios = async () => {
+  const updateScenarios = useCallback(async () => {
     const updatedScenarios: Scenario[] = await getScenariosByFilename(jsonFile);
     setScenarios(updatedScenarios);
-  };
+  }, [jsonFile]);
 
   useEffect(() => {
     setRuleContent(initialRuleContent);
     updateScenarios();
-  }, [initialRuleContent]);
+  }, [initialRuleContent, updateScenarios]);
 
   useEffect(() => {
     const canBeSchemaMapped = () => {
