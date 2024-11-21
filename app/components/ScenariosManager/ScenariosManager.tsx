@@ -10,7 +10,7 @@ import ScenarioResults from "./ScenarioResults";
 import ScenarioCSV from "./ScenarioCSV";
 import styles from "./ScenariosManager.module.css";
 import IsolationTester from "./IsolationTester";
-import ScenariosHelper from "./ScenariosHelper";
+import ScenariosHelper from "./ScenarioHelper/ScenarioHelper";
 
 interface ScenariosManagerProps {
   ruleId: string;

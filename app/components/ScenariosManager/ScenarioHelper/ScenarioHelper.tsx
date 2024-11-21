@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import Image from "next/image";
+import { Image } from "antd";
 import { Drawer, Button, Flex, Tooltip } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
-import { ScenariosManagerTabs } from "./ScenariosManager";
-import styles from "./ScenariosHelper.module.css";
+import { ScenariosManagerTabs } from "../ScenariosManager";
+import styles from "./ScenarioHelper.module.css";
 
 interface ScenariosHelperProps {
   section?: string;
@@ -60,9 +60,8 @@ export default function ScenariosHelper({ section }: ScenariosHelperProps) {
             <Image
               src="/images/simulate-scenarios-tab.png"
               alt="Simulate Scenarios Tab"
-              width={0}
-              height={0}
               sizes="100vw"
+              placeholder
               className={styles.scenarioImage}
             />
 
@@ -165,8 +164,7 @@ export default function ScenariosHelper({ section }: ScenariosHelperProps) {
             <Image
               src="/images/simulate-manual-inputs-tab.png"
               alt="Simulate Manual Inputs Tab"
-              width={0}
-              height={0}
+              placeholder
               sizes="100vw"
               className={styles.scenarioImage}
             />
@@ -288,8 +286,7 @@ export default function ScenariosHelper({ section }: ScenariosHelperProps) {
             <Image
               src="/images/scenario-results-tab.png"
               alt="Scenario Results Tab"
-              width={0}
-              height={0}
+              placeholder
               sizes="100vw"
               className={styles.scenarioImage}
             />
