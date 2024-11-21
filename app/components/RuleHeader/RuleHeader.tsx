@@ -1,32 +1,13 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { usePathname } from "next/navigation";
-import { Button, Flex, Tag, Tooltip } from "antd";
-import {
-  HomeOutlined,
-  EyeOutlined,
-  EditOutlined,
-  CheckOutlined,
-  CheckCircleOutlined,
-  CheckCircleFilled,
-  InfoCircleOutlined,
-} from "@ant-design/icons";
+import { Flex, Tooltip } from "antd";
+import { HomeOutlined, CheckOutlined, ExportOutlined } from "@ant-design/icons";
 import { RuleInfo } from "@/app/types/ruleInfo";
-import { RULE_VERSION } from "@/app/constants/ruleVersion";
 import { updateRuleData } from "@/app/utils/api";
-import { getPRUrl } from "@/app/utils/githubApi";
-import { getVersionColor } from "@/app/utils/utils";
 import styles from "./RuleHeader.module.css";
+import Link from "next/link";
 
-export default function RuleHeader({
-  ruleInfo,
-  version = RULE_VERSION.inProduction,
-}: {
-  ruleInfo: RuleInfo;
-  version?: string;
-}) {
-  const pathname = usePathname();
-
+export default function RuleHeader({ ruleInfo }: { ruleInfo: RuleInfo }) {
   const [savedTitle, setSavedTitle] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [currTitle, setCurrTitle] = useState<string>();
@@ -65,27 +46,17 @@ export default function RuleHeader({
     }
   };
 
-  const switchVersion = (versionToSwitchTo: RULE_VERSION) => {
-    // Use window.locaiton.href instead of router.push so that we can detect page changes for "unsaved changes" popup
-    window.location.href = `${pathname}?version=${versionToSwitchTo}&_=${new Date().getTime()}`;
-  };
-
-  const formatVersionText = (text: string) => {
-    const words = text.split(/(?=[A-Z])/);
-    return words.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
-  };
-
-  const versionColor = getVersionColor(version);
-
   if (currTitle === undefined) return null;
 
   return (
     <div className={styles.headerContainer}>
-      <Flex justify="space-between" className={styles.headerWrapper}>
-        <Flex gap="middle" align="center" flex={isEditingTitle ? "1" : "none"} className={styles.headerContent}>
-          <a href="/" className={styles.homeButton}>
-            <HomeOutlined />
-          </a>
+      <div className={styles.homeWrapper}>
+        <a href="/" className={styles.homeLink}>
+          <HomeOutlined className={styles.homeButton} /> Home
+        </a>
+      </div>
+      <Flex justify="space-between" align="center" className={styles.headerWrapper}>
+        <Flex gap="middle" align="center" flex={1} className={styles.headerContent}>
           <Flex flex={1} vertical>
             <h1
               onClick={startEditingTitle}
@@ -105,25 +76,6 @@ export default function RuleHeader({
                 currTitle
               )}
             </h1>
-            <Flex gap="small" align="center">
-              <p className={styles.titleFilePath}>{ruleInfo.filepath}</p>
-              {ruleInfo.name &&
-                process.env.NEXT_PUBLIC_KLAMM_URL &&
-                version !== RULE_VERSION.inProduction &&
-                version !== RULE_VERSION.inDev &&
-                ruleInfo.isPublished && (
-                  <Tooltip title="View rule details in KLAMM">
-                    {" "}
-                    <Button
-                      type="link"
-                      icon={<InfoCircleOutlined />}
-                      onClick={() =>
-                        window.open(`${process.env.NEXT_PUBLIC_KLAMM_URL}/rules/${ruleInfo.name}`, "_blank")
-                      }
-                    ></Button>
-                  </Tooltip>
-                )}
-            </Flex>
           </Flex>
           {isEditingTitle && (
             <button className={styles.editButton} onClick={isEditingTitle ? doneEditingTitle : startEditingTitle}>
@@ -132,42 +84,15 @@ export default function RuleHeader({
           )}
         </Flex>
         <Flex gap="small" align="end">
-          <Flex gap="small" align="center" vertical>
-            <span className={styles.versionInfo}>
-              You are viewing the{" "}
-              <Tag style={{ margin: "0" }} color={versionColor}>
-                {formatVersionText(version).trim()}
-              </Tag>{" "}
-              version of this rule.
-            </span>
-            <Flex gap="small">
-              {version !== RULE_VERSION.draft && (
-                <Button onClick={() => switchVersion(RULE_VERSION.draft)} icon={<EditOutlined />} type="dashed">
-                  Draft
-                </Button>
-              )}
-              {ruleInfo.reviewBranch && version !== RULE_VERSION.inReview && (
-                <Button onClick={() => switchVersion(RULE_VERSION.inReview)} icon={<EyeOutlined />} type="dashed">
-                  In Review
-                </Button>
-              )}
-              {version !== RULE_VERSION.inDev && ruleInfo.isPublished && (
-                <Button onClick={() => switchVersion(RULE_VERSION.inDev)} icon={<CheckCircleOutlined />} type="dashed">
-                  In Dev
-                </Button>
-              )}
-              {version !== RULE_VERSION.inProduction &&
-                ruleInfo.isPublished &&
-                process.env.NEXT_PUBLIC_IN_PRODUCTION === "true" && (
-                  <Button
-                    onClick={() => switchVersion(RULE_VERSION.inProduction)}
-                    icon={<CheckCircleFilled />}
-                    type="dashed"
-                  >
-                    In Production
-                  </Button>
-                )}
-            </Flex>
+          <Flex gap="small" align="end" vertical className={styles.rightContent}>
+            <p className={styles.titleFilePath}>{ruleInfo.filepath}</p>
+            {ruleInfo.name && process.env.NEXT_PUBLIC_KLAMM_URL && ruleInfo.isPublished && (
+              <Tooltip title="View rule details in KLAMM">
+                <Link href={`${process.env.NEXT_PUBLIC_KLAMM_URL}/rules/${ruleInfo.name}`} passHref target="_blank">
+                  View In KLAMM <ExportOutlined />
+                </Link>
+              </Tooltip>
+            )}
           </Flex>
         </Flex>
       </Flex>

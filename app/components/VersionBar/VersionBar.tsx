@@ -1,0 +1,57 @@
+"use client";
+import { Flex, Radio } from "antd";
+import { usePathname } from "next/navigation";
+import { CheckCircleFilled, CheckCircleOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
+import { getVersionColor } from "@/app/utils/utils";
+import { RULE_VERSION } from "@/app/constants/ruleVersion";
+import { RuleInfo } from "@/app/types/ruleInfo";
+
+interface VersionBarProps {
+  ruleInfo: RuleInfo;
+  version?: string;
+}
+
+export default function VersionBar({ ruleInfo, version = RULE_VERSION.inProduction }: VersionBarProps) {
+  const pathname = usePathname();
+  const versionColor = getVersionColor(version);
+
+  const getButtonStyle = (buttonVersion: RULE_VERSION) =>
+    version === buttonVersion
+      ? {
+          backgroundColor: versionColor,
+          color: "white",
+          paddingTop: "5px",
+          height: "50px",
+        }
+      : undefined;
+
+  const switchVersion = (versionToSwitchTo: RULE_VERSION) => {
+    window.location.href = `${pathname}?version=${versionToSwitchTo}&_=${new Date().getTime()}`;
+  };
+
+  return (
+    <Flex gap="small" justify="start" align="center">
+      Version:
+      <Radio.Group size="large" value={version} onChange={(e) => switchVersion(e.target.value)}>
+        <Radio.Button value={RULE_VERSION.draft} style={getButtonStyle(RULE_VERSION.draft)}>
+          <EditOutlined /> In Draft
+        </Radio.Button>
+        {ruleInfo.reviewBranch && (
+          <Radio.Button value={RULE_VERSION.inReview} style={getButtonStyle(RULE_VERSION.inReview)}>
+            <EyeOutlined /> In Review
+          </Radio.Button>
+        )}
+        {ruleInfo.isPublished && (
+          <Radio.Button value={RULE_VERSION.inDev} style={getButtonStyle(RULE_VERSION.inDev)}>
+            <CheckCircleOutlined /> In Dev
+          </Radio.Button>
+        )}
+        {ruleInfo.isPublished && process.env.NEXT_PUBLIC_IN_PRODUCTION === "true" && (
+          <Radio.Button value={RULE_VERSION.inProduction} style={getButtonStyle(RULE_VERSION.inProduction)}>
+            <CheckCircleFilled /> In Production
+          </Radio.Button>
+        )}
+      </Radio.Group>
+    </Flex>
+  );
+}

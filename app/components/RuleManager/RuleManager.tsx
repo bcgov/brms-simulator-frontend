@@ -14,6 +14,8 @@ import { logError } from "@/app/utils/logger";
 import SavePublish from "../SavePublish";
 import ScenariosManager from "../ScenariosManager";
 import styles from "./RuleManager.module.css";
+import { getVersionColor } from "@/app/utils/utils";
+import VersionBar from "../VersionBar/VersionBar";
 
 // Need to disable SSR when loading this component so it works properly
 const RuleViewerEditor = dynamic(() => import("../RuleViewerEditor"), { ssr: false });
@@ -144,29 +146,44 @@ export default function RuleManager({
     );
   }
 
+  const versionColour = getVersionColor(editing.toString());
+
   return (
     <Flex gap="large" vertical className={styles.rootLayout}>
-      <div className={styles.rulesWrapper}>
-        {(canEditGraph || editing === RULE_VERSION.inReview) && (
-          <SavePublish ruleInfo={ruleInfo} ruleContent={ruleContent} version={editing} setHasSaved={() => setHasUnsavedChanges(false)} />
+      <div
+        className={styles.rulesWrapper}
+        style={editing !== false ? ({ "--version-color": versionColour } as React.CSSProperties) : undefined}
+      >
+        {editing !== false && (
+          <Flex gap="small" justify="space-between" wrap className={styles.actionBar}>
+            <VersionBar ruleInfo={ruleInfo} version={editing.toString()} />
+            <SavePublish
+              ruleInfo={ruleInfo}
+              ruleContent={ruleContent}
+              version={editing}
+              setHasSaved={() => setHasUnsavedChanges(false)}
+            />
+          </Flex>
         )}
         {isLoading && (
           <Spin tip="Loading graph..." size="large" className="spinner">
             <div className="content" />
           </Spin>
         )}
-        <RuleViewerEditor
-          jsonFilename={jsonFile}
-          ruleContent={ruleContent}
-          updateRuleContent={updateRuleContent}
-          contextToSimulate={simulationContext}
-          setContextToSimulate={setSimulationContext}
-          simulation={simulation}
-          runSimulation={runSimulation}
-          isEditable={canEditGraph}
-          setLoadingComplete={() => setIsLoading(false)}
-          updateScenarios={updateScenarios}
-        />
+        <div className={styles.rulesGraph}>
+          <RuleViewerEditor
+            jsonFilename={jsonFile}
+            ruleContent={ruleContent}
+            updateRuleContent={updateRuleContent}
+            contextToSimulate={simulationContext}
+            setContextToSimulate={setSimulationContext}
+            simulation={simulation}
+            runSimulation={runSimulation}
+            isEditable={canEditGraph}
+            setLoadingComplete={() => setIsLoading(false)}
+            updateScenarios={updateScenarios}
+          />
+        </div>
       </div>
       {scenarios && rulemap && (
         <ScenariosManager

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Modal, Button, Flex, App } from "antd";
-import { SaveOutlined, UploadOutlined } from "@ant-design/icons";
+import { SaveOutlined, GithubOutlined, CopyOutlined, SendOutlined } from "@ant-design/icons";
 import { DecisionGraphType } from "@gorules/jdm-editor";
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { updateRuleData } from "@/app/utils/api";
@@ -26,6 +27,7 @@ export default function SavePublish({ ruleInfo, ruleContent, setHasSaved, versio
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingToReview, setIsSendingToReview] = useState(false);
   const [prUrl, setPrUrl] = useState<string | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const fetchPRUrl = async () => {
@@ -36,6 +38,7 @@ export default function SavePublish({ ruleInfo, ruleContent, setHasSaved, versio
     };
     fetchPRUrl();
   }, [currReviewBranch]);
+
   const save = async () => {
     setIsSaving(true);
     try {
@@ -87,6 +90,13 @@ export default function SavePublish({ ruleInfo, ruleContent, setHasSaved, versio
     createOrUpdateReview(newReviewBranch, reviewDescription);
   };
 
+  const generateEmbedCode = () => {
+    const baseURL = window.location.origin;
+    const embedCode = `${baseURL}${pathname}/embedded`;
+    navigator.clipboard.writeText(embedCode);
+    message.success("Embed code copied to clipboard");
+  };
+
   return (
     <>
       <Modal
@@ -98,16 +108,17 @@ export default function SavePublish({ ruleInfo, ruleContent, setHasSaved, versio
       >
         <NewReviewForm filePath={filePath} createNewReview={createNewReview} />
       </Modal>
-      <Flex gap="small" justify="end" className={styles.savePublishWrapper}>
-        {reviewBranch && (
-          <Button type="link" onClick={() => prUrl && window.open(prUrl, "_blank")} disabled={!prUrl}>
-            View Pull Request
+      <Flex gap="small" justify="end" align="center" wrap className={styles.savePublishWrapper}>
+        {reviewBranch && (version === "draft" || version === "inReview") && (
+          <Button onClick={() => prUrl && window.open(prUrl, "_blank")} disabled={!prUrl}>
+            <GithubOutlined />
+            Comment on Pull Request
           </Button>
         )}
         {version === "draft" && (
           <>
             <Button type="primary" onClick={save} disabled={isSaving}>
-              Save <SaveOutlined />
+              <SaveOutlined /> Save Changes
             </Button>
             <Button
               type="primary"
@@ -116,9 +127,14 @@ export default function SavePublish({ ruleInfo, ruleContent, setHasSaved, versio
               disabled={isSendingToReview}
             >
               {" "}
-              Send for Review <UploadOutlined />
+              <SendOutlined /> Send for Review
             </Button>
           </>
+        )}
+        {version !== "inReview" && version !== "draft" && (
+          <Button type="primary" onClick={() => generateEmbedCode()}>
+            <CopyOutlined /> Copy Embed Code
+          </Button>
         )}
       </Flex>
       <SavePublishWarnings filePath={filePath} ruleContent={ruleContent} isSaving={isSaving} />

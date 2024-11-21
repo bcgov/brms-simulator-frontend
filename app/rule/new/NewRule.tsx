@@ -78,8 +78,10 @@ export default function NewRule() {
       </Modal>
       <div className={styles.rootLayout} style={{ background: versionColor }}>
         <div className={styles.rulesWrapper}>
-          <RuleHeader ruleInfo={ruleInfo} version={RULE_VERSION.draft} />
-          {ruleInfo.filepath && <RuleManager ruleInfo={ruleInfo} initialRuleContent={DEFAULT_RULE_CONTENT} editing />}
+          <RuleHeader ruleInfo={ruleInfo} />
+          {ruleInfo.filepath && (
+            <RuleManager ruleInfo={ruleInfo} initialRuleContent={DEFAULT_RULE_CONTENT} editing={RULE_VERSION.draft} />
+          )}
         </div>
       </div>
     </>
