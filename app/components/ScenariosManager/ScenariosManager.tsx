@@ -144,53 +144,42 @@ export default function ScenariosManager({
     </Flex>
   );
 
-  const items: TabsProps["items"] = [
-    {
-      key: ScenariosManagerTabs.ScenariosTab,
-      label: (
-        <span
-          //Manual styling to work around rendering bug in antd Tabs
-          style={{
-            display: "inline-block",
-            width: "130px",
-          }}
-        >
-          Simulate scenarios
-        </span>
-      ),
-      children: scenariosTab,
-      disabled: false,
-    },
-    {
-      key: ScenariosManagerTabs.InputsTab,
-      label: "Simulate manual inputs",
-      children: inputsTab,
-      disabled: false,
-    },
-    {
-      key: ScenariosManagerTabs.ResultsTab,
-      label: "Scenario Results",
-      children: resultsTab,
-      disabled: !showAllScenarioTabs,
-    },
-    {
-      key: ScenariosManagerTabs.CSVTab,
-      label: "CSV Tests",
-      children: csvTab,
-      disabled: !showAllScenarioTabs,
-    },
-    {
-      key: ScenariosManagerTabs.IsolationTesterTab,
-      label: "Isolation Tester",
-      children: isolationTestTab,
-      disabled: !showAllScenarioTabs,
-    },
-  ];
+  const filteredItems = useMemo(() => {
+    const items: TabsProps["items"] = [
+      {
+        key: ScenariosManagerTabs.ScenariosTab,
+        label: <span style={{ display: "inline-block", width: "130px" }}>Simulate scenarios</span>,
+        children: scenariosTab,
+        disabled: false,
+      },
+      {
+        key: ScenariosManagerTabs.InputsTab,
+        label: "Simulate manual inputs",
+        children: inputsTab,
+        disabled: false,
+      },
+      {
+        key: ScenariosManagerTabs.ResultsTab,
+        label: "Scenario Results",
+        children: resultsTab,
+        disabled: !showAllScenarioTabs,
+      },
+      {
+        key: ScenariosManagerTabs.CSVTab,
+        label: "CSV Tests",
+        children: csvTab,
+        disabled: !showAllScenarioTabs,
+      },
+      {
+        key: ScenariosManagerTabs.IsolationTesterTab,
+        label: "Isolation Tester",
+        children: isolationTestTab,
+        disabled: !showAllScenarioTabs,
+      },
+    ];
 
-  const filteredItems = useMemo(
-    () => (showAllScenarioTabs ? items : items.filter((item) => !item.disabled)),
-    [showAllScenarioTabs, items]
-  );
+    return showAllScenarioTabs ? items : items.filter((item) => !item.disabled);
+  }, [showAllScenarioTabs, scenariosTab, inputsTab, resultsTab, csvTab, isolationTestTab]);
 
   return (
     <Flex justify="space-between" align="center" className={styles.contentSection}>

@@ -74,9 +74,9 @@ export default function ScenariosHelper({ section }: ScenariosHelperProps) {
                     button.
                   </p>
                   <p>
-                    The scenario's saved inputs for the rule are shown in the 'Inputs' window, and the final results
+                    The scenario&apos;s saved inputs for the rule are shown in the &apos;Inputs&apos; window, and the final results
                     will be processed in real time through the current visible version of the rule, and returned in the
-                    'Decision' window.
+                    &apos;Decision&apos; window.
                   </p>
                   <p>
                     By running rules individually, you can track their progress as the scenario is processed by the
@@ -96,13 +96,13 @@ export default function ScenariosHelper({ section }: ScenariosHelperProps) {
                     Scenarios can be managed by adding new scenarios, editing existing scenarios, or deleting scenarios
                     from the rule.
                   </p>
-                  <p>To begin managing scenarios, click on the 'Manage Scenarios' button.</p>
+                  <p>To begin managing scenarios, click on the &apos;Manage Scenarios&apos; button.</p>
                   <p>
                     This will enable three new functionalities. You will now be able to edit the scenario name, edit the
                     scenario inputs, or delete a scenario.
                   </p>
                   <p>
-                    Clicking on the edit button will redirect you to the 'Simulate manual inputs' tab to update the
+                    Clicking on the edit button will redirect you to the &apos;Simulate manual inputs&apos; tab to update the
                     inputs and expected results for a scenario.
                   </p>
                 </div>
@@ -111,7 +111,7 @@ export default function ScenariosHelper({ section }: ScenariosHelperProps) {
               <section id="editing">
                 <h2 className={styles.sectionHeading}>3. Editing Scenario Names</h2>
                 <div className={styles.sectionContent}>
-                  <p>The 'Manage Scenarios' Button also enables the ability to rename existing scenarios.</p>
+                  <p>The &apos;Manage Scenarios&apos; Button also enables the ability to rename existing scenarios.</p>
                   <p>Scenarios can be renamed by clicking on the scenario name in the table, and editing the name.</p>
                   <p>
                     Scenario names must be unique within a rule, and you will not be allowed to rename the scenario if
@@ -191,8 +191,8 @@ export default function ScenariosHelper({ section }: ScenariosHelperProps) {
                     Each input field has an associated info button that provides detailed information about the input.
                   </p>
                   <p>
-                    Clicking this button reveals the input's description and provides a direct link to its entry in
-                    KLAMM, allowing you to quickly reference the input's full specification.
+                    Clicking this button reveals the input&apos;s description and provides a direct link to its entry in
+                    KLAMM, allowing you to quickly reference the input&apos;s full specification.
                   </p>
                 </div>
               </section>
@@ -212,7 +212,7 @@ export default function ScenariosHelper({ section }: ScenariosHelperProps) {
                 <div className={styles.sectionContent}>
                   <p>The simulate button runs your current inputs through the rule to generate results.</p>
                   <p>
-                    After a successful simulation, you'll have the option to save these inputs as a new scenario. This
+                    After a successful simulation, you&apos;ll have the option to save these inputs as a new scenario. This
                     includes a field to name your scenario and a save button to store it for future use.
                   </p>
                 </div>
@@ -227,7 +227,7 @@ export default function ScenariosHelper({ section }: ScenariosHelperProps) {
                   </p>
                   <p>
                     This view updates each time you run a simulation, allowing you to see how different inputs affect
-                    the rule's output.
+                    the rule&apos;s output.
                   </p>
                 </div>
               </section>
@@ -296,7 +296,7 @@ export default function ScenariosHelper({ section }: ScenariosHelperProps) {
                 <h2 className={styles.sectionHeading}>1. Re-Run Scenarios</h2>
                 <div className={styles.sectionContent}>
                   <p>
-                    The 'Re-Run Scenarios' button allows you to run all saved scenarios against the current version of
+                    The &apos;Re-Run Scenarios&apos; button allows you to run all saved scenarios against the current version of
                     the rule in view.
                   </p>
                   <p>
@@ -318,7 +318,7 @@ export default function ScenariosHelper({ section }: ScenariosHelperProps) {
                         <li>No expected results were specified (default pass state)</li>
                       </ul>
                     </li>
-                    <li>A red X (✗) indicates the scenario's actual results don't match the expected results</li>
+                    <li>A red X (✗) indicates the scenario&apos;s actual results don&apos;t match the expected results</li>
                   </ul>
                 </div>
               </section>
@@ -340,15 +340,15 @@ export default function ScenariosHelper({ section }: ScenariosHelperProps) {
                 <div className={styles.sectionContent}>
                   <p>The table provides several controls for managing the view of your scenarios:</p>
                   <ul>
-                    <li>'Show Error Scenarios' - Instantly filters the list to display only scenarios with errors</li>
-                    <li>'Clear Filters and Sorters' - Resets all active filters and sorting to their default state</li>
+                    <li>&apos;Show Error Scenarios&apos; - Instantly filters the list to display only scenarios with errors</li>
+                    <li>&apos;Clear Filters and Sorters&apos; - Resets all active filters and sorting to their default state</li>
                   </ul>
                   <p>Additional filtering and sorting options:</p>
                   <ul>
                     <li>Each column can be filtered based on its content</li>
                     <li>Columns can be sorted in ascending or descending order</li>
                     <li>
-                      All filtering and sorting is visual only and doesn't affect the underlying scenarios or results
+                      All filtering and sorting is visual only and doesn&apos;t affect the underlying scenarios or results
                     </li>
                   </ul>
                 </div>
