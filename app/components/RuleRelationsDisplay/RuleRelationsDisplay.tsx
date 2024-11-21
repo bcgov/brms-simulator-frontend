@@ -180,13 +180,13 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
         d3
           .forceLink(links)
           .id((d: any) => d.id)
-          .distance(100)
-          .strength(0.7)
+          .distance(150) // Increased from 100
+          .strength(0.5) // Reduced from 0.7
       )
-      .force("charge", d3.forceManyBody().strength(-300).distanceMax(350))
-      .force("x", d3.forceX().strength(0.05))
-      .force("y", d3.forceY().strength(0.05))
-      .force("collision", d3.forceCollide().radius(45));
+      .force("charge", d3.forceManyBody().strength(-500).distanceMax(500)) // Increased strength and distance
+      .force("x", d3.forceX().strength(0.03)) // Reduced strength
+      .force("y", d3.forceY().strength(0.03)) // Reduced strength
+      .force("collision", d3.forceCollide().radius(60)); // Increased from 45
 
     // Draw links
     const link = g
@@ -228,17 +228,19 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
       .attr("r", (d) => d.radius)
       .attr("fill", "#69b3a2");
 
-    // Add labels
+    // Update label rendering
     nodeGroup
       .append("text")
-      .text((d) => d.name)
-      .attr("font-size", "10px")
+      .text((d) => d.label || d.name) // Use label if available, fallback to name
+      .attr("font-size", "12px") // Increased from 10px
       .attr("dx", 12)
       .attr("dy", 4)
       .attr("cursor", "pointer")
       .attr("role", "link")
       .style("text-decoration", "underline")
       .style("fill", "#0066cc")
+      .style("font-weight", "500") // Added for better readability
+      .style("text-shadow", "0 0 3px white") // Added for better contrast
       .on("mouseover", function () {
         d3.select(this).style("fill", "#003366");
       })
@@ -506,80 +508,116 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
       titleText.selectAll("*").remove();
       descriptionText.selectAll("*").remove();
 
-      // Add title with padding
-      titleText.attr("x", 10).attr("y", 20).append("tspan").text(d.label);
+      // Add title
+      titleText
+        .attr("x", 10)
+        .attr("y", 20)
+        .append("tspan")
+        .text(d.label || d.name);
 
-      // Update description text with wrapping
-      const words = (d.description || "No description available").split(/\s+/);
-      const lineHeight = 20;
+      // Add meta info (name)
+      titleText
+        .append("tspan")
+        .attr("x", 10)
+        .attr("dy", 30)
+        .attr("fill", "#666")
+        .attr("font-family", "monospace")
+        .attr("font-size", "11px")
+        .text(`Name: ${d.name}`);
+
+      // Add meta info (path)
+      titleText
+        .append("tspan")
+        .attr("x", 10)
+        .attr("dy", 20)
+        .attr("fill", "#666")
+        .attr("font-family", "monospace")
+        .attr("font-size", "11px")
+        .attr("font-style", "italic")
+        .text(`Path: ${d.filepath || "N/A"}`);
+
+      // Add description
+      const defaultDescription = "No description available";
+      const words = (d.description || defaultDescription).split(/\s+/);
       let line = "";
       let lineNumber = 0;
+      const lineHeight = 20;
 
-      // Position description text below title
-      descriptionText.attr("x", 10).attr("y", 50);
+      if (words.join(" ") === defaultDescription) {
+        titleText
+          .append("tspan")
+          .attr("x", 10)
+          .attr("dy", 30)
+          .attr("fill", "black")
+          .attr("font-family", "sans-serif")
+          .attr("font-size", "12px")
+          .text(defaultDescription);
+      } else {
+        words.forEach((word: string) => {
+          const testLine = line + word + " ";
+          if (testLine.length * 6 > 200) {
+            titleText
+              .append("tspan")
+              .attr("x", 10)
+              .attr("dy", lineNumber === 0 ? 30 : lineHeight)
+              .attr("fill", "black")
+              .attr("font-family", "sans-serif")
+              .attr("font-size", "12px")
+              .text(line.trim());
+            line = word + " ";
+            lineNumber++;
+          } else {
+            line = testLine;
+          }
+        });
 
-      words.forEach((word: string) => {
-        const testLine = line + word + " ";
-        if (testLine.length * 6 > 200) {
-          // Add the current line
-          descriptionText
+        if (line) {
+          titleText
             .append("tspan")
             .attr("x", 10)
             .attr("dy", lineNumber === 0 ? 0 : lineHeight)
+            .attr("fill", "black")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "12px")
             .text(line.trim());
-
-          line = word + " ";
           lineNumber++;
-        } else {
-          line = testLine;
         }
-      });
-
-      // Add the last line if there's any text left
-      if (line) {
-        descriptionText
-          .append("tspan")
-          .attr("x", 10)
-          .attr("dy", lineNumber === 0 ? 0 : lineHeight)
-          .text(line.trim());
-        lineNumber++;
       }
 
-      // Calculate total height needed for description
-      const descriptionHeight = (lineNumber + 1) * lineHeight;
+      // Calculate total height needed
+      const titleHeight = 20; // Title
+      const metaHeight = 50; // Name + Path
+      const spacingHeight = 30; // Space before description
+      const descriptionHeight = lineHeight + 30;
+      const linkSpacing = 70; // Space for links
 
-      // Position links below description
-      const linksY = 10 + descriptionHeight;
+      const totalHeight = titleHeight + metaHeight + spacingHeight + descriptionHeight + linkSpacing;
 
+      // Position links with proper spacing
       appLinkText
         .attr("x", 10)
-        .attr("y", linksY)
+        .attr("y", totalHeight - 70)
         .style("opacity", d.url ? 1 : 0.5)
         .style("cursor", d.url ? "pointer" : "not-allowed")
         .attr("tabindex", d.url ? "0" : "-1");
 
-      linkText.attr("x", 10).attr("y", linksY + 25);
+      linkText.attr("x", 10).attr("y", totalHeight - 50);
 
-      // Calculate and set box dimensions
-      const titleBox = titleText.node()!.getBBox();
-      const textBox = descriptionText.node()!.getBBox();
-      const totalHeight = linksY + 70; // Add padding for links
-      const boxWidth = Math.max(200, titleBox.width, textBox.width) + 20;
+      // Update box size to fit all content
+      const boxWidth = Math.max(300, titleText.node()!.getBBox().width + 40);
 
-      // Update box size and position
-      descriptionBox.select("rect").attr("x", 0).attr("y", 0).attr("width", boxWidth).attr("height", totalHeight);
+      descriptionBox.select("rect").attr("x", 0).attr("y", 0).attr("width", boxWidth).attr("height", totalHeight); // Add padding at bottom
 
-      // Make description box links focusable and other elements not focusable
+      // Update data binding and focus
+      appLinkText.datum(d);
+      linkText.datum(d);
+
       nodeGroup.attr("tabindex", "-1");
       if (d.url) {
         appLinkText.node()?.focus();
       } else {
         linkText.node()?.focus();
       }
-
-      // Update the data binding for the links
-      appLinkText.datum(d);
-      linkText.datum(d);
     };
 
     // Update the click handler
