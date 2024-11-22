@@ -1,27 +1,28 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import { Button, Select, Input, Flex } from "antd";
+import { Button, Select, Input, Flex, message, Checkbox } from "antd";
 import { CategoryObject } from "@/app/types/ruleInfo";
-import { Rule, RuleNode, RuleLink } from "@/app/types/rulemap";
+import { RuleMapRule, RuleNode, RuleLink } from "@/app/types/rulemap";
 import styles from "@/app/components/RuleRelationsDisplay/RuleRelationsDisplay.module.css";
 import { GraphTraversal } from "@/app/utils/graphUtils";
 
 export interface RuleGraphProps {
-  rules: Rule[];
+  rules: RuleMapRule[];
   categories: CategoryObject[];
+  filter?: string;
   width?: number;
   height?: number;
 }
 
-export default function RuleRelationsGraph({ rules, categories, width = 1000, height = 1000 }: RuleGraphProps) {
+export default function RuleRelationsGraph({ rules, categories, filter, width = 1000, height = 1000 }: RuleGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width, height });
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
   const [isLegendMinimized, setIsLegendMinimized] = useState(false);
   const [focusedNode, setFocusedNode] = useState<any>(null);
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [categoryFilter, setCategoryFilter] = useState<string>(filter ?? "");
+  const [showDraftRules, setShowDraftRules] = useState(true);
 
   // Checks for resizing of the container
   useEffect(() => {
@@ -133,7 +134,7 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
           .call(zoom.scaleBy as any, 0.7);
       });
 
-    const uniqueRules = new Map<number, Rule>();
+    const uniqueRules = new Map<number, RuleMapRule>();
     rules.forEach((rule) => {
       if (!uniqueRules.has(rule.id)) {
         uniqueRules.set(rule.id, rule);
@@ -142,12 +143,14 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
 
     const nodes: RuleNode[] = Array.from(uniqueRules.values()).map((rule) => ({
       id: rule.id,
-      name: rule.name,
+      name: rule.name || "N/A",
       label: rule.label ?? rule.name,
       radius: 8,
-      description: rule.description || null,
-      url: rule.url,
-      filepath: rule.filepath,
+      description: rule?.description || null,
+      url: rule?.url,
+      filepath: rule?.filepath,
+      isPublished: rule?.isPublished,
+      reviewBranch: rule?.reviewBranch,
     }));
 
     // Create links only between existing nodes
@@ -180,13 +183,13 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
         d3
           .forceLink(links)
           .id((d: any) => d.id)
-          .distance(150) // Increased from 100
-          .strength(0.5) // Reduced from 0.7
+          .distance(150)
+          .strength(0.5)
       )
-      .force("charge", d3.forceManyBody().strength(-500).distanceMax(500)) // Increased strength and distance
-      .force("x", d3.forceX().strength(0.03)) // Reduced strength
-      .force("y", d3.forceY().strength(0.03)) // Reduced strength
-      .force("collision", d3.forceCollide().radius(60)); // Increased from 45
+      .force("charge", d3.forceManyBody().strength(-500).distanceMax(500))
+      .force("x", d3.forceX().strength(0.03))
+      .force("y", d3.forceY().strength(0.03))
+      .force("collision", d3.forceCollide().radius(60));
 
     // Draw links
     const link = g
@@ -232,15 +235,15 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
     nodeGroup
       .append("text")
       .text((d) => d.label || d.name) // Use label if available, fallback to name
-      .attr("font-size", "12px") // Increased from 10px
+      .attr("font-size", "12px")
       .attr("dx", 12)
       .attr("dy", 4)
       .attr("cursor", "pointer")
       .attr("role", "link")
       .style("text-decoration", "underline")
       .style("fill", "#0066cc")
-      .style("font-weight", "500") // Added for better readability
-      .style("text-shadow", "0 0 3px white") // Added for better contrast
+      .style("font-weight", "500")
+      .style("text-shadow", "0 0 3px white")
       .on("mouseover", function () {
         d3.select(this).style("fill", "#003366");
       })
@@ -298,19 +301,39 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
 
     // Searching with highlight
     const getNodesForCategory = (nodes: RuleNode[], category: string): Set<number> => {
-      if (!category) return new Set(nodes.map((n) => n.id));
-
       const matchingNodes = new Set<number>();
+
       nodes.forEach((node) => {
-        //category search
+        // Skip unpublished rules if showDraftRules is false
+        if (!showDraftRules && !node.isPublished) return;
+
+        // If no category filter, add all published/draft nodes based on showDraftRules
+        if (!category) {
+          matchingNodes.add(node.id);
+          return;
+        }
+
+        // Category search
         if (node.filepath?.includes(category)) {
           matchingNodes.add(node.id);
 
-          // Add all related rules
+          // Add all related rules (that match publication status)
           const ancestors = graphTraversal.getAllAncestors(node.id);
-          ancestors.forEach((id) => matchingNodes.add(id));
           const descendants = graphTraversal.getAllDescendants(node.id);
-          descendants.forEach((id) => matchingNodes.add(id));
+
+          ancestors.forEach((id) => {
+            const ancestorNode = nodes.find((n) => n.id === id);
+            if (ancestorNode && (showDraftRules || ancestorNode.isPublished)) {
+              matchingNodes.add(id);
+            }
+          });
+
+          descendants.forEach((id) => {
+            const descendantNode = nodes.find((n) => n.id === id);
+            if (descendantNode && (showDraftRules || descendantNode.isPublished)) {
+              matchingNodes.add(id);
+            }
+          });
         }
       });
 
@@ -321,32 +344,84 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
       const searchPattern = term.toLowerCase();
       const visibleNodes = getNodesForCategory(nodes, categoryFilter);
 
-      nodeGroup
-        .selectAll("circle")
-        .attr("fill", (d: any) => (d.name.toLowerCase().includes(searchPattern) ? "#ff7f50" : "#69b3a2"));
-
-      nodeGroup
-        .selectAll("text")
-        .style("font-weight", (d: any) => (d.name.toLowerCase().includes(searchPattern) ? "bold" : "normal"));
-
-      // Update opacity based on both search and category
-      nodeGroup.style("opacity", (d: any) => {
-        const matchesSearch = searchPattern === "" || d.name.toLowerCase().includes(searchPattern);
-        const matchesCategory = visibleNodes.has(d.id);
-        return matchesSearch && matchesCategory ? 1 : 0.2;
+      nodeGroup.style("display", (d: any) => {
+        const isVisible = showDraftRules || d.isPublished;
+        return isVisible ? null : "none";
       });
 
-      // Update link opacity
-      link.style("opacity", (l: any) => {
-        const sourceVisible = visibleNodes.has((l.source as any).id);
-        const targetVisible = visibleNodes.has((l.target as any).id);
-        return sourceVisible && targetVisible ? 0.6 : 0.1;
+      // Only apply styles to visible nodes
+      nodeGroup.each(function (d: any) {
+        const node = d3.select(this);
+        const matchesSearch = d.name.toLowerCase().includes(searchPattern);
+        const matchesCategory = visibleNodes.has(d.id);
+        const isPublished = showDraftRules || d.isPublished;
+
+        if (isPublished) {
+          node.select("circle").attr("fill", matchesSearch ? "#ff7f50" : "#69b3a2");
+
+          node.select("text").style("font-weight", matchesSearch ? "bold" : "normal");
+
+          node.style("opacity", matchesSearch && matchesCategory ? 1 : 0.2);
+        }
+      });
+
+      // Update link visibility and opacity
+      link
+        .style("display", (l: any) => {
+          const sourceVisible =
+            visibleNodes.has((l.source as any).id) && (showDraftRules || (l.source as any).isPublished);
+          const targetVisible =
+            visibleNodes.has((l.target as any).id) && (showDraftRules || (l.target as any).isPublished);
+          return sourceVisible && targetVisible ? null : "none";
+        })
+        .style("opacity", (l: any) => {
+          const sourceVisible = visibleNodes.has((l.source as any).id);
+          const targetVisible = visibleNodes.has((l.target as any).id);
+          return sourceVisible && targetVisible ? 0.6 : 0.1;
+        });
+    };
+
+    const filteredOnly = (term: string) => {
+      const searchPattern = term.toLowerCase();
+      const visibleNodes = getNodesForCategory(nodes, categoryFilter);
+
+      // Filter the nodeGroup to only show matching nodes
+      nodeGroup.each(function (d: any) {
+        const matchesSearch = searchPattern === "" || d.name.toLowerCase().includes(searchPattern);
+        const matchesCategory = visibleNodes.has(d.id);
+        const isVisible = matchesSearch && matchesCategory;
+
+        if (!isVisible) {
+          d3.select(this).remove();
+        } else {
+          // Apply styles to visible nodes
+          d3.select(this)
+            .selectAll("circle")
+            .attr("fill", d.name.toLowerCase().includes(searchPattern) ? "#ff7f50" : "#69b3a2");
+
+          d3.select(this)
+            .selectAll("text")
+            .style("font-weight", d.name.toLowerCase().includes(searchPattern) ? "bold" : "normal");
+        }
+      });
+
+      // Remove links that don't connect visible nodes
+      link.each(function (d: any) {
+        const sourceVisible = visibleNodes.has(d.source.id);
+        const targetVisible = visibleNodes.has(d.target.id);
+        if (!sourceVisible || !targetVisible) {
+          d3.select(this).remove();
+        }
       });
     };
 
     // Add event listener for search term changes
     const handleSearch = () => {
-      highlightSearch(searchTerm);
+      if (filter) {
+        filteredOnly(searchTerm);
+      } else {
+        highlightSearch(searchTerm);
+      }
     };
 
     // Initial search highlight
@@ -355,13 +430,11 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
     // On click set selected node
     nodeGroup.on("click", (event, d: any) => {
       event.stopPropagation();
-      setSelectedNodeId(d.id);
       highlightConnections(d.id);
     });
 
     // Reset on background click
     svg.on("click", () => {
-      setSelectedNodeId(null);
       highlightConnections(null);
     });
 
@@ -430,7 +503,7 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
         if (event.key === "Escape") {
           event.stopPropagation();
           hideDescriptionBox();
-          setSelectedNodeId(null);
+
           highlightConnections(null);
           return;
         }
@@ -465,21 +538,29 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
         if (event.key === "Escape") {
           event.stopPropagation();
           hideDescriptionBox();
-          setSelectedNodeId(null);
+
           highlightConnections(null);
           return;
         }
         const d: any = d3.select(this).datum();
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          const baseUrl = process.env.NEXT_PUBLIC_KLAMM_URL;
-          window.open(`${baseUrl}/rules/${d.name}`, "_blank");
+          if (d?.isPublished) {
+            const baseUrl = process.env.NEXT_PUBLIC_KLAMM_URL;
+            window.open(`${baseUrl}/rules/${d.name}`, "_blank");
+          } else {
+            message.error("Rule is not published in Klamm");
+          }
         }
       })
       .on("click", function () {
         const d: any = d3.select(this).datum();
-        const baseUrl = process.env.NEXT_PUBLIC_KLAMM_URL;
-        window.open(`${baseUrl}/rules/${d.name}`, "_blank");
+        if (d?.isPublished) {
+          const baseUrl = process.env.NEXT_PUBLIC_KLAMM_URL;
+          window.open(`${baseUrl}/rules/${d.name}`, "_blank");
+        } else {
+          message.error("Rule is not published in Klamm");
+        }
       });
 
     // Add title text element after description box container
@@ -588,7 +669,7 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
       const titleHeight = 20; // Title
       const metaHeight = 50; // Name + Path
       const spacingHeight = 30; // Space before description
-      const descriptionHeight = lineHeight + 30;
+      const descriptionHeight = lineNumber * lineHeight; // Description
       const linkSpacing = 70; // Space for links
 
       const totalHeight = titleHeight + metaHeight + spacingHeight + descriptionHeight + linkSpacing;
@@ -637,7 +718,7 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
         if (event.key === "Escape") {
           event.stopPropagation();
           hideDescriptionBox();
-          setSelectedNodeId(null);
+
           highlightConnections(null);
           return;
         }
@@ -676,7 +757,6 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
       if (event.target === svg.node()) {
         // Only trigger if clicking the SVG background
         hideDescriptionBox();
-        setSelectedNodeId(null);
         highlightConnections(null);
       }
     });
@@ -684,7 +764,6 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
     // Update the node click handler
     nodeGroup.on("click", (event, d: any) => {
       event.stopPropagation(); // Stop event from reaching SVG background
-      setSelectedNodeId(d.id);
       highlightConnections(d.id);
     });
 
@@ -716,7 +795,6 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
     svg.on("keydown", (event) => {
       if (event.key === "Escape") {
         hideDescriptionBox();
-        setSelectedNodeId(null);
         highlightConnections(null);
         return;
       }
@@ -735,7 +813,6 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
       if (event.key === "Escape") {
         event.stopPropagation();
         hideDescriptionBox();
-        setSelectedNodeId(null);
         highlightConnections(null);
         return;
       }
@@ -745,7 +822,6 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
       if (event.key === "Escape") {
         event.stopPropagation();
         hideDescriptionBox();
-        setSelectedNodeId(null);
         highlightConnections(null);
         return;
       }
@@ -754,7 +830,7 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
     return () => {
       simulation.stop();
     };
-  }, [rules, dimensions, searchTerm, categoryFilter]);
+  }, [rules, dimensions, searchTerm, categoryFilter, showDraftRules]);
 
   return (
     <div ref={containerRef} className={styles.container}>
@@ -763,39 +839,43 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
         vertical
         aria-label="Graph Controls"
         className={styles.controls}
-        style={{ maxHeight: isLegendMinimized ? "110px" : "500px" }}
+        style={{ maxHeight: isLegendMinimized ? (filter ? "40px" : "110px") : "500px" }}
       >
         <Flex gap="small" align="center">
           <Flex gap="small" align="center" wrap>
-            <Input
-              type="text"
-              placeholder="Search rules..."
-              value={searchTerm}
-              className={styles.input}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              aria-label="Search rules"
-            />
-            <Select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e)}
-              aria-label="Filter by category"
-              placeholder="Filter by category"
-              className={styles.select}
-              options={[
-                { value: "", label: "All Categories" },
-                ...categories.map((cat) => ({ value: cat.value, label: cat.text })),
-              ]}
-            />
-            <Button
-              onClick={() => {
-                setSearchTerm("");
-                setCategoryFilter("");
-              }}
-              className={styles.button}
-              danger
-            >
-              Clear
-            </Button>
+            {!filter && (
+              <>
+                <Input
+                  type="text"
+                  placeholder="Search rules..."
+                  value={searchTerm}
+                  className={styles.input}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  aria-label="Search rules"
+                />
+                <Select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e)}
+                  aria-label="Filter by category"
+                  placeholder="Filter by category"
+                  className={styles.select}
+                  options={[
+                    { value: "", label: "All Categories" },
+                    ...categories.map((cat) => ({ value: cat.value, label: cat.text })),
+                  ]}
+                />
+                <Button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setCategoryFilter("");
+                  }}
+                  className={styles.button}
+                  danger
+                >
+                  Clear
+                </Button>
+              </>
+            )}
             <Button
               onClick={() => setIsLegendMinimized(!isLegendMinimized)}
               className={styles.button}
@@ -803,6 +883,15 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
             >
               {isLegendMinimized ? "+ Show Legend" : "- Hide Legend"}
             </Button>
+            {!filter && (
+              <Checkbox
+                onChange={(e) => setShowDraftRules(e.target.checked)}
+                checked={showDraftRules}
+                className={styles.checkbox}
+              >
+                Include draft rules
+              </Checkbox>
+            )}
           </Flex>
         </Flex>
         <div
