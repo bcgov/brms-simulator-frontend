@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import { Button, Select, Input, Flex, message, Checkbox } from "antd";
+import { message } from "antd";
 import { CategoryObject } from "@/app/types/ruleInfo";
 import { RuleMapRule, RuleNode, RuleLink } from "@/app/types/rulemap";
 import styles from "@/app/components/RuleRelationsDisplay/RuleRelationsDisplay.module.css";
 import { GraphTraversal } from "@/app/utils/graphUtils";
+import { RuleGraphControls } from "./subcomponents/RuleGraphControls";
 
 export interface RuleGraphProps {
   rules: RuleMapRule[];
@@ -832,106 +833,42 @@ export default function RuleRelationsGraph({ rules, categories, filter, width = 
     };
   }, [rules, dimensions, searchTerm, categoryFilter, showDraftRules]);
 
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setCategoryFilter(value);
+  };
+
+  const handleShowDraftRulesChange = (value: boolean) => {
+    setShowDraftRules(value);
+  };
+
+  const handleLegendToggle = () => {
+    setIsLegendMinimized(!isLegendMinimized);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setCategoryFilter("");
+  };
+
   return (
     <div ref={containerRef} className={styles.container}>
-      <Flex
-        gap="small"
-        vertical
-        aria-label="Graph Controls"
-        className={styles.controls}
-        style={{ maxHeight: isLegendMinimized ? (filter ? "40px" : "110px") : "500px" }}
-      >
-        <Flex gap="small" align="center">
-          <Flex gap="small" align="center" wrap>
-            {!filter && (
-              <>
-                <Input
-                  type="text"
-                  placeholder="Search rules..."
-                  value={searchTerm}
-                  className={styles.input}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  aria-label="Search rules"
-                />
-                <Select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e)}
-                  aria-label="Filter by category"
-                  placeholder="Filter by category"
-                  className={styles.select}
-                  options={[
-                    { value: "", label: "All Categories" },
-                    ...categories.map((cat) => ({ value: cat.value, label: cat.text })),
-                  ]}
-                />
-                <Button
-                  onClick={() => {
-                    setSearchTerm("");
-                    setCategoryFilter("");
-                  }}
-                  className={styles.button}
-                  danger
-                >
-                  Clear
-                </Button>
-              </>
-            )}
-            <Button
-              onClick={() => setIsLegendMinimized(!isLegendMinimized)}
-              className={styles.button}
-              aria-label={isLegendMinimized ? "Show legend" : "Hide legend"}
-            >
-              {isLegendMinimized ? "+ Show Legend" : "- Hide Legend"}
-            </Button>
-            {!filter && (
-              <Checkbox
-                onChange={(e) => setShowDraftRules(e.target.checked)}
-                checked={showDraftRules}
-                className={styles.checkbox}
-              >
-                Include draft rules
-              </Checkbox>
-            )}
-          </Flex>
-        </Flex>
-        <div
-          className={styles.collapsible}
-          style={{
-            opacity: isLegendMinimized ? 0 : 1,
-            pointerEvents: isLegendMinimized ? "none" : "auto",
-          }}
-        ></div>
-        <Flex vertical className={styles.legend}>
-          <p className={styles.legendTitle}>Legend:</p>
-          <Flex vertical gap="small">
-            <Flex align="center" className={styles.legendItem}>
-              <div className={styles.parentLine} />
-              <span>Parent Rules</span>
-            </Flex>
-            <Flex align="center" className={styles.legendItem}>
-              <div className={styles.childLine} />
-              <span>Child Rules</span>
-            </Flex>
-            <Flex align="center" className={styles.legendItem}>
-              <div className={styles.selectedDot} />
-              <span>Selected Rule</span>
-            </Flex>
-          </Flex>
-        </Flex>
-
-        <Flex vertical className={styles.legend}>
-          <p className={styles.legendTitle}>Interactions:</p>
-          <ul className={styles.helpList}>
-            <li>Click a node to see all its relationships</li>
-            <li>Click node text to view rule details</li>
-            <li>Click background to reset view</li>
-          </ul>
-        </Flex>
-
-        <p className={styles.instructions}>
-          Use arrow keys to pan, + and - to zoom, Tab to navigate between nodes, Enter to open rule
-        </p>
-      </Flex>
+      <RuleGraphControls
+        searchTerm={searchTerm}
+        categoryFilter={categoryFilter}
+        showDraftRules={showDraftRules}
+        isLegendMinimized={isLegendMinimized}
+        categories={categories}
+        filter={filter}
+        onSearchChange={handleSearchChange}
+        onCategoryChange={handleCategoryChange}
+        onShowDraftRulesChange={handleShowDraftRulesChange}
+        onLegendToggle={handleLegendToggle}
+        onClearFilters={handleClearFilters}
+      />
       <svg ref={svgRef} className={styles.svg} />
     </div>
   );
