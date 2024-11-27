@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Modal, Button, Flex, App } from "antd";
-import { SaveOutlined, UploadOutlined } from "@ant-design/icons";
+import { SaveOutlined, GithubOutlined, CopyOutlined, SendOutlined } from "@ant-design/icons";
 import { DecisionGraphType } from "@gorules/jdm-editor";
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { updateRuleData } from "@/app/utils/api";
-import { sendRuleForReview } from "@/app/utils/githubApi";
+import { sendRuleForReview, getPRUrl } from "@/app/utils/githubApi";
 import { logError } from "@/app/utils/logger";
 import NewReviewForm from "./NewReviewForm";
 import SavePublishWarnings from "./SavePublishWarnings";
@@ -14,9 +15,10 @@ interface SavePublishProps {
   ruleInfo: RuleInfo;
   ruleContent: DecisionGraphType;
   setHasSaved: () => void;
+  version?: string | boolean;
 }
 
-export default function SavePublish({ ruleInfo, ruleContent, setHasSaved }: SavePublishProps) {
+export default function SavePublish({ ruleInfo, ruleContent, setHasSaved, version }: SavePublishProps) {
   const { _id: ruleId, filepath: filePath, reviewBranch } = ruleInfo;
 
   const { message } = App.useApp();
@@ -24,6 +26,18 @@ export default function SavePublish({ ruleInfo, ruleContent, setHasSaved }: Save
   const [currReviewBranch, setCurrReviewBranch] = useState(reviewBranch);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingToReview, setIsSendingToReview] = useState(false);
+  const [prUrl, setPrUrl] = useState<string | null>(null);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const fetchPRUrl = async () => {
+      if (currReviewBranch) {
+        const url = await getPRUrl(currReviewBranch);
+        setPrUrl(url);
+      }
+    };
+    fetchPRUrl();
+  }, [currReviewBranch]);
 
   const save = async () => {
     setIsSaving(true);
@@ -76,6 +90,13 @@ export default function SavePublish({ ruleInfo, ruleContent, setHasSaved }: Save
     createOrUpdateReview(newReviewBranch, reviewDescription);
   };
 
+  const generateEmbedCode = () => {
+    const baseURL = window.location.origin;
+    const embedCode = `${baseURL}${pathname}/embedded`;
+    navigator.clipboard.writeText(embedCode);
+    message.success("Embed code copied to clipboard");
+  };
+
   return (
     <>
       <Modal
@@ -87,19 +108,34 @@ export default function SavePublish({ ruleInfo, ruleContent, setHasSaved }: Save
       >
         <NewReviewForm filePath={filePath} createNewReview={createNewReview} />
       </Modal>
-      <Flex gap="small" justify="end" className={styles.savePublishWrapper}>
-        <Button type="primary" onClick={save} disabled={isSaving}>
-          Save <SaveOutlined />
-        </Button>
-        <Button
-          type="primary"
-          onClick={() => createOrUpdateReview()}
-          className={styles.sendForReviewBtn}
-          disabled={isSendingToReview}
-        >
-          {" "}
-          Send for Review <UploadOutlined />
-        </Button>
+      <Flex gap="small" justify="end" align="center" wrap className={styles.savePublishWrapper}>
+        {reviewBranch && (version === "draft" || version === "inReview") && (
+          <Button onClick={() => prUrl && window.open(prUrl, "_blank")} disabled={!prUrl}>
+            <GithubOutlined />
+            Comment on Pull Request
+          </Button>
+        )}
+        {version === "draft" && (
+          <>
+            <Button type="primary" onClick={save} disabled={isSaving}>
+              <SaveOutlined /> Save Changes
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => createOrUpdateReview()}
+              className={styles.sendForReviewBtn}
+              disabled={isSendingToReview}
+            >
+              {" "}
+              <SendOutlined /> Send for Review
+            </Button>
+          </>
+        )}
+        {version !== "inReview" && version !== "draft" && (
+          <Button type="primary" onClick={() => generateEmbedCode()}>
+            <CopyOutlined /> Copy Embed Code
+          </Button>
+        )}
       </Flex>
       <SavePublishWarnings filePath={filePath} ruleContent={ruleContent} isSaving={isSaving} />
     </>

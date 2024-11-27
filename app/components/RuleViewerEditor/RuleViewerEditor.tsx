@@ -15,14 +15,11 @@ import {
   CustomNodeSpecification,
 } from "@gorules/jdm-editor";
 import { SchemaSelectProps, PanelType } from "@/app/types/jdm-editor";
-import { Scenario, Variable } from "@/app/types/scenario";
-import { downloadFileBlob } from "@/app/utils/utils";
-import { getScenariosByFilename } from "@/app/utils/api";
-import { logError } from "@/app/utils/logger";
 import LinkRuleComponent from "./subcomponents/LinkRuleComponent";
 import SimulatorPanel from "./subcomponents/SimulatorPanel";
 import RuleInputOutputFieldsComponent from "./subcomponents/RuleInputOutputFieldsComponent";
 import NotesComponent from "./subcomponents/NotesComponent";
+import { useJSONUpload } from "@/app/hooks/useJSONUpload";
 
 interface RuleViewerEditorProps {
   jsonFilename: string;
@@ -34,6 +31,7 @@ interface RuleViewerEditorProps {
   runSimulation?: (results: unknown) => void;
   isEditable?: boolean;
   setLoadingComplete: () => void;
+  updateScenarios: () => void;
 }
 
 export default function RuleViewerEditor({
@@ -46,6 +44,7 @@ export default function RuleViewerEditor({
   runSimulation,
   isEditable = true,
   setLoadingComplete,
+  updateScenarios,
 }: RuleViewerEditorProps) {
   const decisionGraphRef: any = useRef<DecisionGraphRef>();
   const [reactFlowRef, setReactFlowRef] = useState<ReactFlowInstance>();
@@ -73,60 +72,7 @@ export default function RuleViewerEditor({
     setReactFlowRef(reactFlow);
   };
 
-  const downloadJSON = (jsonData: any, filename: string) => {
-    downloadFileBlob(JSON.stringify(jsonData, null, 2), "application/json", filename);
-  };
-
-  const handleScenarioInsertion = async () => {
-    try {
-      const scenarios: Scenario[] = await getScenariosByFilename(jsonFilename);
-      const scenarioObject = {
-        tests: scenarios.map((scenario: Scenario) => ({
-          name: scenario.title || "Default name",
-          input: scenario.variables.reduce((obj: any, each: Variable) => {
-            obj[each.name] = each.value;
-            return obj;
-          }, {}),
-          output: scenario.expectedResults.reduce((obj, each) => {
-            obj[each.name] = each.value;
-            return obj;
-          }, {}),
-        })),
-      };
-      const updatedJSON = {
-        ...ruleContent,
-        ...scenarioObject,
-      };
-      return downloadJSON(updatedJSON, jsonFilename);
-    } catch (error: any) {
-      logError("Error fetching JSON:", error);
-      throw error;
-    }
-  };
-
-  const interceptJSONDownload = async (event: any) => {
-    if (decisionGraphRef.current && event.target?.download === "graph.json") {
-      event.preventDefault();
-      try {
-        await handleScenarioInsertion();
-      } catch (error: any) {
-        logError("Error intercepting JSON download:", error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    const clickHandler = (event: any) => {
-      interceptJSONDownload(event);
-    };
-
-    document.addEventListener("click", clickHandler);
-
-    return () => {
-      document.removeEventListener("click", clickHandler);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ruleContent]);
+  useJSONUpload(jsonFilename, updateScenarios, decisionGraphRef, ruleContent);
 
   const additionalComponents: NodeSpecification[] = useMemo(
     () => [

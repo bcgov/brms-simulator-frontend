@@ -2,11 +2,10 @@ import { Metadata } from "next";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
 import getGithubAuth from "@/app/utils/getGithubAuth";
 import getRuleDataForVersion from "@/app/hooks/getRuleDataForVersion";
-import { Scenario } from "@/app/types/scenario";
-import { getScenariosByFilename } from "@/app/utils/api";
 import { GithubAuthProvider } from "@/app/components/GithubAuthProvider";
 import RuleHeader from "@/app/components/RuleHeader";
 import RuleManager from "@/app/components/RuleManager";
+import styles from "@/app/rule/rule.module.css";
 
 type Props = {
   params: { ruleId: string };
@@ -27,7 +26,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 export default async function Rule({ params: { ruleId }, searchParams }: Props) {
   // Get version of rule to use
-  const { version } = searchParams;
+  const { version = process.env.NEXT_PUBLIC_IN_PRODUCTION ? RULE_VERSION.inProduction : RULE_VERSION.inDev } =
+    searchParams;
 
   const oAuthRequired = version === RULE_VERSION.draft; // only require oauth if editing a draft
   // Ensure user is first logged into github so they can save what they edit
@@ -36,18 +36,18 @@ export default async function Rule({ params: { ruleId }, searchParams }: Props) 
 
   // Get rule details and json content for the rule id
   const { ruleInfo, ruleContent } = await getRuleDataForVersion(ruleId, version);
-
   if (!ruleInfo._id || !ruleContent) {
     return <h1>Rule not found</h1>;
   }
 
-  // Get scenario information
-  const scenarios: Scenario[] = await getScenariosByFilename(ruleInfo.filepath);
-
   return (
     <GithubAuthProvider authInfo={githubAuthInfo}>
-      <RuleHeader ruleInfo={ruleInfo} version={version} />
-      <RuleManager ruleInfo={ruleInfo} initialRuleContent={ruleContent} scenarios={scenarios} editing={version} />
+      <RuleHeader ruleInfo={ruleInfo} />
+      <div className={styles.rootLayout} style={{ background: "white" }}>
+        <div className={styles.rulesWrapper}>
+          <RuleManager ruleInfo={ruleInfo} initialRuleContent={ruleContent} editing={version} />
+        </div>
+      </div>
     </GithubAuthProvider>
   );
 }
