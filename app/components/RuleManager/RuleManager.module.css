@@ -7,16 +7,12 @@
 .rulesWrapper::before {
   content: "";
   position: absolute;
-  top: -1%;
   left: 50%;
   transform: translateX(-50%);
-  width: 100vw;
+  width: calc(100vw - 15px);
   height: 103%;
-  background: linear-gradient(
-    to bottom, 
-    var(--version-color) 100%,
-    transparent 0%
-  );
+  background: transparent;
+  background-color: var(--version-color);
   z-index: -1;
   opacity: 0.1;
 }

@@ -1,11 +1,7 @@
-.helper {
+.introBody {
     --spacing-sm: 0.75rem;    
     --spacing-md: 1.5rem;     
     --border-color: #e8e8e8;
-}
-
-.introBody {
-    composes: helper;
     padding: 0 1.25rem;
 }
 

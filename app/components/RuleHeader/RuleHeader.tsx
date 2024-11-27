@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { Flex, Tooltip } from "antd";
+import { Flex, Tooltip, Button } from "antd";
 import { HomeOutlined, CheckOutlined, ExportOutlined } from "@ant-design/icons";
 import { RuleInfo } from "@/app/types/ruleInfo";
 import { updateRuleData } from "@/app/utils/api";
@@ -51,9 +51,9 @@ export default function RuleHeader({ ruleInfo }: { ruleInfo: RuleInfo }) {
   return (
     <div className={styles.headerContainer}>
       <div className={styles.homeWrapper}>
-        <a href="/" className={styles.homeLink}>
-          <HomeOutlined className={styles.homeButton} /> Home
-        </a>
+        <Button type="link" href="/" className={styles.homeButton} icon={<HomeOutlined />}>
+          Home
+        </Button>
       </div>
       <Flex justify="space-between" align="center" className={styles.headerWrapper}>
         <Flex gap="middle" align="center" flex={1} className={styles.headerContent}>

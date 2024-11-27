@@ -152,15 +152,7 @@ const commitFileToBranch = async (branchName: string, filePath: string, ruleCont
 
 // Check if a PR already exists for the branch
 const doesPRExist = async (branchName: string): Promise<boolean> => {
-  try {
-    const listPrsUrl = `${GITHUB_REPO_URL}/pulls?state=open&head=${GITHUB_REPO_OWNER}:${branchName}`;
-    const openPrsResponse = await axiosGithubInstance.get(listPrsUrl);
-    const openPrs = openPrsResponse.data;
-    return openPrs.length > 0;
-  } catch (error: any) {
-    logError(`Failed checking if PR exists for ${branchName}`, error);
-    throw error;
-  }
+  return (await getPRUrl(branchName)) !== null;
 };
 
 // Create a new pull request

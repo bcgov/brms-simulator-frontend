@@ -1,6 +1,5 @@
 "use client";
 import { Flex, Radio } from "antd";
-import { usePathname } from "next/navigation";
 import { CheckCircleFilled, CheckCircleOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import { getVersionColor } from "@/app/utils/utils";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
@@ -12,18 +11,22 @@ interface VersionBarProps {
 }
 
 export default function VersionBar({ ruleInfo, version = RULE_VERSION.inProduction }: VersionBarProps) {
-  const pathname = usePathname();
   const versionColor = getVersionColor(version);
 
-  const getButtonStyle = (buttonVersion: RULE_VERSION) =>
-    version === buttonVersion
-      ? {
-          backgroundColor: versionColor,
-          color: "white",
-          paddingTop: "5px",
-          height: "50px",
-        }
-      : undefined;
+  const getButtonStyle = (buttonVersion: RULE_VERSION) => {
+    const baseStyle = { fontSize: "14px" };
+    return {
+      ...baseStyle,
+      ...(version === buttonVersion
+        ? {
+            backgroundColor: versionColor,
+            color: "white",
+            paddingTop: "2px",
+            height: "44px",
+          }
+        : {}),
+    };
+  };
 
   const switchVersion = (versionToSwitchTo: RULE_VERSION) => {
     const url = new URL(window.location.href);
@@ -35,7 +38,7 @@ export default function VersionBar({ ruleInfo, version = RULE_VERSION.inProducti
   return (
     <Flex gap="small" justify="start" align="center">
       Version:
-      <Radio.Group size="large" value={version} onChange={(e) => switchVersion(e.target.value)}>
+      <Radio.Group size="large" style={{}} onChange={(e) => switchVersion(e.target.value)}>
         <Radio.Button value={RULE_VERSION.draft} style={getButtonStyle(RULE_VERSION.draft)}>
           <EditOutlined /> In Draft
         </Radio.Button>
