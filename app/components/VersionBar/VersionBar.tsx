@@ -10,7 +10,10 @@ interface VersionBarProps {
   version?: string;
 }
 
-export default function VersionBar({ ruleInfo, version = RULE_VERSION.inProduction }: VersionBarProps) {
+export default function VersionBar({
+  ruleInfo,
+  version = process.env.NEXT_PUBLIC_IN_PRODUCTION ? RULE_VERSION.inProduction : RULE_VERSION.inDev,
+}: VersionBarProps) {
   const versionColor = getVersionColor(version);
 
   const getButtonStyle = (buttonVersion: RULE_VERSION) => {

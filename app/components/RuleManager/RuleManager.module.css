@@ -12,7 +12,11 @@
   width: calc(100vw - 15px);
   height: 103%;
   background: transparent;
-  background-color: var(--version-color);
+  background: linear-gradient(
+    to bottom, 
+    var(--version-color) 0%,
+    transparent 170%
+  );
   z-index: -1;
   opacity: 0.1;
 }

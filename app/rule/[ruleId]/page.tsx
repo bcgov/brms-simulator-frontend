@@ -25,9 +25,11 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 }
 
 export default async function Rule({ params: { ruleId }, searchParams }: Props) {
-  // Get version of rule to use
-  const { version = process.env.NEXT_PUBLIC_IN_PRODUCTION ? RULE_VERSION.inProduction : RULE_VERSION.inDev } =
-    searchParams;
+  const version = searchParams.version?.trim()
+    ? searchParams.version
+    : process.env.NEXT_PUBLIC_IN_PRODUCTION
+    ? RULE_VERSION.inProduction
+    : RULE_VERSION.inDev;
 
   const oAuthRequired = version === RULE_VERSION.draft; // only require oauth if editing a draft
   // Ensure user is first logged into github so they can save what they edit
