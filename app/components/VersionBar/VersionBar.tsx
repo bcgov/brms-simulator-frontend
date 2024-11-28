@@ -12,7 +12,7 @@ interface VersionBarProps {
 
 export default function VersionBar({
   ruleInfo,
-  version = process.env.NEXT_PUBLIC_IN_PRODUCTION ? RULE_VERSION.inProduction : RULE_VERSION.inDev,
+  version = process.env.NEXT_PUBLIC_IN_PRODUCTION === "true" ? RULE_VERSION.inProduction : RULE_VERSION.inDev,
 }: VersionBarProps) {
   const versionColor = getVersionColor(version);
 
