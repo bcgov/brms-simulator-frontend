@@ -1,0 +1,83 @@
+import * as d3 from "d3";
+
+export const GraphNavigation = (
+  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+  g: d3.Selection<SVGGElement, unknown, null, undefined>,
+  zoom: d3.ZoomBehavior<Element, unknown>
+) => {
+  // Add zoom controls
+  const controls = svg
+    .append("g")
+    .attr("transform", `translate(10, ${svg.node()?.getBoundingClientRect().height! - 60})`);
+
+  controls.append("rect").attr("width", 30).attr("height", 90).attr("fill", "white").attr("stroke", "#999");
+
+  controls
+    .append("text")
+    .attr("x", 15)
+    .attr("y", 20)
+    .attr("text-anchor", "middle")
+    .style("font-size", "18px")
+    .style("cursor", "pointer")
+    .text("+")
+    .on("click", () => {
+      svg
+        .transition()
+        .duration(750)
+        .call(zoom.scaleBy as any, 1.3);
+    });
+
+  controls
+    .append("text")
+    .attr("x", 15)
+    .attr("y", 50)
+    .attr("text-anchor", "middle")
+    .style("font-size", "18px")
+    .style("cursor", "pointer")
+    .text("⟲")
+    .on("click", () => {
+      svg
+        .transition()
+        .duration(750)
+        .call(zoom.transform as any, d3.zoomIdentity);
+    });
+
+  controls
+    .append("text")
+    .attr("x", 15)
+    .attr("y", 80)
+    .attr("text-anchor", "middle")
+    .style("font-size", "18px")
+    .style("cursor", "pointer")
+    .text("−")
+    .on("click", () => {
+      svg
+        .transition()
+        .duration(750)
+        .call(zoom.scaleBy as any, 0.7);
+    });
+
+  // Add keyboard navigation
+  svg.on("keydown", (event) => {
+    switch (event.key) {
+      case "ArrowUp":
+        svg.transition().call(zoom.translateBy as any, 0, -10);
+        break;
+      case "ArrowDown":
+        svg.transition().call(zoom.translateBy as any, 0, 10);
+        break;
+      case "ArrowLeft":
+        svg.transition().call(zoom.translateBy as any, -10, 0);
+        break;
+      case "ArrowRight":
+        svg.transition().call(zoom.translateBy as any, 10, 0);
+        break;
+      case "+":
+        svg.transition().call(zoom.scaleBy as any, 1.2);
+        break;
+      case "-":
+        svg.transition().call(zoom.scaleBy as any, 0.8);
+        break;
+    }
+  });
+};

@@ -8,7 +8,7 @@ interface RuleGraphControlsProps {
   showDraftRules: boolean;
   isLegendMinimized: boolean;
   categories: CategoryObject[];
-  filter?: string;
+  embeddedCategory?: string;
   onSearchChange: (value: string) => void;
   onCategoryChange: (value: string) => void;
   onShowDraftRulesChange: (value: boolean) => void;
@@ -22,7 +22,7 @@ export function RuleGraphControls({
   showDraftRules,
   isLegendMinimized,
   categories,
-  filter,
+  embeddedCategory,
   onSearchChange,
   onCategoryChange,
   onShowDraftRulesChange,
@@ -35,11 +35,11 @@ export function RuleGraphControls({
       vertical
       aria-label="Graph Controls"
       className={styles.controls}
-      style={{ maxHeight: isLegendMinimized ? (filter ? "40px" : "110px") : "500px" }}
+      style={{ maxHeight: isLegendMinimized ? (embeddedCategory ? "40px" : "110px") : "500px" }}
     >
       <Flex gap="small" align="center">
         <Flex gap="small" align="center" wrap>
-          {!filter && (
+          {!embeddedCategory && (
             <>
               <Input
                 type="text"
@@ -72,7 +72,7 @@ export function RuleGraphControls({
           >
             {isLegendMinimized ? "+ Show Legend" : "- Hide Legend"}
           </Button>
-          {!filter && (
+          {!embeddedCategory && (
             <Checkbox
               onChange={(e) => onShowDraftRulesChange(e.target.checked)}
               checked={showDraftRules}
