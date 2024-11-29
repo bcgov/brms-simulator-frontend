@@ -16,6 +16,7 @@ interface RuleGraphControlsProps {
   onClearFilters: () => void;
 }
 
+// Legend and controls for the rule graph
 export function RuleGraphControls({
   searchTerm,
   categoryFilter,

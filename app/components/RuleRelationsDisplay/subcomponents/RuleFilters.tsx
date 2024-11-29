@@ -9,62 +9,74 @@ export interface RuleFiltersProps {
   showDraftRules: boolean;
 }
 
-export class RuleFilters {
-  private graphTraversal: GraphTraversal;
+// Returns nodes for a specific category
+// If category is empty, returns all nodes
+// If showDraftRules is false, only returns published nodes
+// Also returns all ancestors and descendants of the matching nodes
+export const getNodesForCategory = (
+  nodes: RuleNode[],
+  links: RuleLink[],
+  category: string,
+  showDraftRules: boolean
+): Set<number> => {
+  const graphTraversal = new GraphTraversal(links);
+  const matchingNodes = new Set<number>();
 
-  constructor(links: RuleLink[]) {
-    this.graphTraversal = new GraphTraversal(links);
-  }
+  nodes.forEach((node) => {
+    if (!showDraftRules && !node.isPublished) return;
 
-  getNodesForCategory(nodes: RuleNode[], category: string, showDraftRules: boolean): Set<number> {
-    const matchingNodes = new Set<number>();
+    if (!category) {
+      matchingNodes.add(node.id);
+      return;
+    }
 
-    nodes.forEach((node) => {
-      if (!showDraftRules && !node.isPublished) return;
+    if (node.filepath?.includes(category)) {
+      matchingNodes.add(node.id);
 
-      if (!category) {
-        matchingNodes.add(node.id);
-        return;
-      }
+      const ancestors = graphTraversal.getAllAncestors(node.id);
+      const descendants = graphTraversal.getAllDescendants(node.id);
 
-      if (node.filepath?.includes(category)) {
-        matchingNodes.add(node.id);
+      ancestors.forEach((id) => {
+        const ancestorNode = nodes.find((n) => n.id === id);
+        if (ancestorNode && (showDraftRules || ancestorNode.isPublished)) {
+          matchingNodes.add(id);
+        }
+      });
 
-        const ancestors = this.graphTraversal.getAllAncestors(node.id);
-        const descendants = this.graphTraversal.getAllDescendants(node.id);
+      descendants.forEach((id) => {
+        const descendantNode = nodes.find((n) => n.id === id);
+        if (descendantNode && (showDraftRules || descendantNode.isPublished)) {
+          matchingNodes.add(id);
+        }
+      });
+    }
+  });
 
-        ancestors.forEach((id) => {
-          const ancestorNode = nodes.find((n) => n.id === id);
-          if (ancestorNode && (showDraftRules || ancestorNode.isPublished)) {
-            matchingNodes.add(id);
-          }
-        });
+  return matchingNodes;
+};
 
-        descendants.forEach((id) => {
-          const descendantNode = nodes.find((n) => n.id === id);
-          if (descendantNode && (showDraftRules || descendantNode.isPublished)) {
-            matchingNodes.add(id);
-          }
-        });
-      }
-    });
+// Returns links that connect nodes in the visible set
+// If showDraftRules is false, only returns links between published nodes
+// Also returns links that connect ancestors and descendants of the visible nodes
+// This is used to highlight connections when a node is selected
+export const isNodeVisible = (
+  node: RuleNode,
+  searchPattern: string,
+  visibleNodes: Set<number>,
+  showDraftRules: boolean
+): boolean => {
+  return (
+    (showDraftRules || (node.isPublished ?? false)) &&
+    visibleNodes.has(node.id) &&
+    (searchPattern === "" || node.name.toLowerCase().includes(searchPattern))
+  );
+};
 
-    return matchingNodes;
-  }
-
-  isNodeVisible(node: RuleNode, searchPattern: string, visibleNodes: Set<number>, showDraftRules: boolean): boolean {
-    return (
-      (showDraftRules || (node.isPublished ?? false)) &&
-      visibleNodes.has(node.id) &&
-      (searchPattern === "" || node.name.toLowerCase().includes(searchPattern))
-    );
-  }
-
-  isLinkVisible(link: RuleLink, visibleNodes: Set<number>, showDraftRules: boolean): boolean {
-    const sourceVisible =
-      visibleNodes.has((link.source as any).id) && (showDraftRules || (link.source as any).isPublished);
-    const targetVisible =
-      visibleNodes.has((link.target as any).id) && (showDraftRules || (link.target as any).isPublished);
-    return sourceVisible && targetVisible;
-  }
-}
+// Returns links that connect nodes in the visible set
+export const isLinkVisible = (link: RuleLink, visibleNodes: Set<number>, showDraftRules: boolean): boolean => {
+  const sourceVisible =
+    visibleNodes.has((link.source as any).id) && (showDraftRules || (link.source as any).isPublished);
+  const targetVisible =
+    visibleNodes.has((link.target as any).id) && (showDraftRules || (link.target as any).isPublished);
+  return sourceVisible && targetVisible;
+};

@@ -2,7 +2,7 @@ import { useEffect, RefObject } from "react";
 import * as d3 from "d3";
 import { RuleMapRule, RuleNode, RuleLink } from "@/app/types/rulemap";
 import { GraphTraversal } from "@/app/utils/graphUtils";
-import { RuleFilters } from "../subcomponents/RuleFilters";
+import { getNodesForCategory, isNodeVisible, isLinkVisible } from "../subcomponents/RuleFilters";
 import { GraphNavigation } from "../subcomponents/GraphNavigation";
 import { RuleNodesGroup } from "../subcomponents/RuleNodesGroup";
 
@@ -25,281 +25,276 @@ export const useRuleGraph = ({
   showDraftRules,
   embeddedCategory,
 }: UseRuleGraphProps) => {
-  useEffect(() => {
-    if (!svgRef.current || !rules.length) return;
+  useEffect(
+    () => {
+      if (!svgRef.current || !rules.length) return;
 
-    const { width, height } = dimensions;
+      const { width, height } = dimensions;
 
-    // Clear previous graph
-    d3.select(svgRef.current).selectAll("*").remove();
+      // Clear previous graph
+      d3.select(svgRef.current).selectAll("*").remove();
 
-    const svg = d3
-      .select(svgRef.current)
-      .attr("preserveAspectRatio", "xMidYMid meet")
-      .attr("viewBox", [-width / 2, -height / 2, width, height])
-      .attr("role", "img")
-      .attr("aria-label", "Rule relationships diagram")
-      .attr("tabindex", "0");
+      const svg = d3
+        .select(svgRef.current)
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .attr("viewBox", [-width / 2, -height / 2, width, height])
+        .attr("role", "img")
+        .attr("aria-label", "Rule relationships diagram")
+        .attr("tabindex", "0");
 
-    // Add zoom
-    const containerGroup = svg.append("g");
-    const zoom = d3
-      .zoom()
-      .scaleExtent([0.1, 4])
-      .on("zoom", (event) => {
-        containerGroup.attr("transform", event.transform);
-      });
-
-    svg.call(zoom as any);
-
-    // Add navigation controls
-    GraphNavigation(svg, containerGroup, zoom);
-
-    const uniqueRules = new Map<number, RuleMapRule>();
-    rules.forEach((rule) => {
-      if (!uniqueRules.has(rule.id)) {
-        uniqueRules.set(rule.id, rule);
-      }
-    });
-
-    const nodes: RuleNode[] = Array.from(uniqueRules.values()).map((rule) => ({
-      id: rule.id,
-      name: rule.name || "N/A",
-      label: rule.label ?? rule.name,
-      radius: 8,
-      description: rule?.description || null,
-      url: rule?.url,
-      filepath: rule?.filepath,
-      isPublished: rule?.isPublished,
-      reviewBranch: rule?.reviewBranch,
-    }));
-
-    // Create links only between existing nodes
-    const links: RuleLink[] = Array.from(uniqueRules.values()).flatMap((rule) => {
-      const parentLinks =
-        rule.parent_rules
-          ?.filter((parent) => uniqueRules.has(parent.id))
-          .map((parent) => ({
-            source: parent.id,
-            target: rule.id,
-          })) || [];
-
-      const childLinks =
-        rule.child_rules
-          ?.filter((child) => uniqueRules.has(child.id))
-          .map((child) => ({
-            source: rule.id,
-            target: child.id,
-          })) || [];
-
-      return [...parentLinks, ...childLinks];
-    });
-
-    nodes.sort((a, b) => a.id - b.id);
-
-    const simulation = d3
-      .forceSimulation(nodes)
-      .force(
-        "link",
-        d3
-          .forceLink(links)
-          .id((d: any) => d.id)
-          .distance(150)
-          .strength(0.5)
-      )
-      .force("charge", d3.forceManyBody().strength(-500).distanceMax(500))
-      .force("x", d3.forceX().strength(0.03))
-      .force("y", d3.forceY().strength(0.03))
-      .force("collision", d3.forceCollide().radius(60));
-
-    // Draw links
-    const link = containerGroup
-      .append("g")
-      .selectAll("line")
-      .data(links)
-      .join("line")
-      .attr("stroke", "#999")
-      .attr("stroke-opacity", 0.6)
-      .attr("marker-end", "url(#arrow)");
-
-    // Add arrow marker
-    containerGroup
-      .append("defs")
-      .append("marker")
-      .attr("id", "arrow")
-      .attr("viewBox", "0 -5 10 10")
-      .attr("refX", 15)
-      .attr("refY", 0)
-      .attr("markerWidth", 6)
-      .attr("markerHeight", 6)
-      .attr("orient", "auto")
-      .append("path")
-      .attr("fill", "#999")
-      .attr("d", "M0,-5L10,0L0,5");
-
-    const graphTraversal = new GraphTraversal(links);
-
-    const highlightConnections = (nodeId: number | null) => {
-      if (nodeId === null) {
-        highlightSearch(searchTerm);
-        link.attr("stroke", "#999").attr("stroke-opacity", 0.6).attr("stroke-width", "1");
-        return;
-      }
-
-      const ancestors = graphTraversal.getAllAncestors(nodeId);
-      const descendants = graphTraversal.getAllDescendants(nodeId);
-      const ancestorLinks = graphTraversal.getAncestorLinks(nodeId);
-      const descendantLinks = graphTraversal.getDescendantLinks(nodeId);
-
-      ruleNodes
-        .getSelection()
-        .selectAll("circle")
-        .attr("fill", (d: any) => {
-          if (d.id === nodeId) return "#ff7f50";
-          if (ancestors.has(d.id)) return "#4169e1";
-          if (descendants.has(d.id)) return "#32cd32";
-          return "#69b3a2";
+      // Add zoom
+      const containerGroup = svg.append("g");
+      const zoom = d3
+        .zoom()
+        .scaleExtent([0.1, 4])
+        .on("zoom", (event) => {
+          containerGroup.attr("transform", event.transform);
         });
 
-      // Update labels
-      ruleNodes
-        .getSelection()
-        .selectAll("text")
-        .style("font-weight", (d: any) =>
-          d.id === nodeId || ancestors.has(d.id) || descendants.has(d.id) ? "bold" : "normal"
-        );
+      svg.call(zoom as any);
 
-      // Update links
-      link
-        .attr("stroke", (line: any) => {
-          if (ancestorLinks.includes(line)) return "#4169e1";
-          if (descendantLinks.includes(line)) return "#32cd32";
-          return "#999";
-        })
-        .attr("stroke-opacity", (line: any) =>
-          ancestorLinks.includes(line) || descendantLinks.includes(line) ? 1 : 0.2
+      // Add navigation controls
+      GraphNavigation(svg, containerGroup, zoom);
+
+      const uniqueRules = new Map<number, RuleMapRule>();
+      rules.forEach((rule) => {
+        if (!uniqueRules.has(rule.id)) {
+          uniqueRules.set(rule.id, rule);
+        }
+      });
+
+      const nodes: RuleNode[] = Array.from(uniqueRules.values()).map((rule) => ({
+        id: rule.id,
+        name: rule.name || "N/A",
+        label: rule.label ?? rule.name,
+        radius: 8,
+        description: rule?.description || null,
+        url: rule?.url,
+        filepath: rule?.filepath,
+        isPublished: rule?.isPublished,
+        reviewBranch: rule?.reviewBranch,
+      }));
+
+      // Create links only between existing nodes
+      const links: RuleLink[] = Array.from(uniqueRules.values()).flatMap((rule) => {
+        const parentLinks =
+          rule.parent_rules
+            ?.filter((parent) => uniqueRules.has(parent.id))
+            .map((parent) => ({
+              source: parent.id,
+              target: rule.id,
+            })) || [];
+
+        const childLinks =
+          rule.child_rules
+            ?.filter((child) => uniqueRules.has(child.id))
+            .map((child) => ({
+              source: rule.id,
+              target: child.id,
+            })) || [];
+
+        return [...parentLinks, ...childLinks];
+      });
+
+      nodes.sort((a, b) => a.id - b.id);
+
+      const simulation = d3
+        .forceSimulation(nodes)
+        .force(
+          "link",
+          d3
+            .forceLink(links)
+            .id((d: any) => d.id)
+            .distance(150)
+            .strength(0.5)
         )
-        .attr("stroke-width", (line: any) =>
-          ancestorLinks.includes(line) || descendantLinks.includes(line) ? "2" : "1"
-        );
+        .force("charge", d3.forceManyBody().strength(-500).distanceMax(500))
+        .force("x", d3.forceX().strength(0.03))
+        .force("y", d3.forceY().strength(0.03))
+        .force("collision", d3.forceCollide().radius(60));
 
-      // Update opacity
-      ruleNodes
-        .getSelection()
-        .style("opacity", (d: any) => (d.id === nodeId || ancestors.has(d.id) || descendants.has(d.id) ? 1 : 0.3));
-    };
+      // Draw links
+      const link = containerGroup
+        .append("g")
+        .selectAll("line")
+        .data(links)
+        .join("line")
+        .attr("stroke", "#999")
+        .attr("stroke-opacity", 0.6)
+        .attr("marker-end", "url(#arrow)");
 
-    // Create filter instance
-    const ruleFilters = new RuleFilters(links);
+      // Add arrow marker
+      containerGroup
+        .append("defs")
+        .append("marker")
+        .attr("id", "arrow")
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 15)
+        .attr("refY", 0)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("orient", "auto")
+        .append("path")
+        .attr("fill", "#999")
+        .attr("d", "M0,-5L10,0L0,5");
 
-    const highlightSearch = (term: string) => {
-      const searchPattern = term.toLowerCase();
-      const visibleNodes = ruleFilters.getNodesForCategory(nodes, categoryFilter, showDraftRules);
+      const graphTraversal = new GraphTraversal(links);
 
-      ruleNodes.getSelection().style("display", (d: any) => {
-        const isVisible = showDraftRules || d.isPublished;
-        return isVisible ? null : "none";
-      });
-
-      ruleNodes.getSelection().each(function (d: any) {
-        const node = d3.select(this);
-        const matchesSearch = d.name.toLowerCase().includes(searchPattern);
-        const matchesCategory = visibleNodes.has(d.id);
-
-        if (showDraftRules || d.isPublished) {
-          node.select("circle").attr("fill", matchesSearch ? "#ff7f50" : "#69b3a2");
-          node.select("text").style("font-weight", matchesSearch ? "bold" : "normal");
-          node.style("opacity", matchesSearch && matchesCategory ? 1 : 0.2);
+      const highlightConnections = (nodeId: number | null) => {
+        if (nodeId === null) {
+          highlightSearch(searchTerm);
+          link.attr("stroke", "#999").attr("stroke-opacity", 0.6).attr("stroke-width", "1");
+          return;
         }
-      });
 
-      link
-        .style("display", (l: any) => {
-          return ruleFilters.isLinkVisible(l, visibleNodes, showDraftRules) ? null : "none";
-        })
-        .style("opacity", (l: any) => {
-          return ruleFilters.isLinkVisible(l, visibleNodes, showDraftRules) ? 0.6 : 0.1;
+        const ancestors = graphTraversal.getAllAncestors(nodeId);
+        const descendants = graphTraversal.getAllDescendants(nodeId);
+        const ancestorLinks = graphTraversal.getAncestorLinks(nodeId);
+        const descendantLinks = graphTraversal.getDescendantLinks(nodeId);
+
+        ruleNodes
+          .getSelection()
+          .selectAll("circle")
+          .attr("fill", (d: any) => {
+            if (d.id === nodeId) return "#ff7f50";
+            if (ancestors.has(d.id)) return "#4169e1";
+            if (descendants.has(d.id)) return "#32cd32";
+            return "#69b3a2";
+          });
+
+        // Update labels
+        ruleNodes
+          .getSelection()
+          .selectAll("text")
+          .style("font-weight", (d: any) =>
+            d.id === nodeId || ancestors.has(d.id) || descendants.has(d.id) ? "bold" : "normal"
+          );
+
+        // Update links
+        link
+          .attr("stroke", (line: any) => {
+            if (ancestorLinks.includes(line)) return "#4169e1";
+            if (descendantLinks.includes(line)) return "#32cd32";
+            return "#999";
+          })
+          .attr("stroke-opacity", (line: any) =>
+            ancestorLinks.includes(line) || descendantLinks.includes(line) ? 1 : 0.2
+          )
+          .attr("stroke-width", (line: any) =>
+            ancestorLinks.includes(line) || descendantLinks.includes(line) ? "2" : "1"
+          );
+
+        // Update opacity
+        ruleNodes
+          .getSelection()
+          .style("opacity", (d: any) => (d.id === nodeId || ancestors.has(d.id) || descendants.has(d.id) ? 1 : 0.3));
+      };
+
+      const highlightSearch = (term: string) => {
+        const searchPattern = term.toLowerCase();
+        const visibleNodes = getNodesForCategory(nodes, links, categoryFilter, showDraftRules);
+
+        ruleNodes.getSelection().each(function (d: any) {
+          const node = d3.select(this);
+          const nodeIsVisible = isNodeVisible(d, searchPattern, visibleNodes, showDraftRules);
+
+          if (showDraftRules || d.isPublished) {
+            node.select("circle").attr("fill", d.name.toLowerCase().includes(searchPattern) ? "#ff7f50" : "#69b3a2");
+            node.select("text").style("font-weight", d.name.toLowerCase().includes(searchPattern) ? "bold" : "normal");
+            node.style("opacity", nodeIsVisible ? 1 : 0.2);
+          }
         });
-    };
 
-    const filteredOnly = (term: string) => {
-      const searchPattern = term.toLowerCase();
-      const visibleNodes = ruleFilters.getNodesForCategory(nodes, categoryFilter, showDraftRules);
+        link
+          .style("display", (l: any) => {
+            return isLinkVisible(l, visibleNodes, showDraftRules) ? null : "none";
+          })
+          .style("opacity", (l: any) => {
+            return isLinkVisible(l, visibleNodes, showDraftRules) ? 0.6 : 0.1;
+          });
+      };
 
-      ruleNodes.getSelection().each(function (d: any) {
-        const isVisible = ruleFilters.isNodeVisible(d, searchPattern, visibleNodes, showDraftRules);
+      const filteredOnly = (term: string) => {
+        const searchPattern = term.toLowerCase();
+        const visibleNodes = getNodesForCategory(nodes, links, categoryFilter, showDraftRules);
 
-        if (!isVisible) {
-          d3.select(this).remove();
+        ruleNodes.getSelection().each(function (d: any) {
+          const nodeIsVisible = isNodeVisible(d, searchPattern, visibleNodes, showDraftRules);
+
+          if (!nodeIsVisible) {
+            d3.select(this).remove();
+          } else {
+            d3.select(this)
+              .selectAll("circle")
+              .attr("fill", d.name.toLowerCase().includes(searchPattern) ? "#ff7f50" : "#69b3a2");
+
+            d3.select(this)
+              .selectAll("text")
+              .style("font-weight", d.name.toLowerCase().includes(searchPattern) ? "bold" : "normal");
+          }
+        });
+
+        link.each(function (d: any) {
+          if (!isLinkVisible(d, visibleNodes, showDraftRules)) {
+            d3.select(this).remove();
+          }
+        });
+      };
+
+      // Add event listener for search term changes
+      const handleSearch = () => {
+        if (embeddedCategory) {
+          filteredOnly(searchTerm);
         } else {
-          d3.select(this)
-            .selectAll("circle")
-            .attr("fill", d.name.toLowerCase().includes(searchPattern) ? "#ff7f50" : "#69b3a2");
-
-          d3.select(this)
-            .selectAll("text")
-            .style("font-weight", d.name.toLowerCase().includes(searchPattern) ? "bold" : "normal");
+          highlightSearch(searchTerm);
         }
+      };
+
+      // Create RuleNodesGroup instance
+      const ruleNodes = new RuleNodesGroup({
+        containerGroup,
+        nodes,
+        simulation,
+        highlightConnections,
+        highlightSearch,
+        searchTerm,
       });
 
-      link.each(function (d: any) {
-        if (!ruleFilters.isLinkVisible(d, visibleNodes, showDraftRules)) {
-          d3.select(this).remove();
-        }
-      });
-    };
+      // Initial search highlight
+      handleSearch();
 
-    // Add event listener for search term changes
-    const handleSearch = () => {
-      if (embeddedCategory) {
-        filteredOnly(searchTerm);
-      } else {
+      // On click set selected node
+      ruleNodes.getSelection().on("click", (event, d: any) => {
+        event.stopPropagation();
+        highlightConnections(d.id);
+      });
+
+      // Reset on background click - modify these handlers
+      svg.on("click", () => {
+        ruleNodes.hideDescriptionBox();
+
+        // Reset link styles to base rendering
+        link.attr("stroke", "#999").attr("stroke-opacity", 0.6).attr("stroke-width", "1");
+
         highlightSearch(searchTerm);
-      }
-    };
+      });
 
-    // Create RuleNodesGroup instance
-    const ruleNodes = new RuleNodesGroup({
-      containerGroup,
-      nodes,
-      simulation,
-      highlightConnections,
-      highlightSearch,
-      searchTerm,
-    });
+      // Update positions on simulation tick
+      simulation.on("tick", () => {
+        link
+          .attr("x1", (d) => (d.source as any).x)
+          .attr("y1", (d) => (d.source as any).y)
+          .attr("x2", (d) => (d.target as any).x)
+          .attr("y2", (d) => (d.target as any).y);
 
-    // Initial search highlight
-    handleSearch();
+        ruleNodes.updatePositions();
+      });
 
-    // On click set selected node
-    ruleNodes.getSelection().on("click", (event, d: any) => {
-      event.stopPropagation();
-      highlightConnections(d.id);
-    });
-
-    // Reset on background click - modify these handlers
-    svg.on("click", () => {
-      ruleNodes.hideDescriptionBox();
-
-      // Reset link styles to base rendering
-      link.attr("stroke", "#999").attr("stroke-opacity", 0.6).attr("stroke-width", "1");
-
-      highlightSearch(searchTerm);
-    });
-
-    // Update positions on simulation tick
-    simulation.on("tick", () => {
-      link
-        .attr("x1", (d) => (d.source as any).x)
-        .attr("y1", (d) => (d.source as any).y)
-        .attr("x2", (d) => (d.target as any).x)
-        .attr("y2", (d) => (d.target as any).y);
-
-      ruleNodes.updatePositions();
-    });
-
-    return () => {
-      simulation.stop();
-    };
-  }, [rules, dimensions, searchTerm, categoryFilter, showDraftRules]);
+      return () => {
+        simulation.stop();
+      };
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rules, dimensions, searchTerm, categoryFilter, showDraftRules]
+  );
 };

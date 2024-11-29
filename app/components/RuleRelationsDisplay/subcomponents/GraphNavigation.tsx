@@ -1,11 +1,11 @@
 import * as d3 from "d3";
 
+// Zoom and Pan controls for graph navigation
 export const GraphNavigation = (
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
   g: d3.Selection<SVGGElement, unknown, null, undefined>,
   zoom: d3.ZoomBehavior<Element, unknown>
 ) => {
-  // Add zoom controls
   const controls = svg
     .append("g")
     .attr("transform", `translate(10, ${svg.node()?.getBoundingClientRect().height! - 60})`);
@@ -57,7 +57,7 @@ export const GraphNavigation = (
         .call(zoom.scaleBy as any, 0.7);
     });
 
-  // Add keyboard navigation
+  // Keyboard navigation
   svg.on("keydown", (event) => {
     switch (event.key) {
       case "ArrowUp":
