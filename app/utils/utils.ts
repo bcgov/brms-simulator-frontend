@@ -99,12 +99,19 @@ export const getFieldValidation = (validationCriteria: string, validationType: s
     case "[num]": // Number within range (inclusive)
     case "(date)": // Date within range (exclusive)
     case "[date]": // Date within range (inclusive)
-      const range = validationCriteria.replace(/[\[\]\(\)]/g, "").split(",");
-      if (range.length === 2) {
+      const [minRaw, maxRaw] = validationCriteria
+        .replace(/[\[\]\(\)]/g, "")
+        .split(",")
+        .map((s) => s.trim());
+      const parseValue = (value: string) => (value === "today" ? new Date() : value);
+      const min = parseValue(minRaw);
+      const max = parseValue(maxRaw);
+
+      if (minRaw && maxRaw) {
         validationRules["range"] = {
-          min: dataType === "number-input" ? Number(range[0].trim()) : dayjs(range[0].trim()),
-          max: dataType === "number-input" ? Number(range[1].trim()) : dayjs(range[1].trim()),
-          inclusive: validationType.startsWith("["), // true for inclusive ranges
+          min: dataType === "number-input" ? Number(min) : dayjs(min),
+          max: dataType === "number-input" ? Number(max) : dayjs(max),
+          inclusive: validationType.startsWith("["),
         };
       }
       break;
