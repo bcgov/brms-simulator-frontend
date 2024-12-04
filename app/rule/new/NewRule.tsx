@@ -8,6 +8,8 @@ import RuleManager from "../../components/RuleManager";
 import { RULE_VERSION } from "@/app/constants/ruleVersion";
 import { postRuleData } from "@/app/utils/api";
 import { logError } from "@/app/utils/logger";
+import { getVersionColor } from "@/app/utils/utils";
+import styles from "@/app/rule/rule.module.css";
 
 export default function NewRule() {
   const [openNewRuleModal, setOpenNewRuleModal] = useState(false);
@@ -33,6 +35,8 @@ export default function NewRule() {
       message.error("Unable to create new draft");
     }
   };
+
+  const versionColor = getVersionColor(RULE_VERSION.draft.toString());
 
   return (
     <>
@@ -72,8 +76,14 @@ export default function NewRule() {
           </Form.Item>
         </Form>
       </Modal>
-      <RuleHeader ruleInfo={ruleInfo} version={RULE_VERSION.draft} />
-      {ruleInfo.filepath && <RuleManager ruleInfo={ruleInfo} initialRuleContent={DEFAULT_RULE_CONTENT} editing />}
+      <div className={styles.rootLayout} style={{ background: versionColor }}>
+        <div className={styles.rulesWrapper}>
+          <RuleHeader ruleInfo={ruleInfo} />
+          {ruleInfo.filepath && (
+            <RuleManager ruleInfo={ruleInfo} initialRuleContent={DEFAULT_RULE_CONTENT} editing={RULE_VERSION.draft} />
+          )}
+        </div>
+      </div>
     </>
   );
 }

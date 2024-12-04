@@ -7,6 +7,8 @@ This app is a tool for authoring and testing/simulating rules for SDPR's Busines
 
 This project current depends on the API provided by the [brm-backend](https://github.com/bcgov/brm-backend) project. You'll have to set an environment variable of `NEXT_PUBLIC_SERVER_URL` pointing to the URL of that when it is up and running (like `http://localhost:3000`).
 
+This project also depends on the API provided by the [klamm](https://github.com/bcgov/klamm) project. You'll have to set an environment variable of `NEXT_PUBLIC_KLAMM_URL` pointing to the url and endpoint for the business rules set of information (like `http://localhost/bre`).
+
 ## Getting it running
 
 Install dependencies:

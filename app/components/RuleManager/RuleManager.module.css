@@ -1,4 +1,35 @@
 .rulesWrapper {
+  position: relative;
   min-height: 500px;
+  z-index: 1;
+}
+
+.rulesWrapper::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100vw - 15px);
+  height: 103%;
+  background: transparent;
+  background: linear-gradient(
+    to bottom, 
+    var(--version-color) 0%,
+    transparent 170%
+  );
+  z-index: -1;
+  opacity: 0.1;
+}
+
+.rulesGraph {
   border: 1px solid #d9d9d9;
 }
+
+.actionBar {
+  padding: 15px;
+}
+
+.rootLayout {
+  padding: 0;
+}
+
