@@ -11,21 +11,16 @@ export interface RuleGraphProps {
   embeddedCategory?: string;
   width?: number;
   height?: number;
+  filter?: string;
 }
 
-export default function RuleRelationsGraph({
-  rules,
-  categories,
-  embeddedCategory,
-  width = 1000,
-  height = 1000,
-}: RuleGraphProps) {
+export default function RuleRelationsGraph({ rules, categories, width = 1000, height = 1000, filter }: RuleGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width, height });
   const [searchTerm, setSearchTerm] = useState("");
   const [isLegendMinimized, setIsLegendMinimized] = useState(false);
-  const [categoryFilter, setCategoryFilter] = useState<string>(embeddedCategory ?? "");
+  const [categoryFilter, setCategoryFilter] = useState(filter || "");
   const [showDraftRules, setShowDraftRules] = useState(true);
 
   // Checks for resizing of the container
@@ -41,6 +36,12 @@ export default function RuleRelationsGraph({
     return () => resizeObserver.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (filter) {
+      setCategoryFilter(filter);
+    }
+  }, [filter]);
+
   useRuleGraph({
     rules,
     svgRef,
@@ -48,7 +49,6 @@ export default function RuleRelationsGraph({
     searchTerm,
     categoryFilter,
     showDraftRules,
-    embeddedCategory,
   });
 
   const handleSearchChange = (value: string) => {
@@ -80,7 +80,7 @@ export default function RuleRelationsGraph({
         showDraftRules={showDraftRules}
         isLegendMinimized={isLegendMinimized}
         categories={categories}
-        embeddedCategory={embeddedCategory}
+        embeddedCategory={filter}
         onSearchChange={handleSearchChange}
         onCategoryChange={handleCategoryChange}
         onShowDraftRulesChange={handleShowDraftRulesChange}

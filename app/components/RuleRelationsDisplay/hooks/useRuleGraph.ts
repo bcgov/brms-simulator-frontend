@@ -13,7 +13,6 @@ interface UseRuleGraphProps {
   searchTerm: string;
   categoryFilter: string;
   showDraftRules: boolean;
-  embeddedCategory?: string;
 }
 
 export const useRuleGraph = ({
@@ -23,7 +22,6 @@ export const useRuleGraph = ({
   searchTerm,
   categoryFilter,
   showDraftRules,
-  embeddedCategory,
 }: UseRuleGraphProps) => {
   useEffect(
     () => {
@@ -162,7 +160,6 @@ export const useRuleGraph = ({
             return "#69b3a2";
           });
 
-        // Update labels
         ruleNodes
           .getSelection()
           .selectAll("text")
@@ -170,7 +167,6 @@ export const useRuleGraph = ({
             d.id === nodeId || ancestors.has(d.id) || descendants.has(d.id) ? "bold" : "normal"
           );
 
-        // Update links
         link
           .attr("stroke", (line: any) => {
             if (ancestorLinks.includes(line)) return "#4169e1";
@@ -184,7 +180,6 @@ export const useRuleGraph = ({
             ancestorLinks.includes(line) || descendantLinks.includes(line) ? "2" : "1"
           );
 
-        // Update opacity
         ruleNodes
           .getSelection()
           .style("opacity", (d: any) => (d.id === nodeId || ancestors.has(d.id) || descendants.has(d.id) ? 1 : 0.3));
@@ -197,61 +192,33 @@ export const useRuleGraph = ({
         ruleNodes.getSelection().each(function (d: any) {
           const node = d3.select(this);
           const nodeIsVisible = isNodeVisible(d, searchPattern, visibleNodes, showDraftRules);
+          const isDraftVisible = showDraftRules || d.isPublished;
 
-          if (showDraftRules || d.isPublished) {
+          // Handle draft visibility with display
+          node.style("display", isDraftVisible ? "" : "none");
+
+          // Handle search/filter visibility with opacity
+          if (isDraftVisible) {
             node.select("circle").attr("fill", d.name.toLowerCase().includes(searchPattern) ? "#ff7f50" : "#69b3a2");
             node.select("text").style("font-weight", d.name.toLowerCase().includes(searchPattern) ? "bold" : "normal");
             node.style("opacity", nodeIsVisible ? 1 : 0.2);
           }
         });
 
-        link
-          .style("display", (l: any) => {
-            return isLinkVisible(l, visibleNodes, showDraftRules) ? null : "none";
-          })
-          .style("opacity", (l: any) => {
-            return isLinkVisible(l, visibleNodes, showDraftRules) ? 0.6 : 0.1;
-          });
-      };
-
-      const filteredOnly = (term: string) => {
-        const searchPattern = term.toLowerCase();
-        const visibleNodes = getNodesForCategory(nodes, links, categoryFilter, showDraftRules);
-
-        ruleNodes.getSelection().each(function (d: any) {
-          const nodeIsVisible = isNodeVisible(d, searchPattern, visibleNodes, showDraftRules);
-
-          if (!nodeIsVisible) {
-            d3.select(this).remove();
-          } else {
-            d3.select(this)
-              .selectAll("circle")
-              .attr("fill", d.name.toLowerCase().includes(searchPattern) ? "#ff7f50" : "#69b3a2");
-
-            d3.select(this)
-              .selectAll("text")
-              .style("font-weight", d.name.toLowerCase().includes(searchPattern) ? "bold" : "normal");
-          }
-        });
-
         link.each(function (d: any) {
-          if (!isLinkVisible(d, visibleNodes, showDraftRules)) {
-            d3.select(this).remove();
-          }
+          const linkElement = d3.select(this);
+          const isVisible = isLinkVisible(d, visibleNodes, showDraftRules);
+
+          linkElement.style("display", isVisible ? "" : "none").style("opacity", 0.6);
         });
       };
 
-      // Add event listener for search term changes
       const handleSearch = () => {
-        if (embeddedCategory) {
-          filteredOnly(searchTerm);
-        } else {
-          highlightSearch(searchTerm);
-        }
+        highlightSearch(searchTerm);
       };
 
-      // Create RuleNodesGroup instance
-      const ruleNodes = new RuleNodesGroup({
+      // Create RuleNodesGroup with filtered nodes
+      const ruleNodes = RuleNodesGroup({
         containerGroup,
         nodes,
         simulation,
@@ -263,13 +230,7 @@ export const useRuleGraph = ({
       // Initial search highlight
       handleSearch();
 
-      // On click set selected node
-      ruleNodes.getSelection().on("click", (event, d: any) => {
-        event.stopPropagation();
-        highlightConnections(d.id);
-      });
-
-      // Reset on background click - modify these handlers
+      // Reset on background click
       svg.on("click", () => {
         ruleNodes.hideDescriptionBox();
 
