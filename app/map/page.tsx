@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { Button, Flex } from "antd";
 import { HomeOutlined, ReloadOutlined } from "@ant-design/icons";
 import { logError } from "@/app/utils/logger";
