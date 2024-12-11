@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, RefObject } from "react";
 import { CategoryObject } from "@/app/types/ruleInfo";
 import { RuleMapRule } from "@/app/types/rulemap";
 import styles from "@/app/components/RuleRelationsDisplay/RuleRelationsDisplay.module.css";
 import { RuleGraphControls } from "./subcomponents/RuleGraphControls";
 import { useRuleGraph } from "./hooks/useRuleGraph";
+import { DescriptionManager } from "./subcomponents/DescriptionManager";
+import { RuleModalProvider } from "./contexts/RuleModalContext";
 
 export interface RuleGraphProps {
   rules: RuleMapRule[];
@@ -12,6 +14,28 @@ export interface RuleGraphProps {
   width?: number;
   height?: number;
   filter?: string;
+}
+
+export interface GraphContentProps {
+  rules: RuleMapRule[];
+  svgRef: RefObject<SVGSVGElement>;
+  dimensions: { width: number; height: number };
+  searchTerm: string;
+  categoryFilter: string;
+  showDraftRules: boolean;
+}
+
+function GraphContent({ rules, svgRef, dimensions, searchTerm, categoryFilter, showDraftRules }: GraphContentProps) {
+  useRuleGraph({
+    rules,
+    svgRef,
+    dimensions,
+    searchTerm,
+    categoryFilter,
+    showDraftRules,
+  });
+
+  return <svg ref={svgRef} className={styles.svg} />;
 }
 
 export default function RuleRelationsGraph({ rules, categories, width = 1000, height = 1000, filter }: RuleGraphProps) {
@@ -42,15 +66,6 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
     }
   }, [filter]);
 
-  useRuleGraph({
-    rules,
-    svgRef,
-    dimensions,
-    searchTerm,
-    categoryFilter,
-    showDraftRules,
-  });
-
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
   };
@@ -74,20 +89,30 @@ export default function RuleRelationsGraph({ rules, categories, width = 1000, he
 
   return (
     <div ref={containerRef} className={styles.container}>
-      <RuleGraphControls
-        searchTerm={searchTerm}
-        categoryFilter={categoryFilter}
-        showDraftRules={showDraftRules}
-        isLegendMinimized={isLegendMinimized}
-        categories={categories}
-        embeddedCategory={filter}
-        onSearchChange={handleSearchChange}
-        onCategoryChange={handleCategoryChange}
-        onShowDraftRulesChange={handleShowDraftRulesChange}
-        onLegendToggle={handleLegendToggle}
-        onClearFilters={handleClearFilters}
-      />
-      <svg ref={svgRef} className={styles.svg} />
+      <RuleModalProvider>
+        <RuleGraphControls
+          searchTerm={searchTerm}
+          categoryFilter={categoryFilter}
+          showDraftRules={showDraftRules}
+          isLegendMinimized={isLegendMinimized}
+          categories={categories}
+          embeddedCategory={filter}
+          onSearchChange={handleSearchChange}
+          onCategoryChange={handleCategoryChange}
+          onShowDraftRulesChange={handleShowDraftRulesChange}
+          onLegendToggle={handleLegendToggle}
+          onClearFilters={handleClearFilters}
+        />
+        <GraphContent
+          rules={rules}
+          svgRef={svgRef}
+          dimensions={dimensions}
+          searchTerm={searchTerm}
+          categoryFilter={categoryFilter}
+          showDraftRules={showDraftRules}
+        />
+        <DescriptionManager />
+      </RuleModalProvider>
     </div>
   );
 }

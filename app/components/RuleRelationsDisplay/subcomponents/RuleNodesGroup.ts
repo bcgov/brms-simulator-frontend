@@ -1,6 +1,5 @@
 import * as d3 from "d3";
 import { RuleNode } from "@/app/types/rulemap";
-import { RuleDescriptionBox } from "./RuleDescriptionBox";
 
 type RuleNodesGroupProps = {
   containerGroup: d3.Selection<any, any, any, any>;
@@ -9,9 +8,10 @@ type RuleNodesGroupProps = {
   highlightConnections: (nodeId: number | null) => void;
   highlightSearch: (term: string) => void;
   searchTerm: string;
+  openModal: (node: RuleNode) => void;
 };
 
-// Creates a group of nodes for the rule graph
+// Creates a group of nodes for the rule graph using d3
 // Each node is a circle with a label, connected to other nodes via links
 // Nodes are draggable, and clickable
 export const RuleNodesGroup = ({
@@ -21,6 +21,7 @@ export const RuleNodesGroup = ({
   highlightConnections,
   highlightSearch,
   searchTerm,
+  openModal,
 }: RuleNodesGroupProps) => {
   const dragstarted = (event: any) => {
     if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -80,10 +81,6 @@ export const RuleNodesGroup = ({
   };
 
   const nodeGroup = createNodeGroup();
-  const descriptionBox = new RuleDescriptionBox({
-    containerGroup,
-    nodeGroup,
-  });
 
   // Add event listeners for interacting with nodes
   nodeGroup
@@ -107,28 +104,32 @@ export const RuleNodesGroup = ({
   });
 
   nodeGroup.selectAll("text").on("click", (event: MouseEvent, d: any) => {
+    const node = d as RuleNode;
     event.stopPropagation();
-    descriptionBox.show(d);
-    highlightConnections(d.id);
+    event.preventDefault();
+    highlightConnections(node.id);
+
+    const svgElement = containerGroup.node()?.ownerSVGElement;
+    if (svgElement) {
+      openModal(node);
+    }
   });
 
   nodeGroup.on("keydown", (event, d: any) => {
     if (event.key === "Escape") {
       event.stopPropagation();
-      descriptionBox.hide();
       highlightSearch(searchTerm);
       return;
     }
 
     if (event.key === "Enter" || event.key === " ") {
+      const node = d as RuleNode;
       event.preventDefault();
-      const isCurrentlyShown = descriptionBox.isVisible();
-
-      if (isCurrentlyShown) {
-        descriptionBox.hide();
-      } else {
-        descriptionBox.show(d);
-        highlightConnections(d.id);
+      event.stopPropagation();
+      highlightConnections(d.id);
+      const svgElement = containerGroup.node()?.ownerSVGElement;
+      if (svgElement) {
+        openModal(node);
       }
     }
   });
@@ -138,8 +139,5 @@ export const RuleNodesGroup = ({
       nodeGroup.attr("transform", (d) => `translate(${d.x},${d.y})`);
     },
     getSelection: () => nodeGroup,
-    hideDescriptionBox: () => {
-      descriptionBox.hide();
-    },
   };
 };

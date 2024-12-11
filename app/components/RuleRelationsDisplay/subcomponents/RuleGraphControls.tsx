@@ -16,7 +16,7 @@ interface RuleGraphControlsProps {
   onClearFilters: () => void;
 }
 
-// Legend and controls for the rule graph
+// Legend and search/filter controls for the rule graph
 export function RuleGraphControls({
   searchTerm,
   categoryFilter,
@@ -36,7 +36,7 @@ export function RuleGraphControls({
       vertical
       aria-label="Graph Controls"
       className={styles.controls}
-      style={{ maxHeight: isLegendMinimized ? (embeddedCategory ? "40px" : "110px") : "500px" }}
+      style={{ maxHeight: isLegendMinimized ? (embeddedCategory ? "40px" : "130px") : "500px" }}
     >
       <Flex gap="small" align="center">
         <Flex gap="small" align="center" wrap>

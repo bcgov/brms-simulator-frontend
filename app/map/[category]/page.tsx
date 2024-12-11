@@ -27,6 +27,8 @@ export default function Map({ params: { category } }: { params: { category: stri
           ...klammRule,
           url: matchingRule ? `${matchingRule._id}` : undefined,
           filepath: matchingRule ? matchingRule.filepath : undefined,
+          reviewBranch: matchingRule?.reviewBranch,
+          isPublished: matchingRule?.isPublished,
         };
       });
 

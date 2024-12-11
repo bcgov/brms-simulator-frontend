@@ -56,28 +56,4 @@ export const GraphNavigation = (
         .duration(750)
         .call(zoom.scaleBy as any, 0.7);
     });
-
-  // Keyboard navigation
-  svg.on("keydown", (event) => {
-    switch (event.key) {
-      case "ArrowUp":
-        svg.transition().call(zoom.translateBy as any, 0, -10);
-        break;
-      case "ArrowDown":
-        svg.transition().call(zoom.translateBy as any, 0, 10);
-        break;
-      case "ArrowLeft":
-        svg.transition().call(zoom.translateBy as any, -10, 0);
-        break;
-      case "ArrowRight":
-        svg.transition().call(zoom.translateBy as any, 10, 0);
-        break;
-      case "+":
-        svg.transition().call(zoom.scaleBy as any, 1.2);
-        break;
-      case "-":
-        svg.transition().call(zoom.scaleBy as any, 0.8);
-        break;
-    }
-  });
 };

@@ -4,72 +4,69 @@ type NodeId = number;
 type GraphLinks = RuleLink[];
 type Direction = "ancestors" | "descendants";
 
-export class GraphTraversal {
-  private links: GraphLinks;
+const getConnectedNodes = (
+  links: GraphLinks,
+  nodeId: NodeId,
+  direction: Direction,
+  visited = new Set<NodeId>()
+): Set<NodeId> => {
+  const connected = new Set<NodeId>();
+  if (visited.has(nodeId)) return connected;
+  visited.add(nodeId);
 
-  constructor(links: GraphLinks) {
-    this.links = links;
-  }
+  links.forEach((link) => {
+    const sourceId = (link.source as any).id;
+    const targetId = (link.target as any).id;
 
-  private getConnectedNodes(nodeId: NodeId, direction: Direction, visited = new Set<NodeId>()): Set<NodeId> {
-    const connected = new Set<NodeId>();
-    if (visited.has(nodeId)) return connected;
-    visited.add(nodeId);
+    const isConnected = direction === "ancestors" ? targetId === nodeId : sourceId === nodeId;
+    const nextNode = direction === "ancestors" ? sourceId : targetId;
 
-    this.links.forEach((link) => {
-      const sourceId = (link.source as any).id;
-      const targetId = (link.target as any).id;
+    if (isConnected) {
+      connected.add(nextNode);
+      const nextConnected = getConnectedNodes(links, nextNode, direction, visited);
+      nextConnected.forEach((id) => connected.add(id));
+    }
+  });
 
-      const isConnected = direction === "ancestors" ? targetId === nodeId : sourceId === nodeId;
+  return connected;
+};
 
-      const nextNode = direction === "ancestors" ? sourceId : targetId;
+const getConnectedLinks = (links: GraphLinks, nodeId: NodeId, direction: Direction): RuleLink[] => {
+  const connected = getConnectedNodes(links, nodeId, direction);
 
-      if (isConnected) {
-        connected.add(nextNode);
-        const nextConnected = this.getConnectedNodes(nextNode, direction, visited);
-        nextConnected.forEach((id) => connected.add(id));
-      }
-    });
+  return links.filter((link) => {
+    const sourceId = (link.source as any).id;
+    const targetId = (link.target as any).id;
 
-    return connected;
-  }
+    if (direction === "ancestors") {
+      return (
+        (connected.has(sourceId) && connected.has(targetId)) ||
+        (connected.has(sourceId) && targetId === nodeId) ||
+        targetId === nodeId
+      );
+    } else {
+      return (
+        (connected.has(sourceId) && connected.has(targetId)) ||
+        (connected.has(targetId) && sourceId === nodeId) ||
+        sourceId === nodeId
+      );
+    }
+  });
+};
 
-  private getConnectedLinks(nodeId: NodeId, direction: Direction): RuleLink[] {
-    const connected = this.getConnectedNodes(nodeId, direction);
+export const useGraphTraversal = (links: GraphLinks) => {
+  const getAllAncestors = (nodeId: NodeId) => getConnectedNodes(links, nodeId, "ancestors");
 
-    return this.links.filter((link) => {
-      const sourceId = (link.source as any).id;
-      const targetId = (link.target as any).id;
+  const getAllDescendants = (nodeId: NodeId) => getConnectedNodes(links, nodeId, "descendants");
 
-      if (direction === "ancestors") {
-        return (
-          (connected.has(sourceId) && connected.has(targetId)) ||
-          (connected.has(sourceId) && targetId === nodeId) ||
-          targetId === nodeId
-        );
-      } else {
-        return (
-          (connected.has(sourceId) && connected.has(targetId)) ||
-          (connected.has(targetId) && sourceId === nodeId) ||
-          sourceId === nodeId
-        );
-      }
-    });
-  }
+  const getAncestorLinks = (nodeId: NodeId) => getConnectedLinks(links, nodeId, "ancestors");
 
-  public getAllAncestors(nodeId: NodeId): Set<NodeId> {
-    return this.getConnectedNodes(nodeId, "ancestors");
-  }
+  const getDescendantLinks = (nodeId: NodeId) => getConnectedLinks(links, nodeId, "descendants");
 
-  public getAllDescendants(nodeId: NodeId): Set<NodeId> {
-    return this.getConnectedNodes(nodeId, "descendants");
-  }
-
-  public getAncestorLinks(nodeId: NodeId): RuleLink[] {
-    return this.getConnectedLinks(nodeId, "ancestors");
-  }
-
-  public getDescendantLinks(nodeId: NodeId): RuleLink[] {
-    return this.getConnectedLinks(nodeId, "descendants");
-  }
-}
+  return {
+    getAllAncestors,
+    getAllDescendants,
+    getAncestorLinks,
+    getDescendantLinks,
+  };
+};

@@ -1,5 +1,5 @@
 import { RuleNode, RuleLink } from "@/app/types/rulemap";
-import { GraphTraversal } from "@/app/utils/graphUtils";
+import { useGraphTraversal } from "@/app/utils/graphUtils";
 
 export interface RuleFiltersProps {
   nodes: RuleNode[];
@@ -19,7 +19,7 @@ export const getNodesForCategory = (
   category: string,
   showDraftRules: boolean
 ): Set<number> => {
-  const graphTraversal = new GraphTraversal(links);
+  const { getAllAncestors, getAllDescendants } = useGraphTraversal(links);
   const matchingNodes = new Set<number>();
 
   nodes.forEach((node) => {
@@ -33,8 +33,8 @@ export const getNodesForCategory = (
     if (node.filepath?.includes(category)) {
       matchingNodes.add(node.id);
 
-      const ancestors = graphTraversal.getAllAncestors(node.id);
-      const descendants = graphTraversal.getAllDescendants(node.id);
+      const ancestors = getAllAncestors(node.id);
+      const descendants = getAllDescendants(node.id);
 
       ancestors.forEach((id) => {
         const ancestorNode = nodes.find((n) => n.id === id);

@@ -1,10 +1,11 @@
 import { useEffect, RefObject } from "react";
 import * as d3 from "d3";
 import { RuleMapRule, RuleNode, RuleLink } from "@/app/types/rulemap";
-import { GraphTraversal } from "@/app/utils/graphUtils";
+import { useGraphTraversal } from "@/app/utils/graphUtils";
 import { getNodesForCategory, isNodeVisible, isLinkVisible } from "../subcomponents/RuleFilters";
 import { GraphNavigation } from "../subcomponents/GraphNavigation";
 import { RuleNodesGroup } from "../subcomponents/RuleNodesGroup";
+import { useRuleModal } from "../contexts/RuleModalContext";
 
 interface UseRuleGraphProps {
   rules: RuleMapRule[];
@@ -23,6 +24,8 @@ export const useRuleGraph = ({
   categoryFilter,
   showDraftRules,
 }: UseRuleGraphProps) => {
+  const { openModal } = useRuleModal();
+
   useEffect(
     () => {
       if (!svgRef.current || !rules.length) return;
@@ -136,7 +139,7 @@ export const useRuleGraph = ({
         .attr("fill", "#999")
         .attr("d", "M0,-5L10,0L0,5");
 
-      const graphTraversal = new GraphTraversal(links);
+      const { getAllAncestors, getDescendantLinks, getAncestorLinks, getAllDescendants } = useGraphTraversal(links);
 
       const highlightConnections = (nodeId: number | null) => {
         if (nodeId === null) {
@@ -145,10 +148,10 @@ export const useRuleGraph = ({
           return;
         }
 
-        const ancestors = graphTraversal.getAllAncestors(nodeId);
-        const descendants = graphTraversal.getAllDescendants(nodeId);
-        const ancestorLinks = graphTraversal.getAncestorLinks(nodeId);
-        const descendantLinks = graphTraversal.getDescendantLinks(nodeId);
+        const ancestors = getAllAncestors(nodeId);
+        const descendants = getAllDescendants(nodeId);
+        const ancestorLinks = getAncestorLinks(nodeId);
+        const descendantLinks = getDescendantLinks(nodeId);
 
         ruleNodes
           .getSelection()
@@ -225,6 +228,7 @@ export const useRuleGraph = ({
         highlightConnections,
         highlightSearch,
         searchTerm,
+        openModal,
       });
 
       // Initial search highlight
@@ -232,12 +236,37 @@ export const useRuleGraph = ({
 
       // Reset on background click
       svg.on("click", () => {
-        ruleNodes.hideDescriptionBox();
-
         // Reset link styles to base rendering
         link.attr("stroke", "#999").attr("stroke-opacity", 0.6).attr("stroke-width", "1");
 
         highlightSearch(searchTerm);
+      });
+
+      svg.on("keydown", (event) => {
+        switch (event.key) {
+          case "Escape":
+            link.attr("stroke", "#999").attr("stroke-opacity", 0.6).attr("stroke-width", "1");
+            highlightSearch(searchTerm);
+            break;
+          case "ArrowUp":
+            svg.transition().call(zoom.translateBy as any, 0, -30);
+            break;
+          case "ArrowDown":
+            svg.transition().call(zoom.translateBy as any, 0, 30);
+            break;
+          case "ArrowLeft":
+            svg.transition().call(zoom.translateBy as any, -30, 0);
+            break;
+          case "ArrowRight":
+            svg.transition().call(zoom.translateBy as any, 30, 0);
+            break;
+          case "+":
+            svg.transition().call(zoom.scaleBy as any, 1.2);
+            break;
+          case "-":
+            svg.transition().call(zoom.scaleBy as any, 0.8);
+            break;
+        }
       });
 
       // Update positions on simulation tick
