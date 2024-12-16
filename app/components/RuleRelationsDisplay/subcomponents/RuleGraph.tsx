@@ -1,4 +1,4 @@
-import { useEffect, RefObject, useRef } from "react";
+import { useEffect, RefObject, useRef, useContext } from "react";
 import * as d3 from "d3";
 import { RuleMapRule, RuleNode, RuleLink } from "@/app/types/rulemap";
 import { useGraphTraversal } from "@/app/utils/graphUtils";
@@ -6,30 +6,28 @@ import {
   getNodesForCategory,
   isNodeVisible,
   isLinkVisible,
-} from "../components/RuleRelationsDisplay/subcomponents/RuleFilters";
-import { GraphNavigation } from "../components/RuleRelationsDisplay/subcomponents/GraphNavigation";
-import { RuleNodesGroup } from "../components/RuleRelationsDisplay/subcomponents/RuleNodesGroup";
-import { useRuleModal } from "../contexts/RuleModalContext";
+} from "@/app/components/RuleRelationsDisplay/subcomponents/RuleFilters";
+import { GraphNavigation } from "@/app/components/RuleRelationsDisplay/subcomponents/GraphNavigation";
+import { RuleNodesGroup } from "@/app/components/RuleRelationsDisplay/subcomponents/RuleNodesGroup";
+import { RuleModalContext } from "@/app/components/RuleRelationsDisplay/RuleRelationsDisplay";
+import styles from "@/app/components/RuleRelationsDisplay/RuleRelationsDisplay.module.css";
 
-interface UseRuleGraphProps {
+interface RuleGraphProps {
   rules: RuleMapRule[];
   svgRef: RefObject<SVGSVGElement>;
   dimensions: { width: number; height: number };
   searchTerm: string;
-  categoryFilter: string | undefined;
+  categoryFilter?: string | string[];
   showDraftRules: boolean;
 }
 
 // Manages the rule graph visualization using D3.js
-export const useRuleGraph = ({
-  rules,
-  svgRef,
-  dimensions,
-  searchTerm,
-  categoryFilter,
-  showDraftRules,
-}: UseRuleGraphProps) => {
-  const { openModal } = useRuleModal();
+const useRuleGraph = ({ rules, svgRef, dimensions, searchTerm, categoryFilter, showDraftRules }: RuleGraphProps) => {
+  const context = useContext(RuleModalContext);
+  if (!context) {
+    throw new Error("RuleGraph must be used within a RuleModalContext Provider");
+  }
+  const { openModal } = context;
 
   const graphFunctionsRef = useRef<{
     getAllParentRules: (id: number) => Set<number>;
@@ -115,8 +113,32 @@ export const useRuleGraph = ({
       // eslint-disable-next-line react-hooks/rules-of-hooks
       graphFunctionsRef.current = useGraphTraversal(links);
 
-      // Create simulation with base forces and constraints
-      // Forces and constraints can be modified to adjust graph layout
+      // Calculate total children for each node to weigh the layout
+      // More children/grandchildren = higher y position
+      const getChildCount = (nodeId: number, visited = new Set<number>()): number => {
+        if (visited.has(nodeId)) return 0;
+        visited.add(nodeId);
+
+        const directChildren = links
+          .filter((link) => link.source === nodeId)
+          .map((link) => (link.target as any).id || link.target);
+
+        let count = directChildren.length;
+        directChildren.forEach((childId) => {
+          count += getChildCount(childId, visited);
+        });
+
+        return count;
+      };
+
+      // Calculate and store Child counts for all nodes
+      const childrenCount = new Map<number, number>();
+      nodes.forEach((node) => {
+        childrenCount.set(node.id, getChildCount(node.id));
+      });
+
+      // Get the maximum children count for scaling
+      const maxChildren = Math.max(...Array.from(childrenCount.values()));
       const simulation = d3
         .forceSimulation(nodes)
         .force(
@@ -124,13 +146,22 @@ export const useRuleGraph = ({
           d3
             .forceLink(links)
             .id((d: any) => d.id)
-            .distance(150)
+            .distance(200)
             .strength(0.5)
         )
-        .force("charge", d3.forceManyBody().strength(-500).distanceMax(500))
-        .force("x", d3.forceX().strength(0.03))
-        .force("y", d3.forceY().strength(0.03))
-        .force("collision", d3.forceCollide().radius(60));
+        .force("charge", d3.forceManyBody().strength(-800).distanceMax(600))
+        .force("x", d3.forceX().strength(0.05))
+        .force(
+          "y",
+          d3
+            .forceY()
+            .y((d: any) => {
+              const children = childrenCount.get(d.id) || 0;
+              return -300 + 600 * (1 - children / maxChildren);
+            })
+            .strength(0.2)
+        )
+        .force("collision", d3.forceCollide().radius(80));
 
       // Draw links
       const link = containerGroup
@@ -150,11 +181,12 @@ export const useRuleGraph = ({
         .attr("viewBox", "0 -5 10 10")
         .attr("refX", 15)
         .attr("refY", 0)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
+        .attr("markerWidth", 8)
+        .attr("markerHeight", 8)
         .attr("orient", "auto")
         .append("path")
         .attr("fill", "#999")
+        .attr("stroke-width", 1)
         .attr("d", "M0,-5L10,0L0,5");
 
       // Highlights parent and child rules, and links between them when a node is selected
@@ -322,3 +354,17 @@ export const useRuleGraph = ({
     [rules, dimensions, searchTerm, categoryFilter, showDraftRules]
   );
 };
+
+// GraphContent component that renders the SVG element as a functional component
+export function RuleGraph({ rules, svgRef, dimensions, searchTerm, categoryFilter, showDraftRules }: RuleGraphProps) {
+  useRuleGraph({
+    rules,
+    svgRef,
+    dimensions,
+    searchTerm,
+    categoryFilter,
+    showDraftRules,
+  });
+
+  return <svg ref={svgRef} className={styles.svg} />;
+}

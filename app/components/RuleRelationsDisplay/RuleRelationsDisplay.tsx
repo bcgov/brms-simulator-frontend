@@ -1,46 +1,30 @@
-import { useEffect, useRef, useState, RefObject } from "react";
+import { useEffect, useRef, useState, RefObject, createContext } from "react";
 import { CategoryObject } from "@/app/types/ruleInfo";
-import { RuleMapRule } from "@/app/types/rulemap";
-import styles from "@/app/components/RuleRelationsDisplay/RuleRelationsDisplay.module.css";
+import { RuleMapRule, RuleNode } from "@/app/types/rulemap";
+import styles from "./RuleRelationsDisplay.module.css";
 import { RuleGraphControls } from "./subcomponents/RuleGraphControls";
-import { useRuleGraph } from "../../hooks/useRuleGraph";
 import { DescriptionManager } from "./subcomponents/DescriptionManager";
-import { RuleModalProvider } from "../../contexts/RuleModalContext";
+import { RuleGraph } from "./subcomponents/RuleGraph";
+
+interface RuleModalContextType {
+  selectedRule: RuleNode | null;
+  openModal: (rule: RuleNode) => void;
+  closeModal: () => void;
+}
+
+export const RuleModalContext = createContext<RuleModalContextType | null>(null);
 
 export interface RuleGraphProps {
   rules: RuleMapRule[];
   categories: CategoryObject[];
+  searchTerm?: string;
+  setSearchTerm?: (value: string) => void;
   embeddedCategory?: string;
   width?: number;
   height?: number;
-  filter?: string;
+  filter?: string | string[];
   location?: Location;
   basicLegend?: boolean;
-}
-
-export interface GraphContentProps {
-  rules: RuleMapRule[];
-  svgRef: RefObject<SVGSVGElement>;
-  dimensions: { width: number; height: number };
-  searchTerm: string;
-  categoryFilter: string | undefined;
-  showDraftRules: boolean;
-}
-
-// Renders the actual SVG graph visualization using D3.js
-// Separated from the main component for better readability
-// and to utilize the modal context provider
-function GraphContent({ rules, svgRef, dimensions, searchTerm, categoryFilter, showDraftRules }: GraphContentProps) {
-  useRuleGraph({
-    rules,
-    svgRef,
-    dimensions,
-    searchTerm,
-    categoryFilter,
-    showDraftRules,
-  });
-
-  return <svg ref={svgRef} className={styles.svg} />;
 }
 
 /**
@@ -50,6 +34,8 @@ function GraphContent({ rules, svgRef, dimensions, searchTerm, categoryFilter, s
 export default function RuleRelationsGraph({
   rules,
   categories,
+  searchTerm = "",
+  setSearchTerm,
   width = 1000,
   height = 1000,
   filter,
@@ -59,10 +45,16 @@ export default function RuleRelationsGraph({
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width, height });
-  const [searchTerm, setSearchTerm] = useState("");
   const [isLegendMinimized, setIsLegendMinimized] = useState(true);
-  const [categoryFilter, setCategoryFilter] = useState(filter || undefined);
+  const [categoryFilter, setCategoryFilter] = useState(filter && filter?.length > 0 ? filter : undefined);
   const [showDraftRules, setShowDraftRules] = useState(true);
+  const [selectedRule, setSelectedRule] = useState<RuleNode | null>(null);
+
+  const modalContext: RuleModalContextType = {
+    selectedRule,
+    openModal: (rule: RuleNode) => setSelectedRule(rule),
+    closeModal: () => setSelectedRule(null),
+  };
 
   /**
    * Sets up a ResizeObserver to handle responsive sizing
@@ -81,16 +73,16 @@ export default function RuleRelationsGraph({
   }, []);
 
   useEffect(() => {
-    if (filter) {
+    if (filter && filter?.length > 0) {
       setCategoryFilter(filter);
     }
   }, [filter]);
 
   const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
+    setSearchTerm && setSearchTerm(value);
   };
 
-  const handleCategoryChange = (value: string) => {
+  const handleCategoryChange = (value: string | string[]) => {
     setCategoryFilter(value);
   };
 
@@ -103,13 +95,13 @@ export default function RuleRelationsGraph({
   };
 
   const handleClearFilters = () => {
-    setSearchTerm("");
+    setSearchTerm && setSearchTerm("");
     setCategoryFilter("");
   };
 
   return (
     <div ref={containerRef} className={styles.container}>
-      <RuleModalProvider>
+      <RuleModalContext.Provider value={modalContext}>
         <RuleGraphControls
           searchTerm={searchTerm}
           categoryFilter={categoryFilter}
@@ -125,7 +117,7 @@ export default function RuleRelationsGraph({
           location={location}
           basicLegend={basicLegend}
         />
-        <GraphContent
+        <RuleGraph
           rules={rules}
           svgRef={svgRef}
           dimensions={dimensions}
@@ -134,7 +126,7 @@ export default function RuleRelationsGraph({
           showDraftRules={showDraftRules}
         />
         <DescriptionManager />
-      </RuleModalProvider>
+      </RuleModalContext.Provider>
     </div>
   );
 }

@@ -1,12 +1,14 @@
+import { useContext } from "react";
 import { RuleDescription } from "./RuleDescription";
-import { useRuleModal } from "../../../contexts/RuleModalContext";
 import Modal from "antd/es/modal/Modal";
+import { RuleModalContext } from "../RuleRelationsDisplay";
 
 // Manages the display of the rule description modal
 export function DescriptionManager() {
-  const { selectedRule, closeModal } = useRuleModal();
+  const context = useContext(RuleModalContext);
+  if (!context || !context.selectedRule) return null;
 
-  if (!selectedRule) return null;
+  const { selectedRule, closeModal } = context;
 
   return (
     <Modal

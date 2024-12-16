@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Button, Drawer, Flex, Tooltip, message } from "antd";
 import { GlobalOutlined, CopyOutlined } from "@ant-design/icons";
-import { getAllRuleData, getBRERules } from "@/app/utils/api";
-import { mapRulesToGraph, filterRulesByFilePath, getRelatedRules, createMaxRuleData } from "@/app/utils/graphUtils";
+import { fetchAndProcessRuleData } from "@/app/utils/graphUtils";
 import { logError } from "@/app/utils/logger";
 import RuleRelationsDisplay from "../RuleRelationsDisplay/RuleRelationsDisplay";
+import { CategoryObject } from "@/app/types/ruleInfo";
 
 interface RuleMapHelperProps {
   filePath: string;
@@ -14,25 +14,15 @@ export default function RuleMapHelper({ filePath }: RuleMapHelperProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [klammRules, setKlammRules] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryObject[]>([]);
   const ruleName = filePath.split("/").pop() || filePath;
 
   const getOrRefreshRuleList = async () => {
     setIsLoading(true);
     try {
-      const maxRuleData = await getAllRuleData({
-        page: 1,
-        pageSize: 5000,
-        searchTerm: "",
-      });
-      const klammRuleData = await getBRERules();
-
-      const mappedKlammRules = mapRulesToGraph(klammRuleData, createMaxRuleData(maxRuleData));
-      const currentRule = filterRulesByFilePath(mappedKlammRules, filePath);
-      const finalFilteredRules = currentRule ? getRelatedRules(mappedKlammRules, [currentRule], true) : [];
-
-      setKlammRules(finalFilteredRules);
-      setCategories(maxRuleData?.categories || []);
+      const { rules, categories } = await fetchAndProcessRuleData(filePath);
+      setKlammRules(rules);
+      setCategories(categories);
     } catch (error: any) {
       logError(error.message);
     } finally {

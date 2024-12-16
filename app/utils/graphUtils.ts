@@ -1,4 +1,5 @@
 import { RuleLink, RuleMapRule, MaxRuleQuery } from "@/app/types/rulemap";
+import { getAllRuleData, getBRERules } from "./api";
 import { KlammRule } from "../types/klamm";
 
 // Direction for traversing the rule hierarchy
@@ -116,7 +117,7 @@ export const useGraphTraversal = (links: RuleLink[]) => ({
  * - pageSize: Number of items per page
  */
 export const createMaxRuleData = (apiResponse: any): MaxRuleQuery => ({
-  data: apiResponse.data || [],
+  rules: apiResponse.data || [],
   categories: apiResponse.categories || [],
   total: apiResponse.total,
   page: apiResponse.page,
@@ -134,7 +135,7 @@ export const createMaxRuleData = (apiResponse: any): MaxRuleQuery => ({
 export const mapRulesToGraph = (klammRuleData: KlammRule[], maxRuleData: MaxRuleQuery) => {
   const sanitizedMaxRuleData = {
     ...maxRuleData,
-    data: maxRuleData.data.map((rule) => ({
+    data: maxRuleData.rules.map((rule) => ({
       ...rule,
       name: rule.name || "",
     })),
@@ -263,4 +264,106 @@ export const getRelatedRules = (mappedRules: any[], initialRules: any[], include
     }
     return !initialRuleNames.has(rule.name) && relatedRuleNames.has(rule.name);
   });
+};
+
+/**
+ * Fetches all rule data and combines it with Klamm rule data for graph visualization
+ * @returns Object containing filtered rules and categories
+ */
+export const fetchGraphRuleData = async () => {
+  const maxRuleData = await getAllRuleData({
+    page: 1,
+    pageSize: 10000,
+    searchTerm: "",
+  });
+  const klammRuleData = await getBRERules();
+  const mappedKlammRules = mapRulesToGraph(klammRuleData, createMaxRuleData(maxRuleData));
+
+  const additionalUnpublishedRules = maxRuleData.data
+    .filter((rule) => !rule.isPublished && !klammRuleData.some((klammRule) => klammRule.name === rule.name))
+    .map((rule) => ({
+      id: rule._id,
+      name: rule.name,
+      url: `${rule._id}?version=draft`,
+      filepath: rule.filepath,
+      reviewBranch: rule.reviewBranch,
+      isPublished: rule.isPublished,
+    }));
+
+  const combinedGraphRules = [...mappedKlammRules, ...additionalUnpublishedRules];
+
+  return {
+    rules: combinedGraphRules,
+    categories: maxRuleData?.categories || [],
+  };
+};
+
+// Check if the parameter is a file path or custom filter string
+export const isFilePath = (param: string) => param.includes(".json") && !param.includes("embed&");
+export const isCustomFilter = (param: string) => param.includes("embed&");
+export const parseCustomFilter = (filterParam: string) => {
+  const searchParams = new URLSearchParams(filterParam.split("embed&")[1]);
+  return {
+    search: searchParams.get("search") || "",
+    category: searchParams.get("category") || "",
+  };
+};
+
+// Process custom filter strings to filter rules by category and search term
+export const processCustomFilter = (mappedRules: any[], decodedParam: string) => {
+  const { category, search } = parseCustomFilter(decodedParam);
+  let filteredRules = [...mappedRules];
+
+  if (category && search) {
+    const categories = category.split(",");
+    const categoryFiltered = categories.flatMap((cat) => filterRulesByCategory(filteredRules, cat));
+    const relatedCategoryRules = getRelatedRules(mappedRules, categoryFiltered);
+    const expandedCategoryRules = Array.from(new Set([...categoryFiltered, ...relatedCategoryRules]));
+    const searchFiltered = filterRulesBySearchTerm(filteredRules, search);
+    return expandedCategoryRules.filter((rule) => searchFiltered.some((searchRule) => searchRule.id === rule.id));
+  }
+
+  if (category) {
+    const categories = category.split(",");
+    const categoryFiltered = categories.flatMap((cat) => filterRulesByCategory(filteredRules, cat));
+    const relatedCategoryRules = getRelatedRules(mappedRules, categoryFiltered).filter((rule) =>
+      categories.some((cat) => filterRulesByCategory([rule], cat).length > 0)
+    );
+    return Array.from(new Set([...categoryFiltered, ...relatedCategoryRules]));
+  }
+
+  if (search) {
+    return filterRulesBySearchTerm(filteredRules, search);
+  }
+
+  return [];
+};
+
+/**
+ * Fetches and processes rule data based on a filter text string
+ * @param filterText - Filter text string to process
+ * @returns object containing filtered rules, categories, and embed status
+ */
+
+export const fetchAndProcessRuleData = async (filterText: string) => {
+  const { rules, categories } = await fetchGraphRuleData();
+  const decodedParam = decodeURIComponent(filterText);
+  let finalFilteredRules = [];
+  let isEmbedded = false;
+
+  if (isCustomFilter(decodedParam)) {
+    isEmbedded = true;
+    finalFilteredRules = processCustomFilter(rules, decodedParam);
+  } else if (isFilePath(decodedParam)) {
+    const fileRule = filterRulesByFilePath(rules, decodedParam);
+    finalFilteredRules = fileRule ? getRelatedRules(rules, [fileRule], true) : [];
+  } else {
+    finalFilteredRules = filterRulesByCategory(rules, decodedParam);
+    if (finalFilteredRules.length > 0) {
+      const relatedRules = getRelatedRules(rules, finalFilteredRules);
+      finalFilteredRules = Array.from(new Set([...finalFilteredRules, ...relatedRules]));
+    }
+  }
+
+  return { rules: finalFilteredRules, categories, isEmbedded };
 };

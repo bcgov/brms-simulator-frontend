@@ -1,46 +1,54 @@
 import { RuleNode, RuleLink } from "@/app/types/rulemap";
 
-// Returns nodes for a specific category
+// Returns nodes for categories
 // If category is empty, returns all nodes
 // If showDraftRules is false, only returns published nodes
 // Also returns all parent rules and child rules of the matching nodes
 export const getNodesForCategory = (
   nodes: RuleNode[],
-  category: string | undefined,
+  category: string | string[] | undefined,
   showDraftRules: boolean,
   getAllParentRules: (nodeId: number) => Set<number>,
   getAllChildRules: (nodeId: number) => Set<number>
 ): Set<number> => {
   const matchingNodes = new Set<number>();
 
-  nodes.forEach((node) => {
-    if (!showDraftRules && !node.isPublished) return;
+  if (!category) {
+    nodes.forEach((node) => {
+      if (showDraftRules || node.isPublished) {
+        matchingNodes.add(node.id);
+      }
+    });
+    return matchingNodes;
+  }
 
-    if (!category) {
-      matchingNodes.add(node.id);
-      return;
-    }
+  const categories = Array.isArray(category) ? category : [category];
 
-    if (node.filepath?.includes(category)) {
-      matchingNodes.add(node.id);
+  categories.forEach((cat) => {
+    nodes.forEach((node) => {
+      if (!showDraftRules && !node.isPublished) return;
 
-      const parentRules = getAllParentRules(node.id);
-      const childRules = getAllChildRules(node.id);
+      if (node.filepath?.includes(cat)) {
+        matchingNodes.add(node.id);
 
-      parentRules.forEach((id) => {
-        const parentNode = nodes.find((n) => n.id === id);
-        if (parentNode && (showDraftRules || parentNode.isPublished)) {
-          matchingNodes.add(id);
-        }
-      });
+        const parentRules = getAllParentRules(node.id);
+        const childRules = getAllChildRules(node.id);
 
-      childRules.forEach((id) => {
-        const childNode = nodes.find((n) => n.id === id);
-        if (childNode && (showDraftRules || childNode.isPublished)) {
-          matchingNodes.add(id);
-        }
-      });
-    }
+        parentRules.forEach((id) => {
+          const parentNode = nodes.find((n) => n.id === id);
+          if (parentNode && (showDraftRules || parentNode.isPublished)) {
+            matchingNodes.add(id);
+          }
+        });
+
+        childRules.forEach((id) => {
+          const childNode = nodes.find((n) => n.id === id);
+          if (childNode && (showDraftRules || childNode.isPublished)) {
+            matchingNodes.add(id);
+          }
+        });
+      }
+    });
   });
 
   return matchingNodes;

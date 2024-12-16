@@ -34,7 +34,7 @@ export interface RuleLink extends d3.SimulationLinkDatum<RuleNode> {
 }
 
 export interface MaxRuleQuery {
-  data: RuleInfo[];
+  rules: RuleInfo[];
   categories: any[];
   total?: number;
   page?: number;

@@ -4,13 +4,13 @@ import styles from "../RuleRelationsDisplay.module.css";
 
 interface RuleGraphControlsProps {
   searchTerm: string;
-  categoryFilter: string | undefined;
+  categoryFilter: string | string[] | undefined;
   showDraftRules: boolean;
   isLegendMinimized: boolean;
   categories: CategoryObject[];
-  embeddedCategory?: string;
+  embeddedCategory?: string | string[];
   onSearchChange: (value: string) => void;
-  onCategoryChange: (value: string) => void;
+  onCategoryChange: (value: string | string[]) => void;
   onShowDraftRulesChange: (value: boolean) => void;
   onLegendToggle: () => void;
   onClearFilters: () => void;
@@ -41,7 +41,10 @@ export function RuleGraphControls({
     const params = new URLSearchParams();
 
     if (searchTerm) params.set("search", searchTerm);
-    if (categoryFilter) params.set("category", categoryFilter);
+    if (categoryFilter) {
+      const categoryParam = Array.isArray(categoryFilter) ? categoryFilter.join(",") : categoryFilter;
+      params.set("category", categoryParam);
+    }
 
     const embedUrl = `${baseUrl}${params.toString() ? "&" + params.toString() : ""}`;
 
@@ -70,8 +73,9 @@ export function RuleGraphControls({
                 aria-label="Search rules"
               />
               <Select
+                mode="multiple"
                 value={categoryFilter}
-                onChange={onCategoryChange}
+                onChange={(value: string | string[]) => onCategoryChange(value)}
                 aria-label="Filter by category"
                 placeholder="Filter by category"
                 className={styles.select}
